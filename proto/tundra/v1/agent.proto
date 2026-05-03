@@ -408,4 +408,4 @@ message DeployStarted { string deployment_id = 1; }
 message DeployStage { string stage = 1; }
 message DeployLog { string line = 1; string level = 2; }
 message DeployFinished { string deployment_id = 1; string release_id = 2; uint64 duration_ms = 3; }
-message DeployFailed { string deployment_id = 1; string error = 1; string stage = 2; }
+message DeployFailed { string deployment_id = 1; string error = 2; string stage = 3; }

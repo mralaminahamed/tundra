@@ -10,3 +10,10 @@ publish = false
 [lib]
 name = "tundra_agent_rpc"
 path = "src/lib.rs"
+
+[dependencies]
+tundra-proto = { path = "../tundra-proto" }
+thiserror.workspace = true
+tokio.workspace = true
+tonic.workspace = true
+tracing.workspace = true

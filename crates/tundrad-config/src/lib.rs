@@ -163,8 +163,11 @@ mod tests {
     #[test]
     fn loads_from_env_vars() {
         // Use unique env var names to avoid test pollution
-        std::env::set_var("TUNDRA_DATABASE__URL", "postgres://localhost/tundra_test");
-        std::env::set_var("TUNDRA_VALKEY__URL", "redis://localhost:6379");
+        // SAFETY: test-only, single-threaded context.
+        unsafe {
+            std::env::set_var("TUNDRA_DATABASE__URL", "postgres://localhost/tundra_test");
+            std::env::set_var("TUNDRA_VALKEY__URL", "redis://localhost:6379");
+        }
         let cfg = load_from("/nonexistent.toml").unwrap();
         assert_eq!(cfg.database.url, "postgres://localhost/tundra_test");
         assert_eq!(cfg.valkey.url, "redis://localhost:6379");
