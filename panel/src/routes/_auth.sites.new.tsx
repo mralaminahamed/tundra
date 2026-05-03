@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { CreateSiteResponse, ListResponse, Server } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
+import { SITE_TEMPLATES } from '@/lib/site-templates'
 
 export const Route = createFileRoute('/_auth/sites/new')({
   component: CreateSitePage,
@@ -155,7 +156,7 @@ function CreateSitePage() {
           }
         }}
       >
-        {({ isSubmitting, values }) => (
+        {({ isSubmitting, values, setValues }) => (
           <Form className="flex flex-col gap-5">
             <h2 className="text-lg font-medium">{STEPS[step]}</h2>
 
@@ -171,7 +172,36 @@ function CreateSitePage() {
                     <option value="template">Template</option>
                   </Field>
                 </label>
-                {values.sourceKind !== 'blank' && (
+
+                {values.sourceKind === 'template' && (
+                  <div>
+                    <p className="mb-2 text-sm text-tundra-ink-500">Pick a starter template — fields on the next step will be pre-filled.</p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {SITE_TEMPLATES.map((tmpl) => (
+                        <button
+                          key={tmpl.id}
+                          type="button"
+                          className="rounded-lg border border-tundra-ink-200 p-3 text-left hover:border-tundra-lichen hover:bg-tundra-lichen/5 transition-colors"
+                          onClick={() => {
+                            void setValues((prev) => ({
+                              ...prev,
+                              kind: tmpl.kind,
+                              runtimeVersion: tmpl.runtimeVersion,
+                              buildCommand: tmpl.buildCommand,
+                              startCommand: tmpl.startCommand,
+                              listenPort: tmpl.listenPort,
+                            }))
+                          }}
+                        >
+                          <p className="font-medium text-sm">{tmpl.label}</p>
+                          <p className="text-xs text-tundra-ink-400 mt-0.5">{tmpl.description}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {values.sourceKind !== 'blank' && values.sourceKind !== 'template' && (
                   <label className="flex flex-col gap-1.5 text-sm">
                     Branch
                     <Field name="branch"
