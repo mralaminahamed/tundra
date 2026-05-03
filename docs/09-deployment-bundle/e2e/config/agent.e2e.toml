@@ -1,0 +1,25 @@
+# Tundra e2e compose — tundra-agent configuration
+# Author: Al Amin Ahamed  <github.com/mralaminahamed>
+
+[agent]
+control_plane_url  = "https://tundrad:7447"
+heartbeat_interval = 5
+state_dir          = "/var/lib/tundra-agent/state"
+log_dir            = "/var/lib/tundra-agent/logs"
+
+[identity]
+hostname             = "${HOSTNAME:-agent-1}"
+enrolment_token_path = "/etc/tundra/enrolment.token"
+
+[tls]
+verify_peer            = false
+client_cert_path       = "/var/lib/tundra-agent/credentials/client.pem"
+client_key_path        = "/var/lib/tundra-agent/credentials/client.key"
+
+[providers]
+caddy_config_dir   = "/etc/caddy/sites.d"
+phpfpm_pool_dir    = "/etc/php/8.4/fpm/pool.d"
+sites_root         = "/srv/sites"
+
+[security.test]
+allow_arbitrary_shell_exec = true   # e2e only; relaxed for fixture setup

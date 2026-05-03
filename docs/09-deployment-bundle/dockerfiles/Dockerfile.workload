@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1.7
+# ============================================================================
+#  Tundra — managed-workload image
+#  Represents one "managed server" in the Tundra fleet for compose-based
+#  scenarios. Bundles Caddy + PHP-FPM 8.4 + supervisord + tundra-agent.
+#  Real deployments use a regular Ubuntu/Debian VPS instead; this image
+#  is for local stacks and the e2e test environment.
+#  Author: Al Amin Ahamed  <github.com/mralaminahamed>
+# ============================================================================
+
+ARG DEBIAN_VERSION=trixie
+
+FROM debian:${DEBIAN_VERSION}-slim AS runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y \
+        ca-certificates curl gnupg lsb-release \
+        caddy \
+        php8.4-fpm php8.4-cli php8.4-mbstring php8.4-xml php8.4-curl \
+        php8.4-pgsql php8.4-mysql php8.4-redis php8.4-zip php8.4-intl \
+        supervisor tini procps iproute2 \
+ && rm -rf /var/lib/apt/lists/* \
+ && install -d -m 0755 /srv/sites \
+ && install -d -m 0755 /var/log/tundra-workload
+
+# tundra-agent comes from the dedicated agent image so we don't rebuild
+# the Rust workspace twice. The compose stacks COPY --from on this stage.
+COPY --from=tundra-agent:latest /usr/local/bin/tundra-agent /usr/local/bin/tundra-agent
+COPY --from=tundra-agent:latest /usr/local/bin/tundra        /usr/local/bin/tundra
+
+COPY dockerfiles/workload/supervisord.conf /etc/supervisor/supervisord.conf
+COPY dockerfiles/workload/Caddyfile        /etc/caddy/Caddyfile
+
+EXPOSE 80 443 9550
+
+HEALTHCHECK --interval=15s --timeout=3s --retries=4 \
+  CMD curl -fsS http://127.0.0.1:80/healthz >/dev/null || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

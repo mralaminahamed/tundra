@@ -1,0 +1,208 @@
+# ============================================================================
+#  Tundra — Local development compose stack
+#  -------------------------------------------------------------------------
+#  Source-mounted tundrad with cargo-watch hot reload, Vite dev server with
+#  HMR, Postgres + Valkey + a single workload container. Use this when you
+#  are working on the Tundra codebase itself.
+#
+#  Requirements:
+#    - docker compose v2.30+
+#    - the Tundra source repo checked out at ../../tundra (or set TUNDRA_REPO)
+#    - 8 GB RAM available to Docker; Rust incremental builds eat memory
+#
+#  Quickstart:
+#    cd dev/
+#    cp .env.example .env             # adjust ports if 7400/5432/6379 clash
+#    docker compose up
+#    open http://localhost:5173       # Vite dev server (panel UI, HMR)
+#    open http://localhost:7400/api/v1/healthz
+#
+#  Author: Al Amin Ahamed  <github.com/mralaminahamed>
+# ============================================================================
+
+name: tundra-dev
+
+x-common-env: &common-env
+  RUST_LOG: ${RUST_LOG:-tundrad=debug,tundra_agent=debug,tower_http=info,sqlx=warn}
+  RUST_BACKTRACE: "1"
+  TUNDRAD_PROFILE: development
+
+services:
+
+  # -------------------------------------------------------------------------
+  postgres:
+    image: postgres:18-trixie
+    container_name: tundra-dev-postgres
+    environment:
+      POSTGRES_USER: tundra
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devsecret}
+      POSTGRES_DB: tundra
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements,auto_explain
+      - -c
+      - log_statement=mod
+      - -c
+      - log_min_duration_statement=200
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/postgres-init.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tundra -d tundra"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [tundra]
+
+  # -------------------------------------------------------------------------
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: tundra-dev-valkey
+    command:
+      - valkey-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --maxmemory-policy
+      - allkeys-lru
+    ports:
+      - "${VALKEY_PORT:-6379}:6379"
+    volumes:
+      - valkey-data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [tundra]
+
+  # -------------------------------------------------------------------------
+  # tundrad — control plane, source-mounted, cargo-watch
+  # -------------------------------------------------------------------------
+  tundrad:
+    image: rust:1.95-slim-trixie
+    container_name: tundra-dev-tundrad
+    working_dir: /src
+    user: "0:0"
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://tundra:${POSTGRES_PASSWORD:-devsecret}@postgres:5432/tundra
+      VALKEY_URL: redis://valkey:6379/0
+      TUNDRAD_CONFIG: /src/dev/config/tundrad.dev.toml
+      CARGO_HOME: /cargo
+      CARGO_TARGET_DIR: /target
+    command:
+      - bash
+      - -lc
+      - |
+        set -euo pipefail
+        apt-get update >/dev/null
+        apt-get install -y --no-install-recommends \
+            pkg-config libssl-dev protobuf-compiler ca-certificates >/dev/null
+        cargo install --locked cargo-watch sqlx-cli || true
+        # Apply migrations once on startup
+        sqlx migrate run --source migrations || true
+        # Hot-reload tundrad on any change in crates/ or migrations/
+        exec cargo watch \
+            --why \
+            --watch crates/ \
+            --watch migrations/ \
+            --watch Cargo.toml \
+            --watch Cargo.lock \
+            --shell 'cargo run --bin tundrad -- serve'
+    ports:
+      - "${TUNDRAD_HTTP_PORT:-7400}:7400"
+      - "${TUNDRAD_GRPC_PORT:-7447}:7447"
+    volumes:
+      - ${TUNDRA_REPO:-../../tundra}:/src:cached
+      - cargo-registry:/cargo
+      - cargo-target:/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:7400/api/v1/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      start_period: 90s    # generous: first cargo build is slow
+      retries: 6
+    networks: [tundra]
+
+  # -------------------------------------------------------------------------
+  # panel-ui — Vite dev server with HMR
+  # -------------------------------------------------------------------------
+  panel-ui:
+    image: node:22-bookworm-slim
+    container_name: tundra-dev-panel-ui
+    working_dir: /src/panel
+    environment:
+      VITE_API_BASE: http://localhost:${TUNDRAD_HTTP_PORT:-7400}/api/v1
+      VITE_WS_BASE:  ws://localhost:${TUNDRAD_HTTP_PORT:-7400}/ws/v1
+      CHOKIDAR_USEPOLLING: "1"      # cross-OS source-watch reliability
+    command:
+      - bash
+      - -lc
+      - |
+        set -euo pipefail
+        corepack enable
+        corepack prepare pnpm@9 --activate
+        pnpm install
+        exec pnpm run dev --host 0.0.0.0 --port 5173
+    ports:
+      - "${PANEL_UI_PORT:-5173}:5173"
+    volumes:
+      - ${TUNDRA_REPO:-../../tundra}:/src:cached
+      - panel-node-modules:/src/panel/node_modules
+    depends_on:
+      tundrad:
+        condition: service_started
+    networks: [tundra]
+
+  # -------------------------------------------------------------------------
+  # workload — one "managed server" container, agent enrolled at first boot
+  # -------------------------------------------------------------------------
+  workload:
+    build:
+      context: ../
+      dockerfile: dockerfiles/Dockerfile.workload
+    image: tundra-workload:dev
+    container_name: tundra-dev-workload
+    hostname: workload-1.tundra.local
+    cap_add:
+      - NET_ADMIN          # for nftables operations the agent will perform
+    environment:
+      TUNDRA_AGENT_CONTROL_PLANE_URL: https://tundrad:7447
+      TUNDRA_AGENT_DEV_MODE: "1"
+    volumes:
+      - workload-data:/var/lib/tundra-agent
+      - workload-srv:/srv/sites
+      - ./config/agent.dev.toml:/etc/tundra/agent.toml:ro
+    ports:
+      - "${WORKLOAD_HTTP_PORT:-8080}:80"
+      - "${WORKLOAD_HTTPS_PORT:-8443}:443"
+    depends_on:
+      tundrad:
+        condition: service_healthy
+    networks: [tundra]
+
+# ----------------------------------------------------------------------------
+networks:
+  tundra:
+    driver: bridge
+    name: tundra-dev
+
+volumes:
+  postgres-data:
+  valkey-data:
+  cargo-registry:
+  cargo-target:
+  panel-node-modules:
+  workload-data:
+  workload-srv:

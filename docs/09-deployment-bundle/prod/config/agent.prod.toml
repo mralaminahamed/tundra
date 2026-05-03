@@ -1,0 +1,28 @@
+# Tundra production compose — tundra-agent configuration for workload-1
+# Mounted read-only into the workload-1 container.
+# Author: Al Amin Ahamed  <github.com/mralaminahamed>
+
+[agent]
+control_plane_url  = "https://tundrad:7447"
+heartbeat_interval = 30
+state_dir          = "/var/lib/tundra-agent/state"
+log_dir            = "/var/lib/tundra-agent/logs"
+
+[identity]
+hostname             = "workload-1"
+enrolment_token_path = "/etc/tundra/enrolment.token"
+
+[tls]
+verify_peer            = true
+ca_cert_path           = "/var/lib/tundra-agent/credentials/ca.crt"
+client_cert_path       = "/var/lib/tundra-agent/credentials/client.pem"
+client_key_path        = "/var/lib/tundra-agent/credentials/client.key"
+
+[providers]
+caddy_config_dir   = "/etc/caddy/sites.d"
+phpfpm_pool_dir    = "/etc/php/8.4/fpm/pool.d"
+sites_root         = "/srv/sites"
+
+[security]
+deny_outbound_egress       = false   # set true once you've defined the egress allowlist
+allow_arbitrary_shell_exec = false

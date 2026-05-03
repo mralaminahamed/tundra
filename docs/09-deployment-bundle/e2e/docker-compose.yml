@@ -1,0 +1,196 @@
+# ============================================================================
+#  Tundra — End-to-end test compose stack
+#  -------------------------------------------------------------------------
+#  Brings up the stack used by Playwright e2e tests as specified in
+#  tundra-test-plan-v1.md §5.4. Differences from prod:
+#
+#    - tundrad runs with TUNDRA_TEST_MODE=1, which exposes POST /test/reset
+#      and accepts the deterministic dev-mode seed.
+#    - Postgres and Valkey use tmpfs only — no persistence between test runs.
+#    - One agent + one workload container; second-agent variant is in the
+#      'multi-server' profile for the @multi-server Playwright tests.
+#    - Deterministic owner credentials are seeded by the test bootstrap.
+#    - No edge proxy: tests hit tundrad and panel-ui directly on host ports.
+#
+#  Quickstart (from CI or locally):
+#    cd e2e/
+#    docker compose up -d --build
+#    # in another terminal, from the panel/ workspace:
+#    pnpm playwright test --project=e2e
+#    docker compose down -v
+#
+#  Author: Al Amin Ahamed  <github.com/mralaminahamed>
+# ============================================================================
+
+name: tundra-e2e
+
+x-test-env: &test-env
+  TUNDRA_TEST_MODE: "1"
+  TUNDRAD_PROFILE: test
+  RUST_LOG: tundrad=debug,tundra_agent=debug,tower_http=info,sqlx=warn
+  RUST_BACKTRACE: "1"
+
+services:
+
+  # -------------------------------------------------------------------------
+  postgres:
+    image: postgres:18-trixie
+    container_name: tundra-e2e-postgres
+    environment:
+      POSTGRES_USER: tundra
+      POSTGRES_PASSWORD: e2etest
+      POSTGRES_DB: tundra
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+      # Speed: durability is irrelevant for e2e
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command:
+      - postgres
+      - -c
+      - fsync=off
+      - -c
+      - synchronous_commit=off
+      - -c
+      - full_page_writes=off
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./scripts/postgres-init.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tundra -d tundra"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+      start_period: 10s
+    networks: [tundra-e2e]
+
+  # -------------------------------------------------------------------------
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: tundra-e2e-valkey
+    command:
+      - valkey-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+    networks: [tundra-e2e]
+
+  # -------------------------------------------------------------------------
+  tundrad:
+    build:
+      context: ../
+      dockerfile: dockerfiles/Dockerfile.tundrad
+    image: tundra/tundrad:e2e
+    container_name: tundra-e2e-tundrad
+    environment:
+      <<: *test-env
+      DATABASE_URL: postgres://tundra:e2etest@postgres:5432/tundra
+      VALKEY_URL: redis://valkey:6379/0
+      TUNDRAD_CONFIG: /etc/tundra/tundrad.toml
+    volumes:
+      - ./config/tundrad.e2e.toml:/etc/tundra/tundrad.toml:ro
+      - tundrad-data:/var/lib/tundra
+    ports:
+      - "7400:7400"
+      - "7447:7447"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/local/bin/tundrad health --addr 127.0.0.1:7400"]
+      interval: 5s
+      timeout: 3s
+      start_period: 30s
+      retries: 10
+    networks: [tundra-e2e]
+
+  # -------------------------------------------------------------------------
+  panel-ui:
+    build:
+      context: ../
+      dockerfile: dockerfiles/Dockerfile.panel-ui
+      args:
+        VITE_API_BASE: http://localhost:7400/api/v1
+    image: tundra/panel-ui:e2e
+    container_name: tundra-e2e-panel-ui
+    ports:
+      - "5173:8080"
+    depends_on:
+      tundrad:
+        condition: service_healthy
+    networks: [tundra-e2e]
+
+  # -------------------------------------------------------------------------
+  agent-1:
+    build:
+      context: ../
+      dockerfile: dockerfiles/Dockerfile.workload
+    image: tundra/workload:e2e
+    container_name: tundra-e2e-agent-1
+    hostname: agent-1
+    cap_add:
+      - NET_ADMIN
+    environment:
+      TUNDRA_AGENT_TEST_MODE: "1"
+      TUNDRA_AGENT_CONTROL_PLANE_URL: https://tundrad:7447
+    volumes:
+      - ./config/agent.e2e.toml:/etc/tundra/agent.toml:ro
+    tmpfs:
+      - /var/lib/tundra-agent
+      - /srv/sites
+    depends_on:
+      tundrad:
+        condition: service_healthy
+    networks: [tundra-e2e]
+
+  # -------------------------------------------------------------------------
+  agent-2:
+    image: tundra/workload:e2e
+    container_name: tundra-e2e-agent-2
+    hostname: agent-2
+    profiles:
+      - multi-server          # only started for `--profile multi-server`
+    cap_add:
+      - NET_ADMIN
+    environment:
+      TUNDRA_AGENT_TEST_MODE: "1"
+      TUNDRA_AGENT_CONTROL_PLANE_URL: https://tundrad:7447
+    volumes:
+      - ./config/agent.e2e.toml:/etc/tundra/agent.toml:ro
+    tmpfs:
+      - /var/lib/tundra-agent
+      - /srv/sites
+    depends_on:
+      agent-1:
+        condition: service_started
+    networks: [tundra-e2e]
+
+  # -------------------------------------------------------------------------
+  # workload-1 is the actual managed-service host the agent operates against.
+  # In this stack, agent-1 and workload-1 are the same container (the agent
+  # supervises Caddy + PHP-FPM in-process via supervisord). For test
+  # scenarios that need the agent and the host to be physically separated,
+  # extend this stack with a workload-only image.
+
+# ----------------------------------------------------------------------------
+networks:
+  tundra-e2e:
+    name: tundra-e2e
+    driver: bridge
+
+volumes:
+  tundrad-data:
+    name: tundra-e2e-tundrad-data

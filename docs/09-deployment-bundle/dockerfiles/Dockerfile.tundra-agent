@@ -1,0 +1,82 @@
+# syntax=docker/dockerfile:1.7
+# ============================================================================
+#  Tundra — tundra-agent image
+#  Per-managed-server agent. In production, runs as a systemd service on the
+#  managed host. This image is for compose-based test/dev scenarios and for
+#  containerised "managed nodes" where the workload tools live in the same
+#  image (Caddy, PHP-FPM, Postfix, etc.).
+#  Author: Al Amin Ahamed  <github.com/mralaminahamed>
+# ============================================================================
+
+ARG RUST_VERSION=1.95
+ARG DEBIAN_VERSION=trixie
+
+# ---------------------------------------------------------------------------
+# Stage 1 — chef plan
+# ---------------------------------------------------------------------------
+FROM rust:${RUST_VERSION}-slim-${DEBIAN_VERSION} AS chef
+WORKDIR /build
+RUN cargo install cargo-chef --locked --version ^0.1
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+# ---------------------------------------------------------------------------
+# Stage 2 — cacher
+# ---------------------------------------------------------------------------
+FROM chef AS cacher
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y \
+        pkg-config libssl-dev protobuf-compiler ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=planner /build/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+# ---------------------------------------------------------------------------
+# Stage 3 — builder
+# ---------------------------------------------------------------------------
+FROM chef AS builder
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y \
+        pkg-config libssl-dev protobuf-compiler ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=cacher /build/target target
+COPY --from=cacher /usr/local/cargo /usr/local/cargo
+COPY . .
+RUN cargo build --release --bin tundra-agent --bin tundra \
+ && strip target/release/tundra-agent target/release/tundra
+
+# ---------------------------------------------------------------------------
+# Stage 4 — runtime
+#  We keep the runtime fairly capable because the agent shells out to system
+#  tools. For pure-control-plane scenarios use the tundrad image.
+# ---------------------------------------------------------------------------
+FROM debian:${DEBIAN_VERSION}-slim AS runtime
+
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y \
+        ca-certificates tini libssl3 curl rsync openssh-client \
+        sudo iproute2 procps \
+ && rm -rf /var/lib/apt/lists/* \
+ && install -d -m 0755 /var/lib/tundra-agent \
+ && install -d -m 0700 /var/lib/tundra-agent/credentials \
+ && install -d -m 0750 /var/lib/tundra-agent/state \
+ && install -d -m 0750 /var/lib/tundra-agent/logs \
+ && install -d -m 0755 /etc/tundra
+
+COPY --from=builder /build/target/release/tundra-agent /usr/local/bin/tundra-agent
+COPY --from=builder /build/target/release/tundra        /usr/local/bin/tundra
+
+# The agent runs as root because it must manage systemd, package install,
+# and per-site UIDs on a real managed host. Compose deployments that don't
+# need that surface should switch to a non-root user; see compose stacks.
+WORKDIR /var/lib/tundra-agent
+
+EXPOSE 9550
+
+HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=4 \
+  CMD ["/usr/local/bin/tundra-agent", "health"]
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/usr/local/bin/tundra-agent", "run", "--config", "/etc/tundra/agent.toml"]

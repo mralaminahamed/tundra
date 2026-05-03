@@ -1,0 +1,52 @@
+# Tundra e2e compose — tundrad configuration
+# Test-mode profile per tundra-test-plan-v1.md §5.4.
+# Author: Al Amin Ahamed  <github.com/mralaminahamed>
+
+[server]
+listen_addr        = "0.0.0.0:7400"
+public_url         = "http://localhost:7400"
+shutdown_grace_secs = 1
+
+[grpc]
+listen_addr = "0.0.0.0:7447"
+
+[database]
+url             = "postgres://tundra:e2etest@postgres:5432/tundra"
+max_connections = 20
+
+[valkey]
+url      = "redis://valkey:6379"
+db_cache = 0
+db_queue = 1
+
+[paths]
+data_dir      = "/var/lib/tundra/data"
+log_dir       = "/var/lib/tundra/logs"
+artifacts_dir = "/var/lib/tundra/artifacts"
+
+[security]
+master_key_path        = "/var/lib/tundra/data/master.key"
+session_max_age_hours  = 24
+require_2fa_for_owners = false
+
+[security.test]
+# These flags only take effect when TUNDRAD_PROFILE=test AND
+# TUNDRA_TEST_MODE=1 (both must be set; tundrad refuses if either is missing).
+enable_reset_endpoint  = true               # POST /test/reset truncates state
+auto_create_owner      = true
+auto_owner_email       = "owner@example.com"
+auto_owner_password    = "correct horse battery staple"
+fast_argon2            = true               # m=8MiB t=1 — INSECURE, e2e only
+
+[agent]
+heartbeat_interval_secs   = 5
+cert_validity_days        = 1
+cert_renewal_window_days  = 0
+
+[plugins]
+sandbox_fuel_per_invocation = 100000000
+sandbox_memory_max_bytes    = 268435456
+
+[telemetry]
+otlp_endpoint = ""
+log_format    = "json"
