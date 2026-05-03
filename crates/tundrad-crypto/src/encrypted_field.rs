@@ -169,6 +169,9 @@ pub type EncryptedDbSuperuserPassword = EncryptedField<String, DbSuperuserPasswo
 pub type EncryptedDbUserPassword = EncryptedField<String, DbUserPasswordFamily>;
 pub type EncryptedBackupRepoPassword = EncryptedField<String, BackupRepoPasswordFamily>;
 
+def_family!(DkimPrivateKeyFamily, "tundra:v1:dkim_key:private_key");
+pub type EncryptedDkimPrivateKey = EncryptedField<String, DkimPrivateKeyFamily>;
+
 #[cfg(test)]
 mod tests {
     use super::*;
