@@ -10,3 +10,13 @@ publish = false
 [lib]
 name = "tundra_agent_providers"
 path = "src/lib.rs"
+
+[dependencies]
+tundra-agent-reconciler = { path = "../tundra-agent-reconciler" }
+anyhow.workspace = true
+async-trait.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true

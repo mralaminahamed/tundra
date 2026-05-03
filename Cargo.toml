@@ -22,6 +22,8 @@ members = [
     "crates/tundra-cli",
     "crates/tundra-shared",
     "crates/tundra-test-harness",
+    "crates/tundra-proto",
+    "crates/tundrad-pki",
 ]
 resolver = "2"
 
