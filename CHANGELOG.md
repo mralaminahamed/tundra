@@ -6,6 +6,61 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-03 — Email & DNS (P4)
+
+### Added
+
+#### DNS providers (`tundra-agent-providers`)
+- `PowerDnsProvider` — zone CRUD via PowerDNS HTTP API, DNSSEC NSEC3 enable, SOA serial bump, record upsert/delete; 2 tests
+- `UnboundProvider` — recursor with forward zones and access control (opt-in); 1 test
+
+#### Mail providers (`tundra-agent-providers`)
+- `PostfixProvider` — PostgreSQL-backed virtual mailbox/alias maps (`pgsql:` map type), postsuper hold/release/delete stubs; 1 test
+- `DovecotProvider` — auth-sql Postgres, Maildir storage, quota plugin; 1 test
+- `RspamdProvider` — DKIM key deploy (decrypted key → `/etc/rspamd/dkim/`), ARC sealing, greylisting, RBL; 1 test
+- `RoundcubeProvider` — webmail vhost provisioning (opt-in); 1 test
+
+#### Domain + DNS schema (`migrations/`, `tundrad-domain`, `tundrad-repo`)
+- Migration `20260503000070_domains.sql`: `domains`, `dns_zones`, `dns_records` (type CHECK 12 types), `ns_history`
+- Domain types: `Domain`, `DnsRecord`, `DnsManagedBy` enum; `DomainRepo` + `DnsRecordRepo` (list/find/create/update/delete/`batch_replace` atomic TX)
+- RBAC resources: `Domain`, `DnsRecord`
+
+#### Domain + DNS REST (`tundrad-api`)
+- `GET/POST /api/v1/domains`, `GET/DELETE /api/v1/domains/:id`
+- `GET/POST /api/v1/domains/:id/dns-records`, `PUT/DELETE /api/v1/domains/:id/dns-records/:record_id`
+- `POST /api/v1/domains/:id/dns-records/batch` — atomic zone replace (preserves `is_managed` records)
+
+#### Mail schema + DKIM (`migrations/`, `tundrad-domain`, `tundrad-repo`)
+- Migration `20260503000080_mail.sql`: `mail_domains`, `dkim_keys` (`private_key_encrypted bytea`), `mailboxes` (Argon2id + SHA512-CRYPT support), `aliases`, `mail_queue`, `mail_log`
+- `EncryptedDkimPrivateKey` family (`tundra:v1:dkim_key:private_key`)
+- Domain types: `MailDomain`, `DkimKey`, `Mailbox`, `Alias`, `MailQueueEntry`
+- Repos: `MailDomainRepo`, `DkimKeyRepo` (rotate = deactivate + insert, `get_private_key_pem`), `MailboxRepo` (Argon2id hash, reset_password), `AliasRepo`, `MailQueueRepo`
+- RBAC resources: `MailDomain`, `Mailbox`, `Alias`, `MailQueue`
+
+#### Mail REST (`tundrad-api`)
+- `GET/POST /api/v1/mail/domains`, `GET/DELETE /api/v1/mail/domains/:id`, `POST /:id/regenerate-dkim`
+- `GET /api/v1/mail/domains/:id/mailboxes`, `GET /api/v1/mail/domains/:id/aliases`
+- `POST /api/v1/mail/mailboxes`, `DELETE /api/v1/mail/mailboxes/:id`, `POST /:id/reset-password`
+- `POST /api/v1/mail/aliases`, `DELETE /api/v1/mail/aliases/:id`
+- `GET /api/v1/mail/queue`, `POST /queue/hold`, `POST /queue/release`, `POST /queue/delete`
+- Mail domain create auto-generates DKIM keypair (stub RSA, audit logged)
+
+#### Panel — Domains UI
+- Domains list (apex, dns_managed_by badge, auto_renew, expiry)
+- Add Domain form (apex, dns_managed_by, auto_renew, notes)
+- Domain detail with DNS zone editor: record table, lock icon for managed records, inline Add Record form, confirm-Delete
+
+#### Panel — Mail UI
+- Mail Domains list (tab nav: Domains/Mailboxes/Queue, active/webmail badges)
+- Add Mail Domain wizard (Step 1: domain+MX+SPF → Step 2: DMARC+DNS preview)
+- Mail Domain detail (Regenerate DKIM → public key modal, mailbox quota bars, alias list)
+- Diagnostics page (DNS checks MX/SPF/DKIM/DMARC, simulate pass after 1s, Send test email stub)
+- Mail Queue (hold/release/delete per-message actions)
+
+#### E2e tests
+- `dns-zone-edit.spec.ts` — domains list/add, DNS zone editor record CRUD
+- `mail-domain-setup.spec.ts` — mail domain setup, mailbox list, DKIM regeneration, diagnostics, queue actions
+
 ## [0.3.0] - 2026-05-03 — Databases & Backups (P3)
 
 ### Added
