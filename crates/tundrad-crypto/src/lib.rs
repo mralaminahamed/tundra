@@ -6,10 +6,11 @@ pub mod password;
 
 pub use encrypted_field::{
     BackupRepoPasswordFamily, DbSuperuserPasswordFamily, DbUserPasswordFamily,
-    EncryptedBackupRepoPassword, EncryptedDbSuperuserPassword, EncryptedDbUserPassword,
-    EncryptedEnvVar, EncryptedFamily, EncryptedField, EncryptedPluginSettings,
-    EncryptedRecoveryCodes, EncryptedTotpSecret, EnvVarFamily, IntegrationSecretFamily,
-    PluginSettingsFamily, RecoveryCodesFamily, TotpSecretFamily,
+    DkimPrivateKeyFamily, EncryptedBackupRepoPassword, EncryptedDbSuperuserPassword,
+    EncryptedDbUserPassword, EncryptedDkimPrivateKey, EncryptedEnvVar, EncryptedFamily,
+    EncryptedField, EncryptedPluginSettings, EncryptedRecoveryCodes, EncryptedTotpSecret,
+    EnvVarFamily, IntegrationSecretFamily, PluginSettingsFamily, RecoveryCodesFamily,
+    TotpSecretFamily,
 };
 pub use error::CryptoError;
 pub use key_ring::KeyRing;

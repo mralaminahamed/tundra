@@ -1,6 +1,8 @@
 pub mod audit_log;
 pub mod backup;
 pub mod database;
+pub mod domain;
+pub mod mail;
 pub mod operator;
 pub mod server;
 pub mod session;
@@ -14,6 +16,11 @@ pub use backup::{
 pub use database::{
     Database, DatabaseServer, DbEngine, DbGrant, DbServerStatus, DbUser, NewDatabase,
     NewDatabaseServer, NewDbUser,
+};
+pub use domain::{DnsManagedBy, DnsRecord, Domain, NewDnsRecord, NewDomain};
+pub use mail::{
+    Alias, DkimKey, MailDomain, MailQueueEntry, Mailbox, NewAlias, NewDkimKey, NewMailDomain,
+    NewMailbox,
 };
 pub use operator::{NewOperator, Operator, OperatorRole};
 pub use server::{NewServer, Server, ServerStatus};

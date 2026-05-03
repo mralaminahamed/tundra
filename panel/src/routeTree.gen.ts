@@ -33,6 +33,16 @@ import { Route as AuthBackupsJobsNewRouteImport } from './routes/_auth.backups.j
 import { Route as AuthBackupsSnapshotsRouteImport } from './routes/_auth.backups.snapshots'
 import { Route as AuthBackupsTargetsRouteImport } from './routes/_auth.backups.targets'
 import { Route as AuthBackupsTargetsNewRouteImport } from './routes/_auth.backups.targets.new'
+import { Route as AuthDomainsRouteImport } from './routes/_auth.domains'
+import { Route as AuthDomainsNewRouteImport } from './routes/_auth.domains.new'
+import { Route as AuthDomainsDomainIdRouteImport } from './routes/_auth.domains.$domainId'
+import { Route as AuthMailRouteImport } from './routes/_auth.mail'
+import { Route as AuthMailDomainsRouteImport } from './routes/_auth.mail.domains'
+import { Route as AuthMailDomainsNewRouteImport } from './routes/_auth.mail.domains.new'
+import { Route as AuthMailDomainsDomainIdRouteImport } from './routes/_auth.mail.domains.$mailDomainId'
+import { Route as AuthMailDomainsDomainIdDiagnosticsRouteImport } from './routes/_auth.mail.domains.$mailDomainId.diagnostics'
+import { Route as AuthMailMailboxesRouteImport } from './routes/_auth.mail.mailboxes'
+import { Route as AuthMailQueueRouteImport } from './routes/_auth.mail.queue'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -177,6 +187,66 @@ const AuthBackupsTargetsNewRoute = AuthBackupsTargetsNewRouteImport.update({
   getParentRoute: () => AuthBackupsTargetsRoute,
 } as any)
 
+const AuthDomainsRoute = AuthDomainsRouteImport.update({
+  id: '/domains',
+  path: '/domains',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthDomainsNewRoute = AuthDomainsNewRouteImport.update({
+  id: '/domains/new',
+  path: '/new',
+  getParentRoute: () => AuthDomainsRoute,
+} as any)
+
+const AuthDomainsDomainIdRoute = AuthDomainsDomainIdRouteImport.update({
+  id: '/domains/$domainId',
+  path: '/$domainId',
+  getParentRoute: () => AuthDomainsRoute,
+} as any)
+
+const AuthMailRoute = AuthMailRouteImport.update({
+  id: '/mail',
+  path: '/mail',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthMailDomainsRoute = AuthMailDomainsRouteImport.update({
+  id: '/mail/domains',
+  path: '/domains',
+  getParentRoute: () => AuthMailRoute,
+} as any)
+
+const AuthMailDomainsNewRoute = AuthMailDomainsNewRouteImport.update({
+  id: '/mail/domains/new',
+  path: '/new',
+  getParentRoute: () => AuthMailDomainsRoute,
+} as any)
+
+const AuthMailDomainsDomainIdRoute = AuthMailDomainsDomainIdRouteImport.update({
+  id: '/mail/domains/$mailDomainId',
+  path: '/$mailDomainId',
+  getParentRoute: () => AuthMailDomainsRoute,
+} as any)
+
+const AuthMailDomainsDomainIdDiagnosticsRoute = AuthMailDomainsDomainIdDiagnosticsRouteImport.update({
+  id: '/mail/domains/$mailDomainId/diagnostics',
+  path: '/diagnostics',
+  getParentRoute: () => AuthMailDomainsDomainIdRoute,
+} as any)
+
+const AuthMailMailboxesRoute = AuthMailMailboxesRouteImport.update({
+  id: '/mail/mailboxes',
+  path: '/mailboxes',
+  getParentRoute: () => AuthMailRoute,
+} as any)
+
+const AuthMailQueueRoute = AuthMailQueueRouteImport.update({
+  id: '/mail/queue',
+  path: '/queue',
+  getParentRoute: () => AuthMailRoute,
+} as any)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
@@ -201,6 +271,16 @@ export interface FileRoutesByFullPath {
   '/backups/snapshots': typeof AuthBackupsSnapshotsRoute
   '/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
   '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
+  '/domains': typeof AuthDomainsRouteWithChildren
+  '/domains/new': typeof AuthDomainsNewRoute
+  '/domains/$domainId': typeof AuthDomainsDomainIdRoute
+  '/mail': typeof AuthMailRouteWithChildren
+  '/mail/domains': typeof AuthMailDomainsRouteWithChildren
+  '/mail/domains/new': typeof AuthMailDomainsNewRoute
+  '/mail/domains/$mailDomainId': typeof AuthMailDomainsDomainIdRouteWithChildren
+  '/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
+  '/mail/mailboxes': typeof AuthMailMailboxesRoute
+  '/mail/queue': typeof AuthMailQueueRoute
 }
 
 export interface FileRoutesByTo {
@@ -227,6 +307,16 @@ export interface FileRoutesByTo {
   '/backups/snapshots': typeof AuthBackupsSnapshotsRoute
   '/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
   '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
+  '/domains': typeof AuthDomainsRouteWithChildren
+  '/domains/new': typeof AuthDomainsNewRoute
+  '/domains/$domainId': typeof AuthDomainsDomainIdRoute
+  '/mail': typeof AuthMailRouteWithChildren
+  '/mail/domains': typeof AuthMailDomainsRouteWithChildren
+  '/mail/domains/new': typeof AuthMailDomainsNewRoute
+  '/mail/domains/$mailDomainId': typeof AuthMailDomainsDomainIdRouteWithChildren
+  '/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
+  '/mail/mailboxes': typeof AuthMailMailboxesRoute
+  '/mail/queue': typeof AuthMailQueueRoute
 }
 
 export interface FileRoutesById {
@@ -255,6 +345,16 @@ export interface FileRoutesById {
   '/_auth/backups/snapshots': typeof AuthBackupsSnapshotsRoute
   '/_auth/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
   '/_auth/backups/targets/new': typeof AuthBackupsTargetsNewRoute
+  '/_auth/domains': typeof AuthDomainsRouteWithChildren
+  '/_auth/domains/new': typeof AuthDomainsNewRoute
+  '/_auth/domains/$domainId': typeof AuthDomainsDomainIdRoute
+  '/_auth/mail': typeof AuthMailRouteWithChildren
+  '/_auth/mail/domains': typeof AuthMailDomainsRouteWithChildren
+  '/_auth/mail/domains/new': typeof AuthMailDomainsNewRoute
+  '/_auth/mail/domains/$mailDomainId': typeof AuthMailDomainsDomainIdRouteWithChildren
+  '/_auth/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
+  '/_auth/mail/mailboxes': typeof AuthMailMailboxesRoute
+  '/_auth/mail/queue': typeof AuthMailQueueRoute
 }
 
 export interface FileRouteTypes {
@@ -283,6 +383,16 @@ export interface FileRouteTypes {
     | '/backups/snapshots'
     | '/backups/targets'
     | '/backups/targets/new'
+    | '/domains'
+    | '/domains/new'
+    | '/domains/$domainId'
+    | '/mail'
+    | '/mail/domains'
+    | '/mail/domains/new'
+    | '/mail/domains/$mailDomainId'
+    | '/mail/domains/$mailDomainId/diagnostics'
+    | '/mail/mailboxes'
+    | '/mail/queue'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -308,6 +418,16 @@ export interface FileRouteTypes {
     | '/backups/snapshots'
     | '/backups/targets'
     | '/backups/targets/new'
+    | '/domains'
+    | '/domains/new'
+    | '/domains/$domainId'
+    | '/mail'
+    | '/mail/domains'
+    | '/mail/domains/new'
+    | '/mail/domains/$mailDomainId'
+    | '/mail/domains/$mailDomainId/diagnostics'
+    | '/mail/mailboxes'
+    | '/mail/queue'
   id:
     | '__root__'
     | '/'
@@ -334,6 +454,16 @@ export interface FileRouteTypes {
     | '/_auth/backups/snapshots'
     | '/_auth/backups/targets'
     | '/_auth/backups/targets/new'
+    | '/_auth/domains'
+    | '/_auth/domains/new'
+    | '/_auth/domains/$domainId'
+    | '/_auth/mail'
+    | '/_auth/mail/domains'
+    | '/_auth/mail/domains/new'
+    | '/_auth/mail/domains/$mailDomainId'
+    | '/_auth/mail/domains/$mailDomainId/diagnostics'
+    | '/_auth/mail/mailboxes'
+    | '/_auth/mail/queue'
   fileRoutesById: FileRoutesById
 }
 
@@ -513,6 +643,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthBackupsTargetsNewRouteImport
       parentRoute: typeof AuthBackupsTargetsRoute
     }
+    '/_auth/domains': {
+      id: '/_auth/domains'
+      path: '/domains'
+      fullPath: '/domains'
+      preLoaderRoute: typeof AuthDomainsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/domains/new': {
+      id: '/_auth/domains/new'
+      path: '/new'
+      fullPath: '/domains/new'
+      preLoaderRoute: typeof AuthDomainsNewRouteImport
+      parentRoute: typeof AuthDomainsRoute
+    }
+    '/_auth/domains/$domainId': {
+      id: '/_auth/domains/$domainId'
+      path: '/$domainId'
+      fullPath: '/domains/$domainId'
+      preLoaderRoute: typeof AuthDomainsDomainIdRouteImport
+      parentRoute: typeof AuthDomainsRoute
+    }
+    '/_auth/mail': {
+      id: '/_auth/mail'
+      path: '/mail'
+      fullPath: '/mail'
+      preLoaderRoute: typeof AuthMailRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/mail/domains': {
+      id: '/_auth/mail/domains'
+      path: '/domains'
+      fullPath: '/mail/domains'
+      preLoaderRoute: typeof AuthMailDomainsRouteImport
+      parentRoute: typeof AuthMailRoute
+    }
+    '/_auth/mail/domains/new': {
+      id: '/_auth/mail/domains/new'
+      path: '/new'
+      fullPath: '/mail/domains/new'
+      preLoaderRoute: typeof AuthMailDomainsNewRouteImport
+      parentRoute: typeof AuthMailDomainsRoute
+    }
+    '/_auth/mail/domains/$mailDomainId': {
+      id: '/_auth/mail/domains/$mailDomainId'
+      path: '/$mailDomainId'
+      fullPath: '/mail/domains/$mailDomainId'
+      preLoaderRoute: typeof AuthMailDomainsDomainIdRouteImport
+      parentRoute: typeof AuthMailDomainsRoute
+    }
+    '/_auth/mail/domains/$mailDomainId/diagnostics': {
+      id: '/_auth/mail/domains/$mailDomainId/diagnostics'
+      path: '/diagnostics'
+      fullPath: '/mail/domains/$mailDomainId/diagnostics'
+      preLoaderRoute: typeof AuthMailDomainsDomainIdDiagnosticsRouteImport
+      parentRoute: typeof AuthMailDomainsDomainIdRoute
+    }
+    '/_auth/mail/mailboxes': {
+      id: '/_auth/mail/mailboxes'
+      path: '/mailboxes'
+      fullPath: '/mail/mailboxes'
+      preLoaderRoute: typeof AuthMailMailboxesRouteImport
+      parentRoute: typeof AuthMailRoute
+    }
+    '/_auth/mail/queue': {
+      id: '/_auth/mail/queue'
+      path: '/queue'
+      fullPath: '/mail/queue'
+      preLoaderRoute: typeof AuthMailQueueRouteImport
+      parentRoute: typeof AuthMailRoute
+    }
   }
 }
 
@@ -605,6 +805,58 @@ const AuthBackupsRouteChildren: AuthBackupsRouteChildren = {
 const AuthBackupsRouteWithChildren =
   AuthBackupsRoute._addFileChildren(AuthBackupsRouteChildren)
 
+interface AuthDomainsRouteChildren {
+  AuthDomainsNewRoute: typeof AuthDomainsNewRoute
+  AuthDomainsDomainIdRoute: typeof AuthDomainsDomainIdRoute
+}
+
+const AuthDomainsRouteChildren: AuthDomainsRouteChildren = {
+  AuthDomainsNewRoute: AuthDomainsNewRoute,
+  AuthDomainsDomainIdRoute: AuthDomainsDomainIdRoute,
+}
+
+const AuthDomainsRouteWithChildren =
+  AuthDomainsRoute._addFileChildren(AuthDomainsRouteChildren)
+
+interface AuthMailDomainsDomainIdRouteChildren {
+  AuthMailDomainsDomainIdDiagnosticsRoute: typeof AuthMailDomainsDomainIdDiagnosticsRoute
+}
+
+const AuthMailDomainsDomainIdRouteChildren: AuthMailDomainsDomainIdRouteChildren = {
+  AuthMailDomainsDomainIdDiagnosticsRoute: AuthMailDomainsDomainIdDiagnosticsRoute,
+}
+
+const AuthMailDomainsDomainIdRouteWithChildren =
+  AuthMailDomainsDomainIdRoute._addFileChildren(AuthMailDomainsDomainIdRouteChildren)
+
+interface AuthMailDomainsRouteChildren {
+  AuthMailDomainsNewRoute: typeof AuthMailDomainsNewRoute
+  AuthMailDomainsDomainIdRoute: typeof AuthMailDomainsDomainIdRouteWithChildren
+}
+
+const AuthMailDomainsRouteChildren: AuthMailDomainsRouteChildren = {
+  AuthMailDomainsNewRoute: AuthMailDomainsNewRoute,
+  AuthMailDomainsDomainIdRoute: AuthMailDomainsDomainIdRouteWithChildren,
+}
+
+const AuthMailDomainsRouteWithChildren =
+  AuthMailDomainsRoute._addFileChildren(AuthMailDomainsRouteChildren)
+
+interface AuthMailRouteChildren {
+  AuthMailDomainsRoute: typeof AuthMailDomainsRouteWithChildren
+  AuthMailMailboxesRoute: typeof AuthMailMailboxesRoute
+  AuthMailQueueRoute: typeof AuthMailQueueRoute
+}
+
+const AuthMailRouteChildren: AuthMailRouteChildren = {
+  AuthMailDomainsRoute: AuthMailDomainsRouteWithChildren,
+  AuthMailMailboxesRoute: AuthMailMailboxesRoute,
+  AuthMailQueueRoute: AuthMailQueueRoute,
+}
+
+const AuthMailRouteWithChildren =
+  AuthMailRoute._addFileChildren(AuthMailRouteChildren)
+
 interface AuthRouteChildren {
   AuthAuditLogRoute: typeof AuthAuditLogRoute
   AuthDashboardRoute: typeof AuthDashboardRoute
@@ -614,6 +866,8 @@ interface AuthRouteChildren {
   AuthDatabaseServersRoute: typeof AuthDatabaseServersRouteWithChildren
   AuthDatabasesRoute: typeof AuthDatabasesRouteWithChildren
   AuthBackupsRoute: typeof AuthBackupsRouteWithChildren
+  AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
+  AuthMailRoute: typeof AuthMailRouteWithChildren
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -625,6 +879,8 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDatabaseServersRoute: AuthDatabaseServersRouteWithChildren,
   AuthDatabasesRoute: AuthDatabasesRouteWithChildren,
   AuthBackupsRoute: AuthBackupsRouteWithChildren,
+  AuthDomainsRoute: AuthDomainsRouteWithChildren,
+  AuthMailRoute: AuthMailRouteWithChildren,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
