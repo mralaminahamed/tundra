@@ -99,6 +99,9 @@ anyhow = "1"
 # HTTP client — rustls-tls only
 reqwest = { version = "0.12", features = ["rustls-tls", "json"], default-features = false }
 
+# Encoding
+base64 = "0.22"
+
 # CLI
 clap = { version = "4", features = ["derive", "env"] }
 
