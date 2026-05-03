@@ -1,5 +1,7 @@
 pub mod audit_log;
 pub mod auth;
+pub mod backups;
+pub mod databases;
 pub mod health;
 pub mod operators;
 pub mod servers;

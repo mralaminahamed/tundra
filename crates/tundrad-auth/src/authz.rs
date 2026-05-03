@@ -26,6 +26,12 @@ pub enum Resource {
     MasterKey,
     ApiToken,
     Mcp,
+    DatabaseServer,
+    Database,
+    DbUser,
+    BackupTarget,
+    BackupJob,
+    BackupSnapshot,
 }
 
 /// Stateless RBAC enforcement service.
@@ -95,6 +101,16 @@ impl AuthzService {
                 | (Action::Read | Action::Create | Action::Delete, Resource::ApiToken)
                 // MCP — read only
                 | (Action::Read, Resource::Mcp)
+                // Databases — full CRUD
+                | (
+                    Action::Read | Action::Create | Action::Update | Action::Delete,
+                    Resource::DatabaseServer | Resource::Database | Resource::DbUser
+                )
+                // Backups — read, create, update (operators can't delete targets)
+                | (
+                    Action::Read | Action::Create | Action::Update,
+                    Resource::BackupTarget | Resource::BackupJob | Resource::BackupSnapshot
+                )
             ),
 
             // Readonly: read only on everything.

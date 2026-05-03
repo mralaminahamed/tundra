@@ -13,6 +13,7 @@ path = "src/lib.rs"
 
 [dependencies]
 tundrad-auth = { path = "../tundrad-auth" }
+tundrad-backup = { path = "../tundrad-backup" }
 tundrad-pki  = { path = "../tundrad-pki" }
 tundrad-crypto = { path = "../tundrad-crypto" }
 tundrad-domain = { path = "../tundrad-domain" }
