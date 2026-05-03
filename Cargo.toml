@@ -24,6 +24,7 @@ members = [
     "crates/tundra-test-harness",
     "crates/tundra-proto",
     "crates/tundrad-pki",
+    "crates/tundrad-backup",
 ]
 resolver = "2"
 
@@ -78,7 +79,7 @@ rand = "0.8"
 zeroize = { version = "1", features = ["derive"] }
 
 # UUID / time
-uuid = { version = "1", features = ["v7", "serde"] }
+uuid = { version = "1", features = ["v4", "v7", "serde"] }
 time = { version = "0.3", features = ["serde"] }
 
 # Observability

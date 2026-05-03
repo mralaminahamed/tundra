@@ -3828,6 +3828,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tundrad-auth",
+ "tundrad-backup",
  "tundrad-crypto",
  "tundrad-domain",
  "tundrad-events",
@@ -3857,6 +3858,21 @@ dependencies = [
  "tundrad-crypto",
  "tundrad-domain",
  "tundrad-repo",
+ "uuid",
+]
+
+[[package]]
+name = "tundrad-backup"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "time",
+ "tokio",
+ "tracing",
+ "tundrad-crypto",
  "uuid",
 ]
 
