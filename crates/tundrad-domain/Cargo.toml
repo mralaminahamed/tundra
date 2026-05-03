@@ -10,3 +10,10 @@ publish = false
 [lib]
 name = "tundrad_domain"
 path = "src/lib.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+time.workspace = true
+uuid.workspace = true
