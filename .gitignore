@@ -1,0 +1,36 @@
+# Rust
+target/
+Cargo.lock.bak
+**/*.rs.bk
+
+# Node / pnpm
+panel/node_modules/
+panel/dist/
+panel/.pnpm-store/
+panel/coverage/
+panel/playwright-report/
+panel/test-results/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Tundra runtime
+/var/lib/tundra/
+*.key
+*.pem
+tundra-backup-*.tar.gpg
+
+# Archives (pre-existing)
+*.zip
+*.tar.zst
+*.tar.gz

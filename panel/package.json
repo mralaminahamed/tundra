@@ -1,6 +1,7 @@
 {
   "name": "tundra-panel",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "description": "Tundra control-plane web UI",
   "engines": {
