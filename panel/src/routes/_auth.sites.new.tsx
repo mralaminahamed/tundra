@@ -214,7 +214,7 @@ function CreateSitePage() {
             )}
 
             {step === 1 && (() => {
-              const hints = RUNTIME_HINTS[values.kind as RuntimeKind] ?? RUNTIME_HINTS.static
+              const hints = (RUNTIME_HINTS as Record<string, typeof RUNTIME_HINTS.static>)[values.kind] ?? RUNTIME_HINTS.static
               return (
                 <>
                   <label className="flex flex-col gap-1.5 text-sm">

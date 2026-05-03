@@ -3,7 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { ScheduledTask, ListResponse } from '@/lib/api-types'
 
+interface ScheduledTasksSearch {
+  siteId?: string
+}
+
 export const Route = createFileRoute('/_auth/scheduled-tasks')({
+  validateSearch: (search: Record<string, unknown>): ScheduledTasksSearch => ({
+    siteId: typeof search.siteId === 'string' ? search.siteId : undefined,
+  }),
   component: ScheduledTasksPage,
 })
 
@@ -20,8 +27,7 @@ function activeBadge(active: boolean) {
 }
 
 function ScheduledTasksPage() {
-  const search = Route.useSearch() as { siteId?: string }
-  const siteId = search.siteId
+  const { siteId } = Route.useSearch()
   const queryClient = useQueryClient()
 
   const { data, isLoading, isError } = useQuery({
@@ -36,7 +42,7 @@ function ScheduledTasksPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api(`/scheduled-tasks/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scheduled-tasks', siteId] })
+      void queryClient.invalidateQueries({ queryKey: ['scheduled-tasks', siteId] })
     },
   })
 

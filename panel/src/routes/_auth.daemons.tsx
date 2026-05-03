@@ -42,7 +42,7 @@ function DaemonsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api(`/daemons/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['daemons', siteId] })
+      void queryClient.invalidateQueries({ queryKey: ['daemons', siteId] })
     },
   })
 
