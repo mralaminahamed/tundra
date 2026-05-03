@@ -10,3 +10,19 @@ publish = false
 [lib]
 name = "tundrad_crypto"
 path = "src/lib.rs"
+
+[dependencies]
+aes-gcm.workspace = true
+argon2.workspace = true
+blake3.workspace = true
+hkdf.workspace = true
+rand.workspace = true
+sha2.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
