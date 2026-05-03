@@ -1,0 +1,149 @@
+name: CI
+
+on:
+  push:
+    branches: [trunk, main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+
+jobs:
+  lint:
+    name: Lint (Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.95"
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: rustfmt check
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+  deps:
+    name: Deps (audit + deny + npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.95"
+      - uses: Swatinem/rust-cache@v2
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: panel/pnpm-lock.yaml
+      - name: cargo audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+      - name: cargo deny
+        run: |
+          cargo install cargo-deny --locked
+          cargo deny check
+      - name: npm audit
+        working-directory: panel
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm audit --audit-level=high
+
+  unit-rust:
+    name: Unit tests (Rust)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tundra_test
+          POSTGRES_PASSWORD: tundra_test
+          POSTGRES_DB: tundra_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      valkey:
+        image: valkey/valkey:8
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.95"
+      - uses: Swatinem/rust-cache@v2
+      - name: cargo test
+        run: cargo test --workspace
+
+  unit-ts:
+    name: Unit tests (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: panel/pnpm-lock.yaml
+      - name: Install
+        working-directory: panel
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        working-directory: panel
+        run: pnpm typecheck
+      - name: Lint
+        working-directory: panel
+        run: pnpm lint
+      - name: Test
+        working-directory: panel
+        run: pnpm test --run
+
+  build-binaries:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    needs: [lint, unit-rust]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.95"
+      - uses: Swatinem/rust-cache@v2
+      - name: cargo build
+        run: cargo build --release --workspace
+
+  build-panel:
+    name: Build panel
+    runs-on: ubuntu-latest
+    needs: [unit-ts]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: panel/pnpm-lock.yaml
+      - name: Install
+        working-directory: panel
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        working-directory: panel
+        run: pnpm build
