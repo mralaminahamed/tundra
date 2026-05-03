@@ -129,3 +129,77 @@ export interface RestorePreview {
   }
   expires_at: string
 }
+
+export interface Domain {
+  id: string
+  apex: string
+  dns_managed_by: 'tundra' | 'external' | 'registrar'
+  registration_expires_at: string | null
+  auto_renew: boolean
+  ns_locked: boolean
+  notes: string | null
+  created_at: string
+}
+
+export interface DnsRecord {
+  id: string
+  domain_id: string
+  name: string
+  record_type: string
+  ttl: number
+  priority: number | null
+  content: string
+  is_managed: boolean
+  created_at: string
+}
+
+export interface MailDomain {
+  id: string
+  domain: string
+  spf_policy: string
+  dmarc_policy: string
+  mx_host: string
+  active: boolean
+  webmail_enabled: boolean
+  created_at: string
+}
+
+export interface DkimKey {
+  id: string
+  selector: string
+  algorithm: string
+  public_key_pem: string
+  is_active: boolean
+}
+
+export interface Mailbox {
+  id: string
+  mail_domain_id: string
+  local_part: string
+  password_scheme: string
+  quota_bytes: number
+  used_bytes: number
+  is_active: boolean
+  created_at: string
+}
+
+export interface Alias {
+  id: string
+  mail_domain_id: string
+  source: string
+  destinations: string[]
+  is_active: boolean
+  created_at: string
+}
+
+export interface MailQueueEntry {
+  id: string
+  queue_id: string
+  queue_name: string
+  sender: string
+  recipients: string[]
+  subject: string | null
+  size_bytes: number
+  arrival_time: string
+  reason: string | null
+}
