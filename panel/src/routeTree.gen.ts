@@ -21,6 +21,18 @@ import { Route as AuthServersServerIdRouteImport } from './routes/_auth.servers.
 import { Route as AuthSitesRouteImport } from './routes/_auth.sites'
 import { Route as AuthSitesNewRouteImport } from './routes/_auth.sites.new'
 import { Route as AuthSitesSiteIdRouteImport } from './routes/_auth.sites.$siteId'
+import { Route as AuthDatabaseServersRouteImport } from './routes/_auth.database-servers'
+import { Route as AuthDatabaseServersNewRouteImport } from './routes/_auth.database-servers.new'
+import { Route as AuthDatabaseServersServerIdRouteImport } from './routes/_auth.database-servers.$serverId'
+import { Route as AuthDatabasesRouteImport } from './routes/_auth.databases'
+import { Route as AuthDatabasesNewRouteImport } from './routes/_auth.databases.new'
+import { Route as AuthDatabasesDatabaseIdRouteImport } from './routes/_auth.databases.$databaseId'
+import { Route as AuthBackupsRouteImport } from './routes/_auth.backups'
+import { Route as AuthBackupsJobsRouteImport } from './routes/_auth.backups.jobs'
+import { Route as AuthBackupsJobsNewRouteImport } from './routes/_auth.backups.jobs.new'
+import { Route as AuthBackupsSnapshotsRouteImport } from './routes/_auth.backups.snapshots'
+import { Route as AuthBackupsTargetsRouteImport } from './routes/_auth.backups.targets'
+import { Route as AuthBackupsTargetsNewRouteImport } from './routes/_auth.backups.targets.new'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -93,6 +105,78 @@ const AuthSitesSiteIdRoute = AuthSitesSiteIdRouteImport.update({
   getParentRoute: () => AuthSitesRoute,
 } as any)
 
+const AuthDatabaseServersRoute = AuthDatabaseServersRouteImport.update({
+  id: '/database-servers',
+  path: '/database-servers',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthDatabaseServersNewRoute = AuthDatabaseServersNewRouteImport.update({
+  id: '/database-servers/new',
+  path: '/new',
+  getParentRoute: () => AuthDatabaseServersRoute,
+} as any)
+
+const AuthDatabaseServersServerIdRoute = AuthDatabaseServersServerIdRouteImport.update({
+  id: '/database-servers/$serverId',
+  path: '/$serverId',
+  getParentRoute: () => AuthDatabaseServersRoute,
+} as any)
+
+const AuthDatabasesRoute = AuthDatabasesRouteImport.update({
+  id: '/databases',
+  path: '/databases',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthDatabasesNewRoute = AuthDatabasesNewRouteImport.update({
+  id: '/databases/new',
+  path: '/new',
+  getParentRoute: () => AuthDatabasesRoute,
+} as any)
+
+const AuthDatabasesDatabaseIdRoute = AuthDatabasesDatabaseIdRouteImport.update({
+  id: '/databases/$databaseId',
+  path: '/$databaseId',
+  getParentRoute: () => AuthDatabasesRoute,
+} as any)
+
+const AuthBackupsRoute = AuthBackupsRouteImport.update({
+  id: '/backups',
+  path: '/backups',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthBackupsJobsRoute = AuthBackupsJobsRouteImport.update({
+  id: '/backups/jobs',
+  path: '/jobs',
+  getParentRoute: () => AuthBackupsRoute,
+} as any)
+
+const AuthBackupsJobsNewRoute = AuthBackupsJobsNewRouteImport.update({
+  id: '/backups/jobs/new',
+  path: '/new',
+  getParentRoute: () => AuthBackupsJobsRoute,
+} as any)
+
+const AuthBackupsSnapshotsRoute = AuthBackupsSnapshotsRouteImport.update({
+  id: '/backups/snapshots',
+  path: '/snapshots',
+  getParentRoute: () => AuthBackupsRoute,
+} as any)
+
+const AuthBackupsTargetsRoute = AuthBackupsTargetsRouteImport.update({
+  id: '/backups/targets',
+  path: '/targets',
+  getParentRoute: () => AuthBackupsRoute,
+} as any)
+
+const AuthBackupsTargetsNewRoute = AuthBackupsTargetsNewRouteImport.update({
+  id: '/backups/targets/new',
+  path: '/new',
+  getParentRoute: () => AuthBackupsTargetsRoute,
+} as any)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
@@ -105,6 +189,18 @@ export interface FileRoutesByFullPath {
   '/sites': typeof AuthSitesRouteWithChildren
   '/sites/new': typeof AuthSitesNewRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/database-servers': typeof AuthDatabaseServersRouteWithChildren
+  '/database-servers/new': typeof AuthDatabaseServersNewRoute
+  '/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
+  '/databases': typeof AuthDatabasesRouteWithChildren
+  '/databases/new': typeof AuthDatabasesNewRoute
+  '/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
+  '/backups': typeof AuthBackupsRouteWithChildren
+  '/backups/jobs': typeof AuthBackupsJobsRouteWithChildren
+  '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
+  '/backups/snapshots': typeof AuthBackupsSnapshotsRoute
+  '/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
+  '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
 }
 
 export interface FileRoutesByTo {
@@ -119,6 +215,18 @@ export interface FileRoutesByTo {
   '/sites': typeof AuthSitesRouteWithChildren
   '/sites/new': typeof AuthSitesNewRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/database-servers': typeof AuthDatabaseServersRouteWithChildren
+  '/database-servers/new': typeof AuthDatabaseServersNewRoute
+  '/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
+  '/databases': typeof AuthDatabasesRouteWithChildren
+  '/databases/new': typeof AuthDatabasesNewRoute
+  '/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
+  '/backups': typeof AuthBackupsRouteWithChildren
+  '/backups/jobs': typeof AuthBackupsJobsRouteWithChildren
+  '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
+  '/backups/snapshots': typeof AuthBackupsSnapshotsRoute
+  '/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
+  '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
 }
 
 export interface FileRoutesById {
@@ -135,6 +243,18 @@ export interface FileRoutesById {
   '/_auth/sites': typeof AuthSitesRouteWithChildren
   '/_auth/sites/new': typeof AuthSitesNewRoute
   '/_auth/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/_auth/database-servers': typeof AuthDatabaseServersRouteWithChildren
+  '/_auth/database-servers/new': typeof AuthDatabaseServersNewRoute
+  '/_auth/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
+  '/_auth/databases': typeof AuthDatabasesRouteWithChildren
+  '/_auth/databases/new': typeof AuthDatabasesNewRoute
+  '/_auth/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
+  '/_auth/backups': typeof AuthBackupsRouteWithChildren
+  '/_auth/backups/jobs': typeof AuthBackupsJobsRouteWithChildren
+  '/_auth/backups/jobs/new': typeof AuthBackupsJobsNewRoute
+  '/_auth/backups/snapshots': typeof AuthBackupsSnapshotsRoute
+  '/_auth/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
+  '/_auth/backups/targets/new': typeof AuthBackupsTargetsNewRoute
 }
 
 export interface FileRouteTypes {
@@ -151,6 +271,18 @@ export interface FileRouteTypes {
     | '/sites'
     | '/sites/new'
     | '/sites/$siteId'
+    | '/database-servers'
+    | '/database-servers/new'
+    | '/database-servers/$serverId'
+    | '/databases'
+    | '/databases/new'
+    | '/databases/$databaseId'
+    | '/backups'
+    | '/backups/jobs'
+    | '/backups/jobs/new'
+    | '/backups/snapshots'
+    | '/backups/targets'
+    | '/backups/targets/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -164,6 +296,18 @@ export interface FileRouteTypes {
     | '/sites'
     | '/sites/new'
     | '/sites/$siteId'
+    | '/database-servers'
+    | '/database-servers/new'
+    | '/database-servers/$serverId'
+    | '/databases'
+    | '/databases/new'
+    | '/databases/$databaseId'
+    | '/backups'
+    | '/backups/jobs'
+    | '/backups/jobs/new'
+    | '/backups/snapshots'
+    | '/backups/targets'
+    | '/backups/targets/new'
   id:
     | '__root__'
     | '/'
@@ -178,6 +322,18 @@ export interface FileRouteTypes {
     | '/_auth/sites'
     | '/_auth/sites/new'
     | '/_auth/sites/$siteId'
+    | '/_auth/database-servers'
+    | '/_auth/database-servers/new'
+    | '/_auth/database-servers/$serverId'
+    | '/_auth/databases'
+    | '/_auth/databases/new'
+    | '/_auth/databases/$databaseId'
+    | '/_auth/backups'
+    | '/_auth/backups/jobs'
+    | '/_auth/backups/jobs/new'
+    | '/_auth/backups/snapshots'
+    | '/_auth/backups/targets'
+    | '/_auth/backups/targets/new'
   fileRoutesById: FileRoutesById
 }
 
@@ -273,6 +429,90 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSitesSiteIdRouteImport
       parentRoute: typeof AuthSitesRoute
     }
+    '/_auth/database-servers': {
+      id: '/_auth/database-servers'
+      path: '/database-servers'
+      fullPath: '/database-servers'
+      preLoaderRoute: typeof AuthDatabaseServersRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/database-servers/new': {
+      id: '/_auth/database-servers/new'
+      path: '/new'
+      fullPath: '/database-servers/new'
+      preLoaderRoute: typeof AuthDatabaseServersNewRouteImport
+      parentRoute: typeof AuthDatabaseServersRoute
+    }
+    '/_auth/database-servers/$serverId': {
+      id: '/_auth/database-servers/$serverId'
+      path: '/$serverId'
+      fullPath: '/database-servers/$serverId'
+      preLoaderRoute: typeof AuthDatabaseServersServerIdRouteImport
+      parentRoute: typeof AuthDatabaseServersRoute
+    }
+    '/_auth/databases': {
+      id: '/_auth/databases'
+      path: '/databases'
+      fullPath: '/databases'
+      preLoaderRoute: typeof AuthDatabasesRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/databases/new': {
+      id: '/_auth/databases/new'
+      path: '/new'
+      fullPath: '/databases/new'
+      preLoaderRoute: typeof AuthDatabasesNewRouteImport
+      parentRoute: typeof AuthDatabasesRoute
+    }
+    '/_auth/databases/$databaseId': {
+      id: '/_auth/databases/$databaseId'
+      path: '/$databaseId'
+      fullPath: '/databases/$databaseId'
+      preLoaderRoute: typeof AuthDatabasesDatabaseIdRouteImport
+      parentRoute: typeof AuthDatabasesRoute
+    }
+    '/_auth/backups': {
+      id: '/_auth/backups'
+      path: '/backups'
+      fullPath: '/backups'
+      preLoaderRoute: typeof AuthBackupsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/backups/jobs': {
+      id: '/_auth/backups/jobs'
+      path: '/jobs'
+      fullPath: '/backups/jobs'
+      preLoaderRoute: typeof AuthBackupsJobsRouteImport
+      parentRoute: typeof AuthBackupsRoute
+    }
+    '/_auth/backups/jobs/new': {
+      id: '/_auth/backups/jobs/new'
+      path: '/new'
+      fullPath: '/backups/jobs/new'
+      preLoaderRoute: typeof AuthBackupsJobsNewRouteImport
+      parentRoute: typeof AuthBackupsJobsRoute
+    }
+    '/_auth/backups/snapshots': {
+      id: '/_auth/backups/snapshots'
+      path: '/snapshots'
+      fullPath: '/backups/snapshots'
+      preLoaderRoute: typeof AuthBackupsSnapshotsRouteImport
+      parentRoute: typeof AuthBackupsRoute
+    }
+    '/_auth/backups/targets': {
+      id: '/_auth/backups/targets'
+      path: '/targets'
+      fullPath: '/backups/targets'
+      preLoaderRoute: typeof AuthBackupsTargetsRouteImport
+      parentRoute: typeof AuthBackupsRoute
+    }
+    '/_auth/backups/targets/new': {
+      id: '/_auth/backups/targets/new'
+      path: '/new'
+      fullPath: '/backups/targets/new'
+      preLoaderRoute: typeof AuthBackupsTargetsNewRouteImport
+      parentRoute: typeof AuthBackupsTargetsRoute
+    }
   }
 }
 
@@ -302,12 +542,78 @@ const AuthSitesRouteChildren: AuthSitesRouteChildren = {
 const AuthSitesRouteWithChildren =
   AuthSitesRoute._addFileChildren(AuthSitesRouteChildren)
 
+interface AuthDatabaseServersRouteChildren {
+  AuthDatabaseServersNewRoute: typeof AuthDatabaseServersNewRoute
+  AuthDatabaseServersServerIdRoute: typeof AuthDatabaseServersServerIdRoute
+}
+
+const AuthDatabaseServersRouteChildren: AuthDatabaseServersRouteChildren = {
+  AuthDatabaseServersNewRoute: AuthDatabaseServersNewRoute,
+  AuthDatabaseServersServerIdRoute: AuthDatabaseServersServerIdRoute,
+}
+
+const AuthDatabaseServersRouteWithChildren =
+  AuthDatabaseServersRoute._addFileChildren(AuthDatabaseServersRouteChildren)
+
+interface AuthDatabasesRouteChildren {
+  AuthDatabasesNewRoute: typeof AuthDatabasesNewRoute
+  AuthDatabasesDatabaseIdRoute: typeof AuthDatabasesDatabaseIdRoute
+}
+
+const AuthDatabasesRouteChildren: AuthDatabasesRouteChildren = {
+  AuthDatabasesNewRoute: AuthDatabasesNewRoute,
+  AuthDatabasesDatabaseIdRoute: AuthDatabasesDatabaseIdRoute,
+}
+
+const AuthDatabasesRouteWithChildren =
+  AuthDatabasesRoute._addFileChildren(AuthDatabasesRouteChildren)
+
+interface AuthBackupsJobsRouteChildren {
+  AuthBackupsJobsNewRoute: typeof AuthBackupsJobsNewRoute
+}
+
+const AuthBackupsJobsRouteChildren: AuthBackupsJobsRouteChildren = {
+  AuthBackupsJobsNewRoute: AuthBackupsJobsNewRoute,
+}
+
+const AuthBackupsJobsRouteWithChildren =
+  AuthBackupsJobsRoute._addFileChildren(AuthBackupsJobsRouteChildren)
+
+interface AuthBackupsTargetsRouteChildren {
+  AuthBackupsTargetsNewRoute: typeof AuthBackupsTargetsNewRoute
+}
+
+const AuthBackupsTargetsRouteChildren: AuthBackupsTargetsRouteChildren = {
+  AuthBackupsTargetsNewRoute: AuthBackupsTargetsNewRoute,
+}
+
+const AuthBackupsTargetsRouteWithChildren =
+  AuthBackupsTargetsRoute._addFileChildren(AuthBackupsTargetsRouteChildren)
+
+interface AuthBackupsRouteChildren {
+  AuthBackupsJobsRoute: typeof AuthBackupsJobsRouteWithChildren
+  AuthBackupsSnapshotsRoute: typeof AuthBackupsSnapshotsRoute
+  AuthBackupsTargetsRoute: typeof AuthBackupsTargetsRouteWithChildren
+}
+
+const AuthBackupsRouteChildren: AuthBackupsRouteChildren = {
+  AuthBackupsJobsRoute: AuthBackupsJobsRouteWithChildren,
+  AuthBackupsSnapshotsRoute: AuthBackupsSnapshotsRoute,
+  AuthBackupsTargetsRoute: AuthBackupsTargetsRouteWithChildren,
+}
+
+const AuthBackupsRouteWithChildren =
+  AuthBackupsRoute._addFileChildren(AuthBackupsRouteChildren)
+
 interface AuthRouteChildren {
   AuthAuditLogRoute: typeof AuthAuditLogRoute
   AuthDashboardRoute: typeof AuthDashboardRoute
   AuthOperatorsRoute: typeof AuthOperatorsRoute
   AuthServersRoute: typeof AuthServersRouteWithChildren
   AuthSitesRoute: typeof AuthSitesRouteWithChildren
+  AuthDatabaseServersRoute: typeof AuthDatabaseServersRouteWithChildren
+  AuthDatabasesRoute: typeof AuthDatabasesRouteWithChildren
+  AuthBackupsRoute: typeof AuthBackupsRouteWithChildren
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -316,6 +622,9 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthOperatorsRoute: AuthOperatorsRoute,
   AuthServersRoute: AuthServersRouteWithChildren,
   AuthSitesRoute: AuthSitesRouteWithChildren,
+  AuthDatabaseServersRoute: AuthDatabaseServersRouteWithChildren,
+  AuthDatabasesRoute: AuthDatabasesRouteWithChildren,
+  AuthBackupsRoute: AuthBackupsRouteWithChildren,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
