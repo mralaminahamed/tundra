@@ -32,6 +32,15 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/operators/me/tokens/{token_id}",
             delete(routes::tokens::revoke),
         )
+        // ── Servers ────────────────────────────────────────────────────────
+        .route(
+            "/api/v1/servers",
+            get(routes::servers::list).post(routes::servers::create),
+        )
+        .route(
+            "/api/v1/servers/{id}",
+            get(routes::servers::get).delete(routes::servers::delete),
+        )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))
         // ── Middleware ─────────────────────────────────────────────────────
