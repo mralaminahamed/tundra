@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "permissions": {
+    "allow": [
+      "Bash(cargo *)",
+      "Bash(rustup *)",
+      "Bash(rustfmt *)",
+      "Bash(sqlx *)",
+      "Bash(pnpm *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git stash *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(find . *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(wc *)",
+      "Bash(jq *)"
+    ]
+  },
+
+  "skillOverrides": {
+    "command-center-quote-assistant:quote-ticket": "off",
+    "command-center-quote-assistant:quote-revise": "off",
+    "command-center-quote-assistant:kit-demo-analyze": "off",
+    "command-center-quote-assistant:themeforest-analyze": "off",
+    "command-center-quote-assistant:codebase-link": "off",
+    "command-center-quote-assistant:wp-detect": "off",
+    "command-center-quote-assistant:quote-project": "off",
+    "command-center-quote-assistant:quote-log-review": "off",
+    "command-center-quote-assistant:quote-compare": "off",
+    "command-center-quote-assistant:quote-summarize": "off",
+    "command-center-quote-assistant:scope-check": "off",
+    "command-center-quote-assistant:scope-red-flags": "off",
+    "command-center-quote-assistant:voice-profile": "off",
+    "command-center-quote-assistant:task-enumeration": "off",
+    "command-center-quote-assistant:gdoc-fetcher": "off",
+    "command-center-quote-assistant:discord-output": "off",
+    "command-center-quote-assistant:complexity-scoring": "off",
+    "command-center-quote-assistant:estimation-catalog": "off",
+    "phpstorm-plugin:upgrade-php": "off",
+    "phpstorm-plugin:php-project-guide": "off",
+    "phpstorm-plugin:php-code-review": "off",
+    "plugin-dev:create-plugin": "off",
+    "plugin-dev:agent-development": "off",
+    "plugin-dev:mcp-integration": "off",
+    "plugin-dev:plugin-structure": "off",
+    "plugin-dev:command-development": "off",
+    "plugin-dev:skill-development": "off",
+    "plugin-dev:plugin-settings": "off",
+    "plugin-dev:hook-development": "off",
+    "chrome-devtools-mcp:debug-optimize-lcp": "off",
+    "chrome-devtools-mcp:memory-leak-debugging": "off",
+    "chrome-devtools-mcp:a11y-debugging": "off",
+    "chrome-devtools-mcp:chrome-devtools-cli": "off",
+    "chrome-devtools-mcp:troubleshooting": "off",
+    "chrome-devtools-mcp:chrome-devtools": "name-only",
+    "claude-api": "off"
+  },
+
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f || exit 0; case \"$f\" in *.rs) rustfmt \"$f\" 2>/dev/null || true;; esac; }",
+            "statusMessage": "rustfmt"
+          }
+        ]
+      }
+    ]
+  }
+}
