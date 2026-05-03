@@ -30,8 +30,13 @@ A self-hosted, Rust-based server-management platform. A modern alternative to Pl
 
 ## Status
 
-Phase 0 (Specifications) — complete.
-Phase 1 (Foundation) — in progress.
+| Phase | Status | Notes |
+|-------|--------|-------|
+| P0 — Bootstrap | ✅ Done | Workspace scaffold, toolchain, CI skeleton, `deny.toml` |
+| P1 — Foundation | ✅ Done | Crypto, migrations, domain, repo, auth, API skeleton, panel shell |
+| P2 — Single-host MVP | ✅ Done | gRPC/PKI/mTLS, agent crates, server enrolment, sites+deployments, job queue, Valkey events, panel UI |
+| P3 — Databases & Backups | ✅ Done | DB engine providers, database REST+panel, restic backup module, self-backup+restore tools |
+| P4 — Production hardening | ⬜ Planned | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, plugin host, billing |
 
 ## License
 
