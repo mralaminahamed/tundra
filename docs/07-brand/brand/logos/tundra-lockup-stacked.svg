@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra — Stacked Vertical Lockup
+  Mark above wordmark. For app icons, square hero contexts.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 280" width="360" height="280" role="img" aria-label="Tundra">
+  <!-- Mark, centered upper -->
+  <g transform="translate(120, 30)">
+    <path
+      d="M 60 6
+         L 68.5 51
+         L 86 60
+         L 68.5 69
+         L 60 114
+         L 51.5 69
+         L 34 60
+         L 51.5 51
+         Z"
+      fill="#1C1F1A" />
+  </g>
+  <!-- Wordmark, sits below mark with deliberate breathing room -->
+  <text x="180" y="240"
+        text-anchor="middle"
+        font-family="'Inter Display', 'Inter', -apple-system, sans-serif"
+        font-weight="900"
+        font-size="80"
+        letter-spacing="-2.5"
+        fill="#1C1F1A">tundra</text>
+</svg>

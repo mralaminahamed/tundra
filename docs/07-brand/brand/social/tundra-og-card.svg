@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra — Open Graph / Social Share Card
+  1200×630 (Facebook, LinkedIn, Twitter, GitHub social preview)
+  Composition: mark left-anchored, generous negative space, tagline lower-right.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Background: warm paper -->
+  <rect width="1200" height="630" fill="#F5F2E9" />
+
+  <!-- Subtle horizon ridge: distant tundra silhouette, very faint -->
+  <path d="M 0 540 L 140 525 L 240 535 L 340 520 L 460 530 L 580 518 L 720 528 L 840 522 L 960 532 L 1080 525 L 1200 530 L 1200 630 L 0 630 Z"
+        fill="#E8E5DC" />
+  <path d="M 0 555 L 100 545 L 220 552 L 360 542 L 500 550 L 640 540 L 800 549 L 950 543 L 1100 549 L 1200 545 L 1200 630 L 0 630 Z"
+        fill="#D8D3C5" opacity="0.7" />
+
+  <!-- Mark, prominent, left-aligned with breathing room -->
+  <g transform="translate(120, 130)">
+    <path
+      d="M 110 12
+         L 125 92
+         L 158 110
+         L 125 128
+         L 110 208
+         L 95 128
+         L 62 110
+         L 95 92
+         Z"
+      fill="#1C1F1A" />
+  </g>
+
+  <!-- Wordmark + tagline block, right of mark -->
+  <text x="380" y="245"
+        font-family="'Inter Display', 'Inter', sans-serif"
+        font-weight="900"
+        font-size="148"
+        letter-spacing="-5"
+        fill="#1C1F1A">tundra</text>
+
+  <text x="380" y="305"
+        font-family="'Inter', sans-serif"
+        font-weight="500"
+        font-size="32"
+        letter-spacing="-0.5"
+        fill="#3A3D38">A self-hosted server-management platform.</text>
+
+  <text x="380" y="345"
+        font-family="'Inter', sans-serif"
+        font-weight="400"
+        font-size="24"
+        letter-spacing="0"
+        fill="#6B6F66">Built in Rust. Free of license fees. Yours, end to end.</text>
+
+  <!-- Bottom-left meta: subtle accent dot + label -->
+  <circle cx="130" cy="555" r="6" fill="#7A8A5C" />
+  <text x="148" y="562"
+        font-family="'JetBrains Mono', monospace"
+        font-weight="500"
+        font-size="16"
+        letter-spacing="0.5"
+        fill="#3A3D38">v1.0 — May 2026</text>
+
+  <!-- Bottom-right: project URL / handle -->
+  <text x="1080" y="562"
+        text-anchor="end"
+        font-family="'JetBrains Mono', monospace"
+        font-weight="500"
+        font-size="16"
+        letter-spacing="0.5"
+        fill="#3A3D38">github.com/mralaminahamed</text>
+</svg>

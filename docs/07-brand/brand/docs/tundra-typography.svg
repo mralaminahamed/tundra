@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra — Typography Specimen
+  Demonstrates every type scale level with real sample text.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1700" width="1200" height="1700">
+  <rect width="1200" height="1700" fill="#F5F2E9" />
+
+  <!-- Header -->
+  <text x="80" y="100"
+        font-family="'Inter Display', sans-serif"
+        font-weight="900" font-size="64" letter-spacing="-2"
+        fill="#1C1F1A">Typography</text>
+  <text x="80" y="148"
+        font-family="'Inter', sans-serif"
+        font-weight="500" font-size="22"
+        fill="#3A3D38">Inter Display for headlines, Inter for body, JetBrains Mono for code.</text>
+
+  <!-- ============ DISPLAY SCALE ============ -->
+  <g transform="translate(80, 240)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">DISPLAY — INTER DISPLAY BLACK 900</text>
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <text x="0" y="120"
+          font-family="'Inter Display', 'Inter', sans-serif"
+          font-weight="900" font-size="96" letter-spacing="-3"
+          fill="#1C1F1A">Vast. Ordered. Quiet.</text>
+    <text x="0" y="148"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" letter-spacing="1"
+          fill="#6B6F66">96 / 100   tracking -3   inter display black</text>
+  </g>
+
+  <!-- ============ HEADINGS ============ -->
+  <g transform="translate(80, 470)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">HEADINGS — INTER DISPLAY 700/900</text>
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <text x="0" y="80"
+          font-family="'Inter Display', sans-serif"
+          font-weight="900" font-size="48" letter-spacing="-1.5"
+          fill="#1C1F1A">A self-hosted server-management platform.</text>
+    <text x="0" y="104"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">h1 — 48 / 56   black 900   tracking -1.5</text>
+
+    <text x="0" y="170"
+          font-family="'Inter Display', sans-serif"
+          font-weight="700" font-size="36" letter-spacing="-1"
+          fill="#1C1F1A">Built in Rust. Memory-safe. Fast.</text>
+    <text x="0" y="192"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">h2 — 36 / 44   bold 700   tracking -1</text>
+
+    <text x="0" y="250"
+          font-family="'Inter Display', sans-serif"
+          font-weight="700" font-size="28" letter-spacing="-0.5"
+          fill="#1C1F1A">Plugin architecture and extensibility</text>
+    <text x="0" y="272"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">h3 — 28 / 36   bold 700   tracking -0.5</text>
+  </g>
+
+  <!-- ============ BODY ============ -->
+  <g transform="translate(80, 800)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">BODY — INTER 400/500</text>
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <text x="0" y="60"
+          font-family="'Inter', sans-serif"
+          font-weight="500" font-size="22" letter-spacing="-0.4"
+          fill="#1C1F1A">Lead paragraph. Slightly larger, slightly heavier.</text>
+    <text x="0" y="84"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">lead — 22 / 30   medium 500</text>
+
+    <text x="0" y="140"
+          font-family="'Inter', sans-serif" font-weight="400" font-size="16"
+          fill="#3A3D38">Body. The default for paragraphs and most readable content. Inter at sixteen pixels</text>
+    <text x="0" y="160"
+          font-family="'Inter', sans-serif" font-weight="400" font-size="16"
+          fill="#3A3D38">on Tundra Stone reads cleanly across the full range of supported screens.</text>
+    <text x="0" y="184"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">body — 16 / 24   regular 400</text>
+
+    <text x="0" y="240"
+          font-family="'Inter', sans-serif" font-weight="400" font-size="14"
+          fill="#6B6F66">Secondary text. Supporting copy, captions, table cells, footnotes.</text>
+    <text x="0" y="262"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">small — 14 / 20   regular 400   on slate</text>
+  </g>
+
+  <!-- ============ MONO ============ -->
+  <g transform="translate(80, 1140)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">MONO — JETBRAINS MONO 400/500</text>
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <!-- Code block sample -->
+    <rect x="0" y="40" width="1040" height="180" rx="8" fill="#1C1F1A"/>
+    <text x="24" y="78"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#A8AC9F">$</text>
+    <text x="44" y="78"
+          font-family="'JetBrains Mono', monospace" font-weight="500" font-size="14" fill="#F5F2E9">tundra site create</text>
+    <text x="220" y="78"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#7A8A5C">--type</text>
+    <text x="280" y="78"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#F5F2E9">laravel</text>
+    <text x="350" y="78"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#7A8A5C">--domain</text>
+    <text x="425" y="78"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#F5F2E9">example.com</text>
+
+    <text x="24" y="118"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#A8AC9F">→</text>
+    <text x="44" y="118"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#A8AC9F">provisioning site...</text>
+
+    <text x="24" y="148"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#A8AC9F">→</text>
+    <text x="44" y="148"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="14" fill="#A8AC9F">issuing TLS certificate...</text>
+
+    <text x="24" y="188"
+          font-family="'JetBrains Mono', monospace" font-weight="500" font-size="14" fill="#7A8A5C">✓</text>
+    <text x="44" y="188"
+          font-family="'JetBrains Mono', monospace" font-weight="500" font-size="14" fill="#F5F2E9">site live at https://example.com</text>
+
+    <text x="0" y="248"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">code — 14 / 22   on tundra ink   syntax tokens use lichen accent</text>
+  </g>
+
+  <!-- ============ TRACKING SHOWCASE ============ -->
+  <g transform="translate(80, 1450)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">TRACKING — TUNED PER OPTICAL SIZE</text>
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <text x="0" y="80"
+          font-family="'Inter Display', sans-serif" font-weight="900" font-size="56" letter-spacing="-2.2"
+          fill="#1C1F1A">tundra</text>
+    <text x="0" y="106"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">large display: -0.04em (tightest)</text>
+
+    <text x="320" y="80"
+          font-family="'Inter', sans-serif" font-weight="600" font-size="32" letter-spacing="-0.7"
+          fill="#1C1F1A">Heading sample</text>
+    <text x="320" y="106"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">heading: -0.02em (tight)</text>
+
+    <text x="660" y="80"
+          font-family="'JetBrains Mono', monospace" font-weight="500" font-size="13" letter-spacing="2"
+          fill="#1C1F1A">EYEBROW LABEL</text>
+    <text x="660" y="106"
+          font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11"
+          fill="#6B6F66">caps mono: 0.1em (widest)</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="80" y="1670"
+        font-family="'JetBrains Mono', monospace" font-weight="400" font-size="12" letter-spacing="1.5"
+        fill="#6B6F66">TUNDRA — TYPE SYSTEM v1.0</text>
+  <text x="1120" y="1670" text-anchor="end"
+        font-family="'JetBrains Mono', monospace" font-weight="400" font-size="12" letter-spacing="1.5"
+        fill="#6B6F66">@MRALAMINAHAMED</text>
+</svg>

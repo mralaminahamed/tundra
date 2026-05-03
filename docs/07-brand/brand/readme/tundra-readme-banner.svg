@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra — README / Repo Banner v2
+  1280×360 — proper grid with badges/install on a clear second row.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" width="1280" height="360">
+  <rect width="1280" height="360" fill="#F5F2E9" />
+
+  <path d="M 0 326 L 180 320 L 320 325 L 480 318 L 640 324 L 800 317 L 960 323 L 1120 319 L 1280 322 L 1280 360 L 0 360 Z"
+        fill="#E8E5DC" />
+
+  <g transform="translate(80, 60)">
+    <path
+      d="M 80 8
+         L 92 68
+         L 116 80
+         L 92 92
+         L 80 152
+         L 68 92
+         L 44 80
+         L 68 68
+         Z"
+      fill="#1C1F1A" />
+
+    <text x="200" y="120"
+          font-family="'Inter Display', 'Inter', sans-serif"
+          font-weight="900"
+          font-size="108"
+          letter-spacing="-3.5"
+          fill="#1C1F1A">tundra</text>
+
+    <text x="200" y="160"
+          font-family="'Inter', sans-serif"
+          font-weight="500"
+          font-size="22"
+          letter-spacing="-0.3"
+          fill="#3A3D38">A self-hosted server-management platform, built in Rust.</text>
+  </g>
+
+  <g transform="translate(80, 264)">
+    <rect x="0" y="0" width="76" height="28" rx="4" fill="#1C1F1A" />
+    <text x="38" y="19" text-anchor="middle"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="12"
+          fill="#F5F2E9">v1.0</text>
+
+    <rect x="86" y="0" width="106" height="28" rx="4" fill="none" stroke="#3A3D38" stroke-width="1.25" />
+    <text x="139" y="19" text-anchor="middle"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="12"
+          fill="#3A3D38">apache 2.0</text>
+
+    <rect x="202" y="0" width="92" height="28" rx="4" fill="#7A8A5C" />
+    <text x="248" y="19" text-anchor="middle"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="12"
+          fill="#F5F2E9">rust 1.95</text>
+
+    <rect x="304" y="0" width="92" height="28" rx="4" fill="none" stroke="#3A3D38" stroke-width="1.25" />
+    <text x="350" y="19" text-anchor="middle"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="12"
+          fill="#3A3D38">postgres 18</text>
+  </g>
+
+  <g transform="translate(700, 260)">
+    <rect x="0" y="0" width="500" height="36" rx="6" fill="#1C1F1A" />
+    <circle cx="18" cy="18" r="3" fill="#7A8A5C" />
+    <text x="32" y="23"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="400" font-size="13"
+          fill="#F5F2E9">curl -fsSL tundra.dev/install.sh | sudo bash</text>
+  </g>
+</svg>

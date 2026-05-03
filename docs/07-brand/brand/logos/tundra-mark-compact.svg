@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra Mark — Compact (icon-optimized for ≤32px display)
+  Slightly thicker arms (inner radius bumped from 18% to 22% of long axis) to maintain visibility at small sizes.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Tundra">
+  <path
+    d="M 120 18
+       L 142 102
+       L 178 120
+       L 142 138
+       L 120 222
+       L 98 138
+       L 62 120
+       L 98 102
+       Z"
+    fill="#1C1F1A" />
+</svg>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra Mark — Horizon variant
+  The north star above a horizon line suggesting the tundra landscape.
+  Use for hero contexts, brand book covers, the install screen.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" role="img" aria-label="Tundra">
+  <!-- Star, repositioned and slightly smaller so the horizon has room -->
+  <path
+    d="M 160 30
+       L 174 102
+       L 202 120
+       L 174 138
+       L 160 196
+       L 146 138
+       L 118 120
+       L 146 102
+       Z"
+    fill="#1C1F1A" />
+  <!-- Horizon line: subtle, 2px stroke, 60% width centered -->
+  <line x1="60" y1="216" x2="260" y2="216"
+        stroke="#3A3D38" stroke-width="2" stroke-linecap="round" />
+  <!-- Distant ridge hint: very subtle, suggesting depth -->
+  <path d="M 60 216 L 110 208 L 145 213 L 175 207 L 215 213 L 260 216"
+        fill="none" stroke="#6B6F66" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.55" />
+</svg>

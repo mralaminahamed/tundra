@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra Wordmark — text-only variant.
+  Typeface: Inter Display Black, optical-sized for display use.
+  Letter-spacing: -0.02em (tight, modern).
+  Color: Tundra Ink #1C1F1A
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="480" height="120" role="img" aria-label="Tundra">
+  <text x="240" y="92"
+        text-anchor="middle"
+        font-family="'Inter Display', 'Inter', -apple-system, sans-serif"
+        font-weight="900"
+        font-size="96"
+        letter-spacing="-3"
+        fill="#1C1F1A">tundra</text>
+</svg>

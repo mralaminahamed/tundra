@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra — Color System Reference Sheet
+  All structural and accent colors with names and hex codes.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1400" width="1200" height="1400">
+  <rect width="1200" height="1400" fill="#F5F2E9" />
+
+  <!-- Header -->
+  <text x="80" y="100"
+        font-family="'Inter Display', sans-serif"
+        font-weight="900" font-size="64" letter-spacing="-2"
+        fill="#1C1F1A">Color</text>
+  <text x="80" y="148"
+        font-family="'Inter', sans-serif"
+        font-weight="500" font-size="22"
+        fill="#3A3D38">The earth-tundra palette — warm-leaning, grounded, technical.</text>
+
+  <!-- ============ STRUCTURAL ROW ============ -->
+  <g transform="translate(80, 220)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">STRUCTURAL — THE BACKBONE</text>
+
+    <!-- Ink -->
+    <g transform="translate(0, 30)">
+      <rect width="200" height="200" fill="#1C1F1A" rx="6" />
+      <text x="0" y="232" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Tundra Ink</text>
+      <text x="0" y="254" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="13" fill="#6B6F66">#1C1F1A</text>
+    </g>
+
+    <!-- Stone -->
+    <g transform="translate(220, 30)">
+      <rect width="200" height="200" fill="#3A3D38" rx="6" />
+      <text x="0" y="232" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Tundra Stone</text>
+      <text x="0" y="254" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="13" fill="#6B6F66">#3A3D38</text>
+    </g>
+
+    <!-- Slate -->
+    <g transform="translate(440, 30)">
+      <rect width="200" height="200" fill="#6B6F66" rx="6" />
+      <text x="0" y="232" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Tundra Slate</text>
+      <text x="0" y="254" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="13" fill="#6B6F66">#6B6F66</text>
+    </g>
+
+    <!-- Lichen -->
+    <g transform="translate(660, 30)">
+      <rect width="200" height="200" fill="#A8AC9F" rx="6" />
+      <text x="0" y="232" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Tundra Lichen</text>
+      <text x="0" y="254" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="13" fill="#6B6F66">#A8AC9F</text>
+    </g>
+
+    <!-- Frost -->
+    <g transform="translate(880, 30)">
+      <rect width="200" height="200" fill="#E8E5DC" rx="6" stroke="#A8AC9F" stroke-width="0.5" />
+      <text x="0" y="232" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Tundra Frost</text>
+      <text x="0" y="254" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="13" fill="#6B6F66">#E8E5DC</text>
+    </g>
+  </g>
+
+  <!-- Paper / Bone (second row of structural) -->
+  <g transform="translate(80, 530)">
+    <g>
+      <rect width="200" height="120" fill="#F5F2E9" rx="6" stroke="#A8AC9F" stroke-width="0.5" />
+      <text x="0" y="148" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Tundra Paper</text>
+      <text x="0" y="170" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="13" fill="#6B6F66">#F5F2E9</text>
+    </g>
+    <g transform="translate(220, 0)">
+      <rect width="200" height="120" fill="#FBF9F2" rx="6" stroke="#A8AC9F" stroke-width="0.5" />
+      <text x="0" y="148" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Tundra Bone</text>
+      <text x="0" y="170" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="13" fill="#6B6F66">#FBF9F2</text>
+    </g>
+  </g>
+
+  <!-- ============ ACCENT ROW ============ -->
+  <g transform="translate(80, 760)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">ACCENT — USED SPARINGLY</text>
+
+    <!-- Lichen Accent: 3-stop gradient bar -->
+    <g transform="translate(0, 30)">
+      <rect x="0"   y="0" width="100" height="180" fill="#E8ECDD" rx="6 0 0 6"/>
+      <rect x="100" y="0" width="120" height="180" fill="#7A8A5C"/>
+      <rect x="220" y="0" width="100" height="180" fill="#5A6943" rx="0 6 6 0"/>
+      <text x="0"   y="212" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Lichen</text>
+      <text x="0"   y="234" font-family="'Inter', sans-serif" font-weight="400" font-size="13" fill="#6B6F66">soft · default · deep</text>
+      <text x="0"   y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#E8ECDD</text>
+      <text x="135" y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#7A8A5C</text>
+      <text x="262" y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#5A6943</text>
+    </g>
+
+    <!-- Rust -->
+    <g transform="translate(360, 30)">
+      <rect x="0"   y="0" width="100" height="180" fill="#F2DDD0" rx="6 0 0 6"/>
+      <rect x="100" y="0" width="120" height="180" fill="#B5613A"/>
+      <rect x="220" y="0" width="100" height="180" fill="#8A4626" rx="0 6 6 0"/>
+      <text x="0"   y="212" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Rust</text>
+      <text x="0"   y="234" font-family="'Inter', sans-serif" font-weight="400" font-size="13" fill="#6B6F66">soft · default · deep</text>
+      <text x="0"   y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#F2DDD0</text>
+      <text x="135" y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#B5613A</text>
+      <text x="262" y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#8A4626</text>
+    </g>
+
+    <!-- Aurora -->
+    <g transform="translate(720, 30)">
+      <rect x="0"   y="0" width="100" height="180" fill="#DEE5EA" rx="6 0 0 6"/>
+      <rect x="100" y="0" width="120" height="180" fill="#5B7A8C"/>
+      <rect x="220" y="0" width="100" height="180" fill="#3F5C6E" rx="0 6 6 0"/>
+      <text x="0"   y="212" font-family="'Inter', sans-serif" font-weight="600" font-size="16" fill="#1C1F1A">Aurora</text>
+      <text x="0"   y="234" font-family="'Inter', sans-serif" font-weight="400" font-size="13" fill="#6B6F66">soft · default · deep</text>
+      <text x="0"   y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#DEE5EA</text>
+      <text x="135" y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#5B7A8C</text>
+      <text x="262" y="258" font-family="'JetBrains Mono', monospace" font-weight="400" font-size="11" fill="#6B6F66">#3F5C6E</text>
+    </g>
+  </g>
+
+  <!-- ============ USAGE NOTES ============ -->
+  <g transform="translate(80, 1140)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace"
+          font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">USAGE</text>
+
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <text x="0" y="60"
+          font-family="'Inter', sans-serif" font-weight="600" font-size="18" fill="#1C1F1A">Lichen → primary accent.</text>
+    <text x="0" y="86"
+          font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">CTAs, success states, the &quot;north-star&quot; reference. Rare. Earns its presence.</text>
+
+    <text x="0" y="130"
+          font-family="'Inter', sans-serif" font-weight="600" font-size="18" fill="#1C1F1A">Rust → emphasis &amp; danger.</text>
+    <text x="0" y="156"
+          font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">Destructive actions, errors, important warnings. Never decorative.</text>
+
+    <text x="0" y="200"
+          font-family="'Inter', sans-serif" font-weight="600" font-size="18" fill="#1C1F1A">Aurora → information.</text>
+    <text x="0" y="226"
+          font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">Links, info notices, hyperlinks in dense documentation contexts.</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="80" y="1370"
+        font-family="'JetBrains Mono', monospace" font-weight="400" font-size="12" letter-spacing="1.5"
+        fill="#6B6F66">TUNDRA — COLOR SYSTEM v1.0</text>
+  <text x="1120" y="1370" text-anchor="end"
+        font-family="'JetBrains Mono', monospace" font-weight="400" font-size="12" letter-spacing="1.5"
+        fill="#6B6F66">@MRALAMINAHAMED</text>
+</svg>

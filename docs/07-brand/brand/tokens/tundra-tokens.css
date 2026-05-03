@@ -1,0 +1,215 @@
+/**
+ * Tundra Design Tokens — CSS Custom Properties
+ *
+ * The canonical set of design tokens for Tundra v1.0.
+ * Import into the panel UI (forge-ui) and any first-party docs site.
+ *
+ * Author: Al Amin Ahamed (@mralaminahamed)
+ * Version: 1.0.0
+ */
+
+:root {
+  /* ============================================================
+   * COLOR — STRUCTURAL (the backbone: ink, stone, paper)
+   * ============================================================ */
+
+  --tundra-ink: #1C1F1A;       /* primary dark text & dark surfaces */
+  --tundra-stone: #3A3D38;     /* secondary text, mid-dark surfaces */
+  --tundra-slate: #6B6F66;     /* tertiary text, muted body copy */
+  --tundra-lichen: #A8AC9F;    /* dividers, line art, disabled */
+  --tundra-frost: #E8E5DC;     /* subtle warm-gray backgrounds */
+  --tundra-paper: #F5F2E9;     /* primary light background — warm paper white */
+  --tundra-bone: #FBF9F2;      /* alternate lightest background */
+
+  /* ============================================================
+   * COLOR — ACCENT (used sparingly, that's what makes them work)
+   * ============================================================ */
+
+  --tundra-lichen-accent: #7A8A5C;     /* primary accent — sage green, the north-star green */
+  --tundra-rust: #B5613A;              /* secondary accent — warm rust, emphasis & danger */
+  --tundra-aurora: #5B7A8C;            /* tertiary accent — desaturated cold blue, info & links */
+
+  /* Accent — soft variants (for backgrounds, badges, subtle states) */
+  --tundra-lichen-soft: #E8ECDD;
+  --tundra-rust-soft: #F2DDD0;
+  --tundra-aurora-soft: #DEE5EA;
+
+  /* Accent — deep variants (for high-contrast emphasis on light) */
+  --tundra-lichen-deep: #5A6943;
+  --tundra-rust-deep: #8A4626;
+  --tundra-aurora-deep: #3F5C6E;
+
+  /* ============================================================
+   * COLOR — SEMANTIC (mapped to roles, not pigments)
+   * ============================================================ */
+
+  --color-bg: var(--tundra-paper);
+  --color-bg-subtle: var(--tundra-frost);
+  --color-bg-elevated: var(--tundra-bone);
+
+  --color-fg: var(--tundra-ink);
+  --color-fg-muted: var(--tundra-stone);
+  --color-fg-subtle: var(--tundra-slate);
+  --color-fg-faint: var(--tundra-lichen);
+
+  --color-border: var(--tundra-frost);
+  --color-border-strong: var(--tundra-lichen);
+  --color-border-emphasis: var(--tundra-stone);
+
+  --color-accent: var(--tundra-lichen-accent);
+  --color-accent-soft: var(--tundra-lichen-soft);
+  --color-accent-deep: var(--tundra-lichen-deep);
+
+  --color-success: var(--tundra-lichen-accent);
+  --color-warning: #C28C3D;     /* amber, sits between rust and lichen */
+  --color-danger: var(--tundra-rust);
+  --color-info: var(--tundra-aurora);
+
+  /* ============================================================
+   * TYPOGRAPHY — FAMILIES
+   * ============================================================ */
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Inter Display', 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ============================================================
+   * TYPOGRAPHY — SCALE (modular, 1.250 ratio "Major Third")
+   * ============================================================ */
+
+  --text-2xs: 11px;    /* line-height: 16px — fine print, technical labels */
+  --text-xs: 12px;     /* line-height: 18px — captions, footnotes */
+  --text-sm: 14px;     /* line-height: 20px — secondary UI text */
+  --text-base: 16px;   /* line-height: 24px — body text default */
+  --text-md: 18px;     /* line-height: 28px — emphasized body, lead paragraphs */
+  --text-lg: 22px;     /* line-height: 30px — small headings, callouts */
+  --text-xl: 28px;     /* line-height: 36px — h3 */
+  --text-2xl: 36px;    /* line-height: 44px — h2 */
+  --text-3xl: 48px;    /* line-height: 56px — h1 */
+  --text-4xl: 64px;    /* line-height: 72px — display headings */
+  --text-5xl: 96px;    /* line-height: 100px — hero titles */
+  --text-display: 148px; /* line-height: 148px — wordmark / brand display */
+
+  /* ============================================================
+   * TYPOGRAPHY — WEIGHTS
+   * ============================================================ */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 900;     /* reserved for the wordmark and hero display */
+
+  /* ============================================================
+   * TYPOGRAPHY — TRACKING
+   * Inter is optical-size-aware; large sizes need negative tracking,
+   * small sizes need slight positive.
+   * ============================================================ */
+
+  --tracking-tightest: -0.04em;  /* hero / wordmark */
+  --tracking-tight: -0.02em;     /* display headings */
+  --tracking-snug: -0.01em;      /* body headings */
+  --tracking-normal: 0;          /* default body */
+  --tracking-wide: 0.02em;       /* small caps, eyebrows */
+  --tracking-wider: 0.05em;      /* technical labels */
+  --tracking-widest: 0.1em;      /* uppercase metadata, JetBrains Mono labels */
+
+  /* ============================================================
+   * SPACING — 4px base, geometric progression
+   * ============================================================ */
+
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ============================================================
+   * RADIUS — restrained: small, medium, full
+   * The brand reads more crafted with crisp corners; round only what should feel soft.
+   * ============================================================ */
+
+  --radius-none: 0;
+  --radius-sm: 4px;        /* badges, small inputs, subtle */
+  --radius-md: 6px;        /* buttons, cards, default */
+  --radius-lg: 10px;       /* large cards, modals */
+  --radius-xl: 16px;       /* feature panels, hero blocks */
+  --radius-full: 9999px;   /* pills, avatars */
+
+  /* ============================================================
+   * BORDER WIDTHS
+   * ============================================================ */
+
+  --border-thin: 1px;
+  --border-default: 1.25px;
+  --border-thick: 2px;
+  --border-emphasis: 3px;
+
+  /* ============================================================
+   * SHADOWS — subtle, never glowy. Earth-tundra means grounded.
+   * ============================================================ */
+
+  --shadow-xs: 0 1px 2px 0 rgba(28, 31, 26, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(28, 31, 26, 0.06), 0 1px 2px 0 rgba(28, 31, 26, 0.04);
+  --shadow-md: 0 4px 8px -2px rgba(28, 31, 26, 0.08), 0 2px 4px -2px rgba(28, 31, 26, 0.04);
+  --shadow-lg: 0 10px 20px -4px rgba(28, 31, 26, 0.10), 0 4px 8px -4px rgba(28, 31, 26, 0.04);
+  --shadow-xl: 0 20px 32px -8px rgba(28, 31, 26, 0.12);
+
+  /* ============================================================
+   * MOTION — quick, restrained
+   * ============================================================ */
+
+  --duration-fast: 120ms;
+  --duration-default: 200ms;
+  --duration-slow: 320ms;
+
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+ * DARK THEME — invert structural; accents stay close (Earth-tundra night)
+ * ============================================================ */
+
+[data-theme="dark"] {
+  --color-bg: var(--tundra-ink);
+  --color-bg-subtle: #262924;
+  --color-bg-elevated: #2E312C;
+
+  --color-fg: var(--tundra-paper);
+  --color-fg-muted: var(--tundra-lichen);
+  --color-fg-subtle: var(--tundra-slate);
+  --color-fg-faint: var(--tundra-stone);
+
+  --color-border: #2E312C;
+  --color-border-strong: var(--tundra-stone);
+  --color-border-emphasis: var(--tundra-slate);
+
+  /* Accents brighten slightly on dark to keep contrast */
+  --color-accent: #94A472;          /* brighter lichen */
+  --color-accent-soft: #2E342A;
+  --color-accent-deep: var(--tundra-lichen-accent);
+
+  --color-success: #94A472;
+  --color-warning: #D9A05B;
+  --color-danger: #C97A55;
+  --color-info: #7B9BAC;
+
+  /* Shadows on dark are imperceptible; use subtle borders instead */
+  --shadow-xs: none;
+  --shadow-sm: 0 1px 0 0 rgba(255, 255, 255, 0.03);
+  --shadow-md: 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  --shadow-lg: 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  --shadow-xl: 0 1px 0 0 rgba(255, 255, 255, 0.06);
+}

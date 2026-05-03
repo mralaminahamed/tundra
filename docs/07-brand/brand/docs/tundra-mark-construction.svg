@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra — Logo Construction & Clear Space
+  Shows the geometry of the mark, minimum sizes, and protected clear-space zones.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500">
+  <rect width="1200" height="1500" fill="#F5F2E9" />
+
+  <!-- Header -->
+  <text x="80" y="100"
+        font-family="'Inter Display', sans-serif"
+        font-weight="900" font-size="64" letter-spacing="-2"
+        fill="#1C1F1A">The Mark</text>
+  <text x="80" y="148"
+        font-family="'Inter', sans-serif"
+        font-weight="500" font-size="22"
+        fill="#3A3D38">A north star above the tundra. Geometric. Asymmetric. Quiet.</text>
+
+  <!-- ============ CONSTRUCTION GRID ============ -->
+  <g transform="translate(80, 230)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace" font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">CONSTRUCTION</text>
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <!-- Frame: 480x480 grid, mark inside -->
+    <g transform="translate(40, 60)">
+      <!-- Light grid lines -->
+      <g stroke="#E8E5DC" stroke-width="1">
+        <line x1="0" y1="0" x2="480" y2="0"/>
+        <line x1="0" y1="60" x2="480" y2="60"/>
+        <line x1="0" y1="120" x2="480" y2="120"/>
+        <line x1="0" y1="180" x2="480" y2="180"/>
+        <line x1="0" y1="240" x2="480" y2="240"/>
+        <line x1="0" y1="300" x2="480" y2="300"/>
+        <line x1="0" y1="360" x2="480" y2="360"/>
+        <line x1="0" y1="420" x2="480" y2="420"/>
+        <line x1="0" y1="480" x2="480" y2="480"/>
+        <line x1="0" y1="0" x2="0" y2="480"/>
+        <line x1="60" y1="0" x2="60" y2="480"/>
+        <line x1="120" y1="0" x2="120" y2="480"/>
+        <line x1="180" y1="0" x2="180" y2="480"/>
+        <line x1="240" y1="0" x2="240" y2="480"/>
+        <line x1="300" y1="0" x2="300" y2="480"/>
+        <line x1="360" y1="0" x2="360" y2="480"/>
+        <line x1="420" y1="0" x2="420" y2="480"/>
+        <line x1="480" y1="0" x2="480" y2="480"/>
+      </g>
+      <!-- Outer frame -->
+      <rect x="0" y="0" width="480" height="480" fill="none" stroke="#A8AC9F" stroke-width="1.25"/>
+
+      <!-- The mark scaled into the 480x480 frame.
+           Original viewBox was 240x240; scale factor ×2.
+           Anchor points: north tip (240,24), inner-NE (274,204), east tip (344,240),
+           inner-SE (274,276), south tip (240,456), inner-SW (206,276), west tip (136,240), inner-NW (206,204).
+           Then offset by (0,0) since this g is already at translate(40,60). -->
+      <path d="M 240 24
+               L 274 204
+               L 344 240
+               L 274 276
+               L 240 456
+               L 206 276
+               L 136 240
+               L 206 204 Z"
+            fill="#1C1F1A"/>
+
+      <!-- Construction guides: dashed lines showing axis & inner radius -->
+      <line x1="240" y1="0" x2="240" y2="480" stroke="#B5613A" stroke-width="0.75" stroke-dasharray="3 3"/>
+      <line x1="0" y1="240" x2="480" y2="240" stroke="#B5613A" stroke-width="0.75" stroke-dasharray="3 3"/>
+
+      <!-- Construction marks at vertex points -->
+      <circle cx="240" cy="24" r="3" fill="#B5613A"/>
+      <circle cx="240" cy="456" r="3" fill="#B5613A"/>
+      <circle cx="344" cy="240" r="3" fill="#B5613A"/>
+      <circle cx="136" cy="240" r="3" fill="#B5613A"/>
+
+      <!-- Dimension labels -->
+      <text x="495" y="28" font-family="'JetBrains Mono', monospace" font-weight="500" font-size="11" fill="#3A3D38">N</text>
+      <text x="495" y="244" font-family="'JetBrains Mono', monospace" font-weight="500" font-size="11" fill="#3A3D38">— equator</text>
+      <text x="495" y="460" font-family="'JetBrains Mono', monospace" font-weight="500" font-size="11" fill="#3A3D38">S</text>
+    </g>
+
+    <!-- Ratios callout -->
+    <g transform="translate(620, 60)">
+      <text x="0" y="32"
+            font-family="'Inter Display', sans-serif" font-weight="700" font-size="22" letter-spacing="-0.4"
+            fill="#1C1F1A">Geometry</text>
+
+      <text x="0" y="80"
+            font-family="'JetBrains Mono', monospace" font-weight="500" font-size="13"
+            fill="#7A8A5C">north–south axis</text>
+      <text x="0" y="100"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="14"
+            fill="#3A3D38">432 units (full height)</text>
+
+      <text x="0" y="138"
+            font-family="'JetBrains Mono', monospace" font-weight="500" font-size="13"
+            fill="#7A8A5C">east–west axis</text>
+      <text x="0" y="158"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="14"
+            fill="#3A3D38">208 units</text>
+
+      <text x="0" y="196"
+            font-family="'JetBrains Mono', monospace" font-weight="500" font-size="13"
+            fill="#7A8A5C">vertical : horizontal</text>
+      <text x="0" y="216"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="14"
+            fill="#3A3D38">2.077 : 1   ≈   golden ratio + half</text>
+
+      <text x="0" y="254"
+            font-family="'JetBrains Mono', monospace" font-weight="500" font-size="13"
+            fill="#7A8A5C">inner-vertex pull</text>
+      <text x="0" y="274"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="14"
+            fill="#3A3D38">36 units from center axis</text>
+
+      <text x="0" y="320"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="14" font-style="italic"
+            fill="#6B6F66">The asymmetry is the signature.</text>
+      <text x="0" y="342"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="14" font-style="italic"
+            fill="#6B6F66">A symmetric four-pointed star is a generic compass.</text>
+      <text x="0" y="364"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="14" font-style="italic"
+            fill="#6B6F66">Stretching the vertical axis makes it a polaris.</text>
+    </g>
+  </g>
+
+  <!-- ============ CLEAR SPACE ============ -->
+  <g transform="translate(80, 870)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace" font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">CLEAR SPACE</text>
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <!-- Mark with X-height clear space marked around it -->
+    <g transform="translate(120, 80)">
+      <!-- Clear space bounds: 1x mark width on each side, 0.5x mark height top/bottom -->
+      <!-- Mark width = 208 units at this scale (use 0.5x=120). Mark height = 432, so vertical pad = 60 -->
+      <!-- Mark at scale 1: 240x120 (downscaled) -->
+      <!-- Just use mark scaled to 80x172 in the diagram, then show pad regions -->
+
+      <!-- Pad rectangle -->
+      <rect x="-60" y="-30" width="200" height="232" fill="#E8ECDD" stroke="#7A8A5C" stroke-width="1" stroke-dasharray="4 4"/>
+
+      <!-- Mark itself -->
+      <path d="M 40 0
+               L 47 36
+               L 80 50
+               L 47 64
+               L 40 100
+               L 33 64
+               L 0 50
+               L 33 36 Z"
+            fill="#1C1F1A"
+            transform="translate(0, 30) scale(1, 1.72)"/>
+
+      <!-- "X" measure label on left -->
+      <line x1="-60" y1="105" x2="-10" y2="105" stroke="#B5613A" stroke-width="1"/>
+      <text x="-45" y="125" font-family="'JetBrains Mono', monospace" font-weight="500" font-size="11" fill="#B5613A">x</text>
+
+      <!-- "X" measure label on top -->
+      <line x1="40" y1="-30" x2="40" y2="0" stroke="#B5613A" stroke-width="1"/>
+      <text x="48" y="-12" font-family="'JetBrains Mono', monospace" font-weight="500" font-size="11" fill="#B5613A">x/2</text>
+    </g>
+
+    <!-- Clear space rules text -->
+    <g transform="translate(420, 90)">
+      <text x="0" y="32"
+            font-family="'Inter Display', sans-serif" font-weight="700" font-size="22" letter-spacing="-0.4"
+            fill="#1C1F1A">Protected zone</text>
+      <text x="0" y="68"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">Maintain a clear space equal to the mark&apos;s east–west width</text>
+      <text x="0" y="90"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">on the left and right, half that on top and bottom.</text>
+      <text x="0" y="124"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">No competing graphic, edge, or text inside this zone.</text>
+
+      <text x="0" y="170"
+            font-family="'Inter Display', sans-serif" font-weight="700" font-size="22" letter-spacing="-0.4"
+            fill="#1C1F1A">Minimum sizes</text>
+      <text x="0" y="206"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">Mark alone — 16px. Below this, use the favicon variant.</text>
+      <text x="0" y="228"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">Lockup horizontal — 96px wide.</text>
+      <text x="0" y="250"
+            font-family="'Inter', sans-serif" font-weight="400" font-size="15" fill="#3A3D38">Lockup stacked — 80px wide.</text>
+    </g>
+  </g>
+
+  <!-- ============ DON'TS ============ -->
+  <g transform="translate(80, 1240)">
+    <text x="0" y="0"
+          font-family="'JetBrains Mono', monospace" font-weight="500" font-size="13" letter-spacing="2"
+          fill="#6B6F66">DON&apos;TS</text>
+    <line x1="0" y1="20" x2="1040" y2="20" stroke="#A8AC9F" stroke-width="0.5"/>
+
+    <!-- Don't 1: stretch -->
+    <g transform="translate(0, 50)">
+      <rect x="0" y="0" width="160" height="120" fill="none" stroke="#E8E5DC" stroke-width="1"/>
+      <path d="M 80 14 L 105 50 L 142 60 L 105 70 L 80 106 L 55 70 L 18 60 L 55 50 Z"
+            fill="#1C1F1A" transform="scale(1, 0.7) translate(0, 26)"/>
+      <line x1="20" y1="100" x2="140" y2="20" stroke="#B5613A" stroke-width="2"/>
+      <text x="0" y="142" font-family="'Inter', sans-serif" font-weight="500" font-size="13" fill="#B5613A">Don&apos;t squash</text>
+    </g>
+
+    <!-- Don't 2: rotate -->
+    <g transform="translate(180, 50)">
+      <rect x="0" y="0" width="160" height="120" fill="none" stroke="#E8E5DC" stroke-width="1"/>
+      <path d="M 80 14 L 95 50 L 132 60 L 95 70 L 80 106 L 65 70 L 28 60 L 65 50 Z"
+            fill="#1C1F1A" transform="rotate(35 80 60)"/>
+      <line x1="20" y1="100" x2="140" y2="20" stroke="#B5613A" stroke-width="2"/>
+      <text x="0" y="142" font-family="'Inter', sans-serif" font-weight="500" font-size="13" fill="#B5613A">Don&apos;t rotate</text>
+    </g>
+
+    <!-- Don't 3: outline -->
+    <g transform="translate(360, 50)">
+      <rect x="0" y="0" width="160" height="120" fill="none" stroke="#E8E5DC" stroke-width="1"/>
+      <path d="M 80 14 L 95 50 L 132 60 L 95 70 L 80 106 L 65 70 L 28 60 L 65 50 Z"
+            fill="none" stroke="#1C1F1A" stroke-width="2"/>
+      <line x1="20" y1="100" x2="140" y2="20" stroke="#B5613A" stroke-width="2"/>
+      <text x="0" y="142" font-family="'Inter', sans-serif" font-weight="500" font-size="13" fill="#B5613A">Don&apos;t outline</text>
+    </g>
+
+    <!-- Don't 4: drop shadow -->
+    <g transform="translate(540, 50)">
+      <rect x="0" y="0" width="160" height="120" fill="none" stroke="#E8E5DC" stroke-width="1"/>
+      <path d="M 80 14 L 95 50 L 132 60 L 95 70 L 80 106 L 65 70 L 28 60 L 65 50 Z"
+            fill="#A8AC9F" transform="translate(4, 4)"/>
+      <path d="M 80 14 L 95 50 L 132 60 L 95 70 L 80 106 L 65 70 L 28 60 L 65 50 Z"
+            fill="#1C1F1A"/>
+      <line x1="20" y1="100" x2="140" y2="20" stroke="#B5613A" stroke-width="2"/>
+      <text x="0" y="142" font-family="'Inter', sans-serif" font-weight="500" font-size="13" fill="#B5613A">No shadows</text>
+    </g>
+
+    <!-- Don't 5: gradient -->
+    <g transform="translate(720, 50)">
+      <defs>
+        <linearGradient id="badgrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#7A8A5C"/>
+          <stop offset="1" stop-color="#B5613A"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="160" height="120" fill="none" stroke="#E8E5DC" stroke-width="1"/>
+      <path d="M 80 14 L 95 50 L 132 60 L 95 70 L 80 106 L 65 70 L 28 60 L 65 50 Z"
+            fill="url(#badgrad)"/>
+      <line x1="20" y1="100" x2="140" y2="20" stroke="#B5613A" stroke-width="2"/>
+      <text x="0" y="142" font-family="'Inter', sans-serif" font-weight="500" font-size="13" fill="#B5613A">No gradients</text>
+    </g>
+
+    <!-- Don't 6: recolor -->
+    <g transform="translate(900, 50)">
+      <rect x="0" y="0" width="160" height="120" fill="none" stroke="#E8E5DC" stroke-width="1"/>
+      <path d="M 80 14 L 95 50 L 132 60 L 95 70 L 80 106 L 65 70 L 28 60 L 65 50 Z"
+            fill="#FF00AA"/>
+      <line x1="20" y1="100" x2="140" y2="20" stroke="#B5613A" stroke-width="2"/>
+      <text x="0" y="142" font-family="'Inter', sans-serif" font-weight="500" font-size="13" fill="#B5613A">No off-palette colors</text>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <text x="80" y="1470"
+        font-family="'JetBrains Mono', monospace" font-weight="400" font-size="12" letter-spacing="1.5"
+        fill="#6B6F66">TUNDRA — LOGO SYSTEM v1.0</text>
+  <text x="1120" y="1470" text-anchor="end"
+        font-family="'JetBrains Mono', monospace" font-weight="400" font-size="12" letter-spacing="1.5"
+        fill="#6B6F66">@MRALAMINAHAMED</text>
+</svg>

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "_meta": {
+    "project": "Tundra",
+    "version": "1.0.0",
+    "author": "Al Amin Ahamed",
+    "github": "@mralaminahamed",
+    "description": "Tundra design tokens — the canonical visual language."
+  },
+  "color": {
+    "structural": {
+      "ink":     { "$value": "#1C1F1A", "$type": "color", "$description": "Primary dark text & dark surfaces. Warm near-black, slight green tint." },
+      "stone":   { "$value": "#3A3D38", "$type": "color", "$description": "Secondary text, mid-dark surfaces." },
+      "slate":   { "$value": "#6B6F66", "$type": "color", "$description": "Tertiary text, muted body copy." },
+      "lichen":  { "$value": "#A8AC9F", "$type": "color", "$description": "Dividers, line art, disabled states." },
+      "frost":   { "$value": "#E8E5DC", "$type": "color", "$description": "Subtle warm-gray backgrounds." },
+      "paper":   { "$value": "#F5F2E9", "$type": "color", "$description": "Primary light background — warm paper white." },
+      "bone":    { "$value": "#FBF9F2", "$type": "color", "$description": "Alternate lightest background." }
+    },
+    "accent": {
+      "lichen": {
+        "default": { "$value": "#7A8A5C", "$type": "color", "$description": "Primary accent — sage green, the north-star green." },
+        "soft":    { "$value": "#E8ECDD", "$type": "color" },
+        "deep":    { "$value": "#5A6943", "$type": "color" }
+      },
+      "rust": {
+        "default": { "$value": "#B5613A", "$type": "color", "$description": "Secondary accent — warm rust, emphasis & danger." },
+        "soft":    { "$value": "#F2DDD0", "$type": "color" },
+        "deep":    { "$value": "#8A4626", "$type": "color" }
+      },
+      "aurora": {
+        "default": { "$value": "#5B7A8C", "$type": "color", "$description": "Tertiary accent — desaturated cold blue, info & links." },
+        "soft":    { "$value": "#DEE5EA", "$type": "color" },
+        "deep":    { "$value": "#3F5C6E", "$type": "color" }
+      }
+    },
+    "semantic": {
+      "success": { "$value": "{color.accent.lichen.default}", "$type": "color" },
+      "warning": { "$value": "#C28C3D", "$type": "color" },
+      "danger":  { "$value": "{color.accent.rust.default}", "$type": "color" },
+      "info":    { "$value": "{color.accent.aurora.default}", "$type": "color" }
+    }
+  },
+  "font": {
+    "family": {
+      "sans":    { "$value": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "$type": "fontFamily" },
+      "display": { "$value": "'Inter Display', Inter, -apple-system, sans-serif", "$type": "fontFamily" },
+      "mono":    { "$value": "'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace", "$type": "fontFamily" }
+    },
+    "weight": {
+      "regular":  { "$value": 400, "$type": "fontWeight" },
+      "medium":   { "$value": 500, "$type": "fontWeight" },
+      "semibold": { "$value": 600, "$type": "fontWeight" },
+      "bold":     { "$value": 700, "$type": "fontWeight" },
+      "black":    { "$value": 900, "$type": "fontWeight" }
+    },
+    "size": {
+      "2xs":     { "$value": "11px",  "$type": "dimension" },
+      "xs":      { "$value": "12px",  "$type": "dimension" },
+      "sm":      { "$value": "14px",  "$type": "dimension" },
+      "base":    { "$value": "16px",  "$type": "dimension" },
+      "md":      { "$value": "18px",  "$type": "dimension" },
+      "lg":      { "$value": "22px",  "$type": "dimension" },
+      "xl":      { "$value": "28px",  "$type": "dimension" },
+      "2xl":     { "$value": "36px",  "$type": "dimension" },
+      "3xl":     { "$value": "48px",  "$type": "dimension" },
+      "4xl":     { "$value": "64px",  "$type": "dimension" },
+      "5xl":     { "$value": "96px",  "$type": "dimension" },
+      "display": { "$value": "148px", "$type": "dimension" }
+    },
+    "tracking": {
+      "tightest": { "$value": "-0.04em", "$type": "string" },
+      "tight":    { "$value": "-0.02em", "$type": "string" },
+      "snug":     { "$value": "-0.01em", "$type": "string" },
+      "normal":   { "$value": "0",       "$type": "string" },
+      "wide":     { "$value": "0.02em",  "$type": "string" },
+      "wider":    { "$value": "0.05em",  "$type": "string" },
+      "widest":   { "$value": "0.1em",   "$type": "string" }
+    }
+  },
+  "space": {
+    "0":  { "$value": "0",     "$type": "dimension" },
+    "1":  { "$value": "4px",   "$type": "dimension" },
+    "2":  { "$value": "8px",   "$type": "dimension" },
+    "3":  { "$value": "12px",  "$type": "dimension" },
+    "4":  { "$value": "16px",  "$type": "dimension" },
+    "5":  { "$value": "20px",  "$type": "dimension" },
+    "6":  { "$value": "24px",  "$type": "dimension" },
+    "8":  { "$value": "32px",  "$type": "dimension" },
+    "10": { "$value": "40px",  "$type": "dimension" },
+    "12": { "$value": "48px",  "$type": "dimension" },
+    "16": { "$value": "64px",  "$type": "dimension" },
+    "20": { "$value": "80px",  "$type": "dimension" },
+    "24": { "$value": "96px",  "$type": "dimension" },
+    "32": { "$value": "128px", "$type": "dimension" }
+  },
+  "radius": {
+    "none": { "$value": "0",      "$type": "dimension" },
+    "sm":   { "$value": "4px",    "$type": "dimension" },
+    "md":   { "$value": "6px",    "$type": "dimension" },
+    "lg":   { "$value": "10px",   "$type": "dimension" },
+    "xl":   { "$value": "16px",   "$type": "dimension" },
+    "full": { "$value": "9999px", "$type": "dimension" }
+  },
+  "border": {
+    "thin":     { "$value": "1px",    "$type": "dimension" },
+    "default":  { "$value": "1.25px", "$type": "dimension" },
+    "thick":    { "$value": "2px",    "$type": "dimension" },
+    "emphasis": { "$value": "3px",    "$type": "dimension" }
+  },
+  "shadow": {
+    "xs": { "$value": "0 1px 2px 0 rgba(28, 31, 26, 0.04)", "$type": "shadow" },
+    "sm": { "$value": "0 1px 3px 0 rgba(28, 31, 26, 0.06), 0 1px 2px 0 rgba(28, 31, 26, 0.04)", "$type": "shadow" },
+    "md": { "$value": "0 4px 8px -2px rgba(28, 31, 26, 0.08), 0 2px 4px -2px rgba(28, 31, 26, 0.04)", "$type": "shadow" },
+    "lg": { "$value": "0 10px 20px -4px rgba(28, 31, 26, 0.10), 0 4px 8px -4px rgba(28, 31, 26, 0.04)", "$type": "shadow" },
+    "xl": { "$value": "0 20px 32px -8px rgba(28, 31, 26, 0.12)", "$type": "shadow" }
+  },
+  "motion": {
+    "duration": {
+      "fast":    { "$value": "120ms", "$type": "duration" },
+      "default": { "$value": "200ms", "$type": "duration" },
+      "slow":    { "$value": "320ms", "$type": "duration" }
+    },
+    "easing": {
+      "default": { "$value": "cubic-bezier(0.4, 0, 0.2, 1)", "$type": "cubicBezier" },
+      "in":      { "$value": "cubic-bezier(0.4, 0, 1, 1)",   "$type": "cubicBezier" },
+      "out":     { "$value": "cubic-bezier(0, 0, 0.2, 1)",   "$type": "cubicBezier" },
+      "in-out":  { "$value": "cubic-bezier(0.4, 0, 0.2, 1)", "$type": "cubicBezier" }
+    }
+  }
+}
