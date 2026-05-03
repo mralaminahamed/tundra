@@ -6,6 +6,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-03 — Databases & Backups (P3)
+
+### Added
+
+#### Database engine providers (`tundra-agent-providers`)
+- `PostgresProvider` — cluster init, pg_dump, create_database, grant_privileges, perf profiles (Small/Medium/Large/Custom)
+- `MysqlProvider` — MySQL 8.4 LTS equivalent; `mysqldump` shell stub
+- `MariaDbProvider` — MariaDB 11.4 LTS equivalent
+- `ValkeyProvider` — per-instance creation; persistence modes (None/Aof/Rdb)
+
+#### Database schema + domain + repo (`migrations/`, `tundrad-domain`, `tundrad-repo`)
+- Migration `20260503000050_databases.sql`: `database_servers` (FK→servers), `databases` (FK→applications), `db_users`, `db_grants`
+- `EncryptedDbSuperuserPassword` + `EncryptedDbUserPassword` families (AES-256-GCM, HKDF)
+- Domain types: `DatabaseServer`, `Database`, `DbUser`, `DbGrant`, enums `DbEngine`, `DbServerStatus`
+- `DatabaseServerRepo`, `DatabaseRepo`, `DbUserRepo` with runtime sqlx queries; `set_grant` upsert; `get_decrypted_password` (decrypt-on-demand)
+
+#### Database REST API (`tundrad-api`)
+- 14 endpoints: CRUD for database-servers, databases, db-users; `grant`/`revoke` privileges; connection-string endpoint (step-up required, audit logged)
+- New RBAC resources: `DatabaseServer`, `Database`, `DbUser`
+
+#### Panel — Databases UI (`panel/`)
+- Database Servers: list + add form (engine select auto-fills default port) + detail (databases on server, users on server)
+- Databases: list + new form (server select, charset/collation) + detail with inline grant form (privilege checkboxes)
+
+#### Backup schema + restic + repo (`migrations/`, `tundrad-backup`, `tundrad-repo`)
+- Migration `20260503000060_backups.sql`: `backup_targets`, `backup_jobs`, `backup_snapshots`, `backup_restores`, `backup_locks`
+- `EncryptedBackupRepoPassword` family (`tundra:v1:backup_target:repo_password`)
+- `tundrad-backup` crate: `ResticClient` (CLI stub — init/backup/forget-prune/restore/check), `RetentionPolicy` (to_restic_flags), `BackupTarget` (restic_repo_url per kind: s3/local/sftp/b2/wasabi/r2)
+- `BackupTargetRepo`, `BackupJobRepo`, `BackupSnapshotRepo`, `BackupRestoreRepo`
+
+#### Backup REST API (`tundrad-api`)
+- 18 endpoints: targets (list/get/create/delete/test), jobs (list/get/create/delete/run-now), snapshots (list/get), two-step restore (initiate→preview, confirm within 10-min window, cancel)
+- New RBAC resources: `BackupTarget`, `BackupJob`, `BackupSnapshot`
+
+#### Panel — Backups UI (`panel/`)
+- Backup Targets: list (kind/default badges, per-row Test) + 2-step wizard (dynamic config fields per kind)
+- Backup Jobs: list (schedule, last_status badge, Run now) + form (scope/target/schedule/retention)
+- Backup Snapshots: list + per-row Restore button → preview modal → Confirm restore (preview-then-confirm)
+
+#### Self-backup tools (`tundrad-self-backup`)
+- `tundra-self-backup` binary: pg_dump → data-dir copy → SHA-256 checksums → manifest.json → tar → GPG encrypt
+- `tundra-restore` binary: GPG decrypt → checksum verify → manifest validate → recreate DB → pg_restore → restore data dir → verify master key → systemctl lifecycle
+- 3 checksum round-trip tests
+
+#### E2e tests (`panel/e2e/`)
+- `create-database.spec.ts` — DB server and database CRUD, grant flow
+- `backup-roundtrip.spec.ts` — target/job/snapshot list, run-now, two-step restore preview-then-confirm
+- `self-backup.spec.ts` — settings page, run-now, verify-latest
+
 ## [0.2.0] - 2026-05-03 — Single-host MVP (P2)
 
 ### Added
