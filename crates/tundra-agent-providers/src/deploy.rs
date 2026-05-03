@@ -5,11 +5,37 @@ use std::time::Instant;
 use tokio::sync::mpsc::Sender;
 use tracing::{info, warn};
 
+/// Blue or green deployment slot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Slot {
+    Blue,
+    Green,
+}
+
+impl Slot {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Slot::Blue => "blue",
+            Slot::Green => "green",
+        }
+    }
+
+    /// Return the inactive (target) slot given the currently-active slot.
+    pub fn opposite(self) -> Self {
+        match self {
+            Slot::Blue => Slot::Green,
+            Slot::Green => Slot::Blue,
+        }
+    }
+}
+
 /// Specification for a site deployment.
 #[derive(Debug, Clone)]
 pub struct DeploySpec {
     pub deployment_id: String,
     pub site_id: String,
+    /// Unique public id used for systemd unit naming, e.g. `"abc123"`.
+    pub public_id: String,
     pub document_root: String,
     /// e.g. `"laravel"`, `"static"`, `"blank"`
     pub kind: String,
@@ -21,6 +47,10 @@ pub struct DeploySpec {
     pub source_ref: String,
     /// Environment variables to inject at deploy time.
     pub env_vars: HashMap<String, String>,
+    /// Currently-active slot (`None` for first deploy — will pick Blue).
+    pub active_slot: Option<Slot>,
+    /// Port that the active slot's process is listening on (for health probe).
+    pub listen_port: Option<u16>,
 }
 
 /// Progress events emitted by [`DeployPipeline::run`].
@@ -36,6 +66,8 @@ pub enum DeployProgress {
     Finished {
         deployment_id: String,
         duration_ms: u64,
+        /// The slot that is now active after this deployment.
+        new_active_slot: Slot,
     },
     /// Deployment failed at `stage` with the given error message.
     Failed {
@@ -66,10 +98,13 @@ impl DeployPipeline {
 
     /// Run the full deploy pipeline, emitting [`DeployProgress`] events on `tx`.
     ///
-    /// Returns `Ok(())` when the deployment succeeds, or an `Err(String)` containing
+    /// Returns the newly-active [`Slot`] on success, or an `Err(String)` containing
     /// the error message (a corresponding [`DeployProgress::Failed`] is also sent).
-    pub async fn run(&self, spec: DeploySpec, tx: Sender<DeployProgress>) -> Result<(), String> {
+    pub async fn run(&self, spec: DeploySpec, tx: Sender<DeployProgress>) -> Result<Slot, String> {
         let started_at = Instant::now();
+
+        // Determine target slot: always deploy to the *inactive* slot.
+        let target_slot = spec.active_slot.map(|s| s.opposite()).unwrap_or(Slot::Blue);
 
         // -- started -------------------------------------------------------
         send(
@@ -179,6 +214,27 @@ impl DeployPipeline {
 
         log_line(&tx, "Release directory created", "info").await;
 
+        // -- stage: slot_start ---------------------------------------------
+        // Start the target-slot systemd unit (stub: log only).
+        let current_stage = "slot_start";
+        send(
+            &tx,
+            DeployProgress::Stage {
+                name: current_stage.into(),
+            },
+        )
+        .await;
+        log_line(
+            &tx,
+            &format!(
+                "Stub: would start tundra-app@{}-{}.service",
+                spec.public_id,
+                target_slot.as_str()
+            ),
+            "info",
+        )
+        .await;
+
         // -- stage: health_checking ----------------------------------------
         let current_stage = "health_checking";
         send(
@@ -191,8 +247,9 @@ impl DeployPipeline {
         log_line(
             &tx,
             &format!(
-                "Stub: would probe health_check_path '{}' — always passes in P2",
-                spec.health_check_path
+                "Stub: would probe health_check_path '{}' on slot {}",
+                spec.health_check_path,
+                target_slot.as_str()
             ),
             "info",
         )
@@ -200,6 +257,7 @@ impl DeployPipeline {
         log_line(&tx, "Health check passed (stub)", "info").await;
 
         // -- stage: promoting ----------------------------------------------
+        // Atomically promote: update proxy upstream to target slot, then stop old slot.
         let current_stage = "promoting";
         send(
             &tx,
@@ -225,17 +283,31 @@ impl DeployPipeline {
         log_line(
             &tx,
             &format!(
-                "Promoted release {} → {}",
+                "Promoted release {} → {} (slot: {})",
                 release_dir.display(),
-                self.current_link.display()
+                self.current_link.display(),
+                target_slot.as_str()
             ),
             "info",
         )
         .await;
 
+        // Stop the old (previously-active) slot — stub.
+        if let Some(old_slot) = spec.active_slot {
+            log_line(
+                &tx,
+                &format!(
+                    "Stub: would stop tundra-app@{}-{}.service",
+                    spec.public_id,
+                    old_slot.as_str()
+                ),
+                "info",
+            )
+            .await;
+        }
+
         // -- cleanup (prune old releases) ----------------------------------
         if let Err(e) = self.prune_old_releases().await {
-            // Non-fatal: log and continue.
             warn!(error = %e, "failed to prune old releases (non-fatal)");
             log_line(
                 &tx,
@@ -252,6 +324,7 @@ impl DeployPipeline {
             DeployProgress::Finished {
                 deployment_id: spec.deployment_id.clone(),
                 duration_ms,
+                new_active_slot: target_slot,
             },
         )
         .await;
@@ -259,10 +332,11 @@ impl DeployPipeline {
         info!(
             deployment_id = %spec.deployment_id,
             duration_ms,
+            slot = %target_slot.as_str(),
             "deploy pipeline finished",
         );
 
-        Ok(())
+        Ok(target_slot)
     }
 
     /// Atomically swap `current_link` to point at `release_dir`.
@@ -386,12 +460,15 @@ mod tests {
         DeploySpec {
             deployment_id: deployment_id.to_owned(),
             site_id: site_id.to_owned(),
+            public_id: "testpub".into(),
             document_root: "/srv/sites/test/current".into(),
             kind: "static".into(),
             build_command: None,
             health_check_path: "/".into(),
             source_ref: "blank".into(),
             env_vars: HashMap::new(),
+            active_slot: None,
+            listen_port: None,
         }
     }
 
@@ -470,12 +547,15 @@ mod tests {
         let spec = DeploySpec {
             deployment_id: "dep-0002".into(),
             site_id: "site-abc".into(),
+            public_id: "siteabc".into(),
             document_root: "/srv/sites/site-abc/current".into(),
             kind: "laravel".into(),
             build_command: Some("composer install --no-dev".into()),
             health_check_path: "/health".into(),
             source_ref: "abc123def456".into(),
             env_vars: HashMap::new(),
+            active_slot: Some(Slot::Blue),
+            listen_port: Some(3000),
         };
 
         pipeline
@@ -553,5 +633,59 @@ mod tests {
         }
 
         assert_eq!(count, 5, "expected 5 releases after pruning, got {count}");
+    }
+
+    #[tokio::test]
+    async fn blue_green_first_deploy_lands_on_blue() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let releases = tmp.path().join("releases");
+        let current = tmp.path().join("current");
+        tokio::fs::create_dir_all(&releases).await.unwrap();
+
+        let pipeline = DeployPipeline::new(&releases, &current);
+        let (tx, mut rx) = mpsc::channel(64);
+        let spec = blank_spec("dep-bg-001", "site-bg");
+
+        let new_slot = pipeline
+            .run(spec, tx)
+            .await
+            .expect("pipeline should succeed");
+        assert_eq!(new_slot, Slot::Blue, "first deploy should target Blue slot");
+
+        // Finished event must carry Blue slot.
+        let mut events = Vec::new();
+        while let Ok(ev) = rx.try_recv() {
+            events.push(ev);
+        }
+        assert!(matches!(
+            events.last().unwrap(),
+            DeployProgress::Finished {
+                new_active_slot: Slot::Blue,
+                ..
+            }
+        ));
+    }
+
+    #[tokio::test]
+    async fn blue_green_second_deploy_flips_to_green() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let releases = tmp.path().join("releases");
+        let current = tmp.path().join("current");
+        tokio::fs::create_dir_all(&releases).await.unwrap();
+
+        let pipeline = DeployPipeline::new(&releases, &current);
+        let (tx, _rx) = mpsc::channel(64);
+        let mut spec = blank_spec("dep-bg-002", "site-bg");
+        spec.active_slot = Some(Slot::Blue);
+
+        let new_slot = pipeline
+            .run(spec, tx)
+            .await
+            .expect("pipeline should succeed");
+        assert_eq!(
+            new_slot,
+            Slot::Green,
+            "second deploy should flip to Green slot"
+        );
     }
 }

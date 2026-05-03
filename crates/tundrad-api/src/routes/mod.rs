@@ -1,11 +1,13 @@
 pub mod audit_log;
 pub mod auth;
 pub mod backups;
+pub mod daemons;
 pub mod databases;
 pub mod domains;
 pub mod health;
 pub mod mail;
 pub mod operators;
+pub mod scheduled_tasks;
 pub mod servers;
 pub mod sites;
 pub mod tokens;

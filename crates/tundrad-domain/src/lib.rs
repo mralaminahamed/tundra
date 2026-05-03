@@ -1,9 +1,11 @@
 pub mod audit_log;
 pub mod backup;
+pub mod daemon;
 pub mod database;
 pub mod domain;
 pub mod mail;
 pub mod operator;
+pub mod scheduled_task;
 pub mod server;
 pub mod session;
 pub mod site;
@@ -13,6 +15,7 @@ pub use backup::{
     BackupJob, BackupRestore, BackupSnapshot, BackupTarget, BackupTargetKind, NewBackupJob,
     NewBackupTarget,
 };
+pub use daemon::{Daemon, NewDaemon};
 pub use database::{
     Database, DatabaseServer, DbEngine, DbGrant, DbServerStatus, DbUser, NewDatabase,
     NewDatabaseServer, NewDbUser,
@@ -23,6 +26,7 @@ pub use mail::{
     NewMailbox,
 };
 pub use operator::{NewOperator, Operator, OperatorRole};
+pub use scheduled_task::{NewScheduledTask, ScheduledTask};
 pub use server::{NewServer, Server, ServerStatus};
 pub use session::{NewSession, Session};
 pub use site::{Application, Deployment, DeploymentStatus, NewSite, Site, SiteStatus};
