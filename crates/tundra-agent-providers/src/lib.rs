@@ -10,7 +10,9 @@ pub mod postgres;
 pub mod powerdns;
 pub mod roundcube;
 pub mod rspamd;
+pub mod runtimes;
 pub mod systemd;
+pub mod systemd_templates;
 pub mod unbound;
 pub mod valkey;
 
@@ -26,6 +28,14 @@ pub use postgres::{PostgresProvider, PostgresSpec, PostgresState};
 pub use powerdns::{PowerDnsProvider, PowerDnsSpec, PowerDnsState};
 pub use roundcube::{RoundcubeProvider, RoundcubeSpec, RoundcubeState};
 pub use rspamd::{RspamdProvider, RspamdSpec, RspamdState};
+pub use runtimes::{
+    DotnetProvider, GoProvider, NodeProvider, PythonProvider, RubyProvider, RuntimeKind,
+    RuntimeSpec, RuntimeState, RustProvider,
+};
 pub use systemd::SystemdProvider;
+pub use systemd_templates::{
+    AppUnitParams, CronUnitParams, DaemonUnitParams, render_app_unit, render_cron_service,
+    render_cron_timer, render_daemon_unit,
+};
 pub use unbound::{UnboundProvider, UnboundSpec, UnboundState};
 pub use valkey::{ValkeyProvider, ValkeySpec, ValkeyState};
