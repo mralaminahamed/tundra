@@ -39,7 +39,7 @@ repository = "https://github.com/mralaminahamed/tundra"
 tokio = { version = "1", features = ["full"] }
 
 # HTTP framework — Axum 0.8 (spec §3.1)
-axum = { version = "0.8", features = ["macros"] }
+axum = { version = "0.8", features = ["macros", "ws"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["trace", "cors", "compression-gzip"] }
 
@@ -106,6 +106,9 @@ base64 = "0.22"
 
 # CLI
 clap = { version = "4", features = ["derive", "env"] }
+
+# Valkey / Redis client — rustls only (no openssl-sys); used by tundrad-events
+fred = { version = "10", features = ["subscriber-client", "serde-json"] }
 
 # Async utilities
 async-trait = "0.1"

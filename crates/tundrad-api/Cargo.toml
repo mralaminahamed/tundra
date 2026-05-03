@@ -17,8 +17,10 @@ tundrad-pki  = { path = "../tundrad-pki" }
 tundrad-crypto = { path = "../tundrad-crypto" }
 tundrad-domain = { path = "../tundrad-domain" }
 tundrad-repo = { path = "../tundrad-repo" }
+tundrad-events = { path = "../tundrad-events" }
 async-trait.workspace = true
 axum.workspace = true
+fred.workspace = true
 serde.workspace = true
 sqlx.workspace = true
 serde_json.workspace = true

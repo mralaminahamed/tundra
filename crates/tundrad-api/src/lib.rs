@@ -6,6 +6,7 @@ use axum::{
     Router,
     routing::{delete, get, post},
 };
+use routes::ws;
 use tower_http::trace::TraceLayer;
 use tundrad_repo::PgPool;
 
@@ -56,6 +57,8 @@ pub fn router(pool: PgPool) -> Router {
         )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))
+        // ── WebSocket event gateway ──────────────────────────────────────────────────
+        .route("/ws/v1/events", get(ws::handler))
         // ── Middleware ─────────────────────────────────────────────────────
         .layer(TraceLayer::new_for_http())
         .with_state(pool)

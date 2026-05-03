@@ -5,3 +5,4 @@ pub mod operators;
 pub mod servers;
 pub mod sites;
 pub mod tokens;
+pub mod ws;
