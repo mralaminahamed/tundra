@@ -1,0 +1,32 @@
+[package]
+name = "tundrad-self-backup"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "tundra-self-backup"
+path = "src/backup.rs"
+
+[[bin]]
+name = "tundra-restore"
+path = "src/restore.rs"
+
+[dependencies]
+tundrad-backup = { path = "../tundrad-backup" }
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+time.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

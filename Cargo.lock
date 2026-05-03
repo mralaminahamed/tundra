@@ -4004,6 +4004,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tundrad-self-backup"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "time",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "tundrad-backup",
+ "uuid",
+]
+
+[[package]]
 name = "tundrad-telemetry"
 version = "0.1.0"
 dependencies = [

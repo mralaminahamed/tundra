@@ -25,6 +25,7 @@ members = [
     "crates/tundra-proto",
     "crates/tundrad-pki",
     "crates/tundrad-backup",
+    "crates/tundrad-self-backup",
 ]
 resolver = "2"
 
