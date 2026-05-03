@@ -44,9 +44,24 @@ interface FormValues {
   kind: string
   runtimeVersion: string
   buildCommand: string
+  startCommand: string
+  listenPort: string
   domain: string
   serverId: string
   name: string
+}
+
+type RuntimeKind = 'static' | 'php' | 'laravel' | 'nodejs' | 'python' | 'go' | 'ruby' | 'dotnet'
+
+const RUNTIME_HINTS: Record<RuntimeKind, { versionPlaceholder: string; buildHint: string; startHint: string; portHint: string; hasPort: boolean }> = {
+  static:  { versionPlaceholder: '',           buildHint: '',                            startHint: '',                            portHint: '',     hasPort: false },
+  php:     { versionPlaceholder: 'e.g. 8.4',   buildHint: 'composer install --no-dev',   startHint: '',                            portHint: '',     hasPort: false },
+  laravel: { versionPlaceholder: 'e.g. 8.4',   buildHint: 'composer install --no-dev',   startHint: '',                            portHint: '',     hasPort: false },
+  nodejs:  { versionPlaceholder: 'e.g. 22',    buildHint: 'npm ci && npm run build',      startHint: 'node dist/index.js',           portHint: '3000', hasPort: true  },
+  python:  { versionPlaceholder: 'e.g. 3.13',  buildHint: 'pip install -r requirements.txt', startHint: 'gunicorn app:app -b 0.0.0.0:$PORT', portHint: '8000', hasPort: true },
+  go:      { versionPlaceholder: 'e.g. 1.24',  buildHint: 'go build -o app .',            startHint: './app',                        portHint: '8080', hasPort: true  },
+  ruby:    { versionPlaceholder: 'e.g. 3.4',   buildHint: 'bundle install --without dev test', startHint: 'bundle exec puma -C config/puma.rb', portHint: '3000', hasPort: true },
+  dotnet:  { versionPlaceholder: 'e.g. 9.0',   buildHint: 'dotnet publish -c Release',    startHint: 'dotnet publish/MyApp.dll',      portHint: '5000', hasPort: true  },
 }
 
 function CreateSitePage() {
@@ -65,6 +80,8 @@ function CreateSitePage() {
     kind: 'static',
     runtimeVersion: '',
     buildCommand: '',
+    startCommand: '',
+    listenPort: '',
     domain: '',
     serverId: '',
     name: '',
@@ -119,8 +136,10 @@ function CreateSitePage() {
                 server_id: values.serverId,
                 application: {
                   kind: values.kind,
-                  runtime_version: values.runtimeVersion || '1.0',
+                  runtime_version: values.runtimeVersion || null,
                   build_command: values.buildCommand || null,
+                  start_command: values.startCommand || null,
+                  listen_port: values.listenPort ? parseInt(values.listenPort, 10) : null,
                   health_check_path: '/',
                   source_kind: values.sourceKind,
                   source_config: { branch: values.branch },
@@ -164,35 +183,61 @@ function CreateSitePage() {
               </>
             )}
 
-            {step === 1 && (
-              <>
-                <label className="flex flex-col gap-1.5 text-sm">
-                  Application type
-                  <Field as="select" name="kind"
-                    className="rounded border border-tundra-ink-200 px-3 py-2">
-                    <option value="static">Static</option>
-                    <option value="php">PHP</option>
-                    <option value="laravel">Laravel</option>
-                    <option value="nodejs">Node.js</option>
-                    <option value="python">Python</option>
-                    <option value="go">Go</option>
-                  </Field>
-                </label>
-                <label className="flex flex-col gap-1.5 text-sm">
-                  Runtime version
-                  <Field name="runtimeVersion"
-                    className="rounded border border-tundra-ink-200 px-3 py-2"
-                    placeholder="e.g. 8.4 / 22 / 3.13" />
-                  <ErrorMessage name="runtimeVersion" component="p" className="text-tundra-rust text-xs" />
-                </label>
-                <label className="flex flex-col gap-1.5 text-sm">
-                  Build command (optional)
-                  <Field name="buildCommand"
-                    className="rounded border border-tundra-ink-200 px-3 py-2"
-                    placeholder="npm ci && npm run build" />
-                </label>
-              </>
-            )}
+            {step === 1 && (() => {
+              const hints = RUNTIME_HINTS[values.kind as RuntimeKind] ?? RUNTIME_HINTS.static
+              return (
+                <>
+                  <label className="flex flex-col gap-1.5 text-sm">
+                    Application type
+                    <Field as="select" name="kind"
+                      className="rounded border border-tundra-ink-200 px-3 py-2">
+                      <option value="static">Static</option>
+                      <option value="php">PHP</option>
+                      <option value="laravel">Laravel (PHP)</option>
+                      <option value="nodejs">Node.js</option>
+                      <option value="python">Python</option>
+                      <option value="go">Go</option>
+                      <option value="ruby">Ruby</option>
+                      <option value="dotnet">.NET</option>
+                    </Field>
+                  </label>
+
+                  {values.kind !== 'static' && (
+                    <label className="flex flex-col gap-1.5 text-sm">
+                      Runtime version
+                      <Field name="runtimeVersion"
+                        className="rounded border border-tundra-ink-200 px-3 py-2"
+                        placeholder={hints.versionPlaceholder} />
+                      <ErrorMessage name="runtimeVersion" component="p" className="text-tundra-rust text-xs" />
+                    </label>
+                  )}
+
+                  <label className="flex flex-col gap-1.5 text-sm">
+                    Build command <span className="text-tundra-ink-400">(optional)</span>
+                    <Field name="buildCommand"
+                      className="rounded border border-tundra-ink-200 px-3 py-2"
+                      placeholder={hints.buildHint || 'e.g. npm ci && npm run build'} />
+                  </label>
+
+                  {hints.hasPort && (
+                    <>
+                      <label className="flex flex-col gap-1.5 text-sm">
+                        Start command
+                        <Field name="startCommand"
+                          className="rounded border border-tundra-ink-200 px-3 py-2"
+                          placeholder={hints.startHint} />
+                      </label>
+                      <label className="flex flex-col gap-1.5 text-sm">
+                        Listen port
+                        <Field name="listenPort"
+                          className="rounded border border-tundra-ink-200 px-3 py-2"
+                          placeholder={hints.portHint} />
+                      </label>
+                    </>
+                  )}
+                </>
+              )
+            })()}
 
             {step === 2 && (
               <>
@@ -220,9 +265,12 @@ function CreateSitePage() {
             {step === 3 && (
               <dl className="grid grid-cols-2 gap-3 text-sm rounded-lg border border-tundra-ink-200 p-4">
                 <dt className="font-medium">Domain</dt><dd>{values.domain}</dd>
-                <dt className="font-medium">Source</dt><dd>{values.sourceKind}</dd>
+                <dt className="font-medium">Source</dt><dd>{values.sourceKind}{values.branch ? ` @ ${values.branch}` : ''}</dd>
                 <dt className="font-medium">App type</dt><dd>{values.kind}</dd>
-                <dt className="font-medium">Runtime</dt><dd>{values.runtimeVersion || '—'}</dd>
+                {values.runtimeVersion && <><dt className="font-medium">Runtime</dt><dd>{values.runtimeVersion}</dd></>}
+                {values.buildCommand && <><dt className="font-medium">Build</dt><dd className="truncate">{values.buildCommand}</dd></>}
+                {values.startCommand && <><dt className="font-medium">Start</dt><dd className="truncate">{values.startCommand}</dd></>}
+                {values.listenPort && <><dt className="font-medium">Port</dt><dd>{values.listenPort}</dd></>}
               </dl>
             )}
 
