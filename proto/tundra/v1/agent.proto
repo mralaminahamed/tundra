@@ -1,0 +1,411 @@
+syntax = "proto3";
+
+package tundra.agent.v1;
+
+option java_package = "dev.tundra.agent.v1";
+option go_package = "github.com/mralaminahamed/tundra/proto/tundra/agent/v1";
+
+// Agent is the gRPC service exposed by tundra-agent and called by tundrad.
+// All connections are mTLS; the agent's client cert SAN encodes the server UUID.
+service Agent {
+  // Lifecycle
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  rpc UpdateAgent(UpdateAgentRequest) returns (UpdateAgentResponse);
+
+  // Server-side operations (control plane → agent)
+  rpc ApplyServerConfig(ApplyServerConfigRequest) returns (ApplyServerConfigResponse);
+  rpc ManageService(ManageServiceRequest) returns (ManageServiceResponse);
+  rpc UpdatePackages(UpdatePackagesRequest) returns (stream UpdatePackagesProgress);
+  rpc ApplyFirewall(ApplyFirewallRequest) returns (ApplyFirewallResponse);
+
+  // Site lifecycle
+  rpc ProvisionSite(ProvisionSiteRequest) returns (stream ProvisionSiteProgress);
+  rpc DeploySite(DeploySiteRequest) returns (stream DeploySiteProgress);
+  rpc PromoteRelease(PromoteReleaseRequest) returns (PromoteReleaseResponse);
+  rpc RollbackSite(RollbackSiteRequest) returns (RollbackSiteResponse);
+  rpc DeleteSite(DeleteSiteRequest) returns (DeleteSiteResponse);
+
+  // Database operations
+  rpc CreateDatabase(CreateDatabaseRequest) returns (CreateDatabaseResponse);
+  rpc CreateDbUser(CreateDbUserRequest) returns (CreateDbUserResponse);
+  rpc GrantPrivileges(GrantPrivilegesRequest) returns (GrantPrivilegesResponse);
+
+  // Mail operations
+  rpc CreateMailbox(CreateMailboxRequest) returns (CreateMailboxResponse);
+  rpc UpdateMailbox(UpdateMailboxRequest) returns (UpdateMailboxResponse);
+  rpc RegenerateDkim(RegenerateDkimRequest) returns (RegenerateDkimResponse);
+
+  // Backup operations
+  rpc RunBackupJob(RunBackupJobRequest) returns (stream RunBackupJobProgress);
+  rpc RestoreBackup(RestoreBackupRequest) returns (stream RestoreBackupProgress);
+
+  // Live data — bidirectional
+  rpc StreamMetrics(stream MetricsSample) returns (stream MetricsAck);
+  rpc StreamLogs(StreamLogsRequest) returns (stream LogLine);
+  rpc StreamEvents(EventStreamRequest) returns (stream Event);
+
+  // Diagnostics
+  rpc GetDiagnostics(GetDiagnosticsRequest) returns (GetDiagnosticsResponse);
+}
+
+// ── Lifecycle ────────────────────────────────────────────────────────────────
+
+message HeartbeatRequest {
+  string server_id = 1;
+  string agent_version = 2;
+  repeated ServiceStatus services = 3;
+  optional bytes csr_pem = 4; // present when cert renewal is due
+}
+
+message HeartbeatResponse {
+  string control_plane_version = 1;
+  int64 server_time_unix_ms = 2;
+  optional bytes new_cert_pem = 3;
+}
+
+message UpdateAgentRequest {
+  string target_version = 1;
+  string download_url = 2;
+  bytes sha256 = 3;
+}
+
+message UpdateAgentResponse {
+  bool accepted = 1;
+}
+
+// ── Server config ─────────────────────────────────────────────────────────────
+
+message ApplyServerConfigRequest {
+  string server_id = 1;
+  bytes desired_state = 2; // serialised JSON
+}
+
+message ApplyServerConfigResponse {
+  bool applied = 1;
+  repeated string changed_items = 2;
+}
+
+message ManageServiceRequest {
+  string service_name = 1;
+  string action = 2; // "start" | "stop" | "restart" | "reload"
+}
+
+message ManageServiceResponse {
+  bool ok = 1;
+  string output = 2;
+}
+
+message UpdatePackagesRequest {
+  repeated string packages = 1;
+}
+
+message UpdatePackagesProgress {
+  string package = 1;
+  string status = 2;
+  string output = 3;
+}
+
+message ApplyFirewallRequest {
+  repeated FirewallRule rules = 1;
+}
+
+message ApplyFirewallResponse {
+  bool applied = 1;
+}
+
+// ── Site lifecycle ────────────────────────────────────────────────────────────
+
+message ProvisionSiteRequest {
+  string site_id = 1;
+  string application_id = 2;
+  ApplicationConfig application = 3;
+  bool dry_run = 4;
+}
+
+message ProvisionSiteProgress {
+  oneof progress {
+    ProvisionStarted started = 1;
+    ProvisionStage stage = 2;
+    ProvisionLog log = 3;
+    ProvisionFinished finished = 4;
+    ProvisionFailed failed = 5;
+  }
+}
+
+message DeploySiteRequest {
+  string deployment_id = 1;
+  string site_id = 2;
+  string application_id = 3;
+  ApplicationConfig application = 4;
+  SourceArchive source = 5;
+  EnvVars env_vars = 6;
+  ResourceLimits limits = 7;
+  bool skip_build_cache = 10;
+  bool force = 11;
+  bool dry_run = 12;
+}
+
+message DeploySiteProgress {
+  oneof progress {
+    DeployStarted started = 1;
+    DeployStage stage = 2;
+    DeployLog log = 3;
+    DeployFinished finished = 4;
+    DeployFailed failed = 5;
+  }
+}
+
+message PromoteReleaseRequest {
+  string site_id = 1;
+  string release_id = 2;
+}
+
+message PromoteReleaseResponse {
+  bool ok = 1;
+}
+
+message RollbackSiteRequest {
+  string site_id = 1;
+  string target_release_id = 2;
+}
+
+message RollbackSiteResponse {
+  bool ok = 1;
+}
+
+message DeleteSiteRequest {
+  string site_id = 1;
+  bool purge_data = 2;
+}
+
+message DeleteSiteResponse {
+  bool ok = 1;
+}
+
+// ── Database ──────────────────────────────────────────────────────────────────
+
+message CreateDatabaseRequest {
+  string database_server_id = 1;
+  string name = 2;
+  string charset = 3;
+  string collation = 4;
+}
+
+message CreateDatabaseResponse {
+  bool ok = 1;
+}
+
+message CreateDbUserRequest {
+  string database_server_id = 1;
+  string username = 2;
+  string password = 3;
+}
+
+message CreateDbUserResponse {
+  bool ok = 1;
+}
+
+message GrantPrivilegesRequest {
+  string database_server_id = 1;
+  string username = 2;
+  string database = 3;
+  repeated string privileges = 4;
+}
+
+message GrantPrivilegesResponse {
+  bool ok = 1;
+}
+
+// ── Mail ──────────────────────────────────────────────────────────────────────
+
+message CreateMailboxRequest {
+  string mail_domain_id = 1;
+  string local_part = 2;
+  string password_hash = 3;
+  int64 quota_bytes = 4;
+}
+
+message CreateMailboxResponse {
+  bool ok = 1;
+}
+
+message UpdateMailboxRequest {
+  string mailbox_id = 1;
+  optional string password_hash = 2;
+  optional int64 quota_bytes = 3;
+  optional bool is_active = 4;
+}
+
+message UpdateMailboxResponse {
+  bool ok = 1;
+}
+
+message RegenerateDkimRequest {
+  string mail_domain_id = 1;
+  string algorithm = 2; // "rsa-2048" | "ed25519"
+}
+
+message RegenerateDkimResponse {
+  string public_key_dns_record = 1;
+}
+
+// ── Backup ────────────────────────────────────────────────────────────────────
+
+message RunBackupJobRequest {
+  string job_id = 1;
+  string scope_kind = 2;
+  string scope_id = 3;
+  bytes target_config = 4;
+  bytes retention_policy = 5;
+}
+
+message RunBackupJobProgress {
+  string stage = 1;
+  int64 bytes_processed = 2;
+  int64 bytes_total = 3;
+  optional string error = 4;
+  optional string snapshot_id = 5;
+}
+
+message RestoreBackupRequest {
+  string snapshot_id = 1;
+  string target_path = 2;
+  bytes target_config = 3;
+}
+
+message RestoreBackupProgress {
+  string stage = 1;
+  int64 bytes_processed = 2;
+  int64 bytes_total = 3;
+  optional string error = 4;
+}
+
+// ── Streaming ─────────────────────────────────────────────────────────────────
+
+message MetricsSample {
+  string server_id = 1;
+  int64 timestamp_ms = 2;
+  repeated MetricPoint points = 3;
+}
+
+message MetricPoint {
+  string name = 1;
+  double value = 2;
+  map<string, string> labels = 3;
+}
+
+message MetricsAck {
+  int64 last_timestamp_ms = 1;
+}
+
+message StreamLogsRequest {
+  string site_id = 1;
+  string source = 2; // "nginx" | "app" | "agent"
+  int32 tail_lines = 3;
+  bool follow = 4;
+}
+
+message LogLine {
+  int64 timestamp_ms = 1;
+  string level = 2;
+  string line = 3;
+  string source = 4;
+}
+
+message EventStreamRequest {
+  repeated string event_types = 1;
+}
+
+message Event {
+  string event_id = 1;
+  string event_type = 2;
+  int64 occurred_at_ms = 3;
+  bytes payload = 4;
+}
+
+// ── Diagnostics ───────────────────────────────────────────────────────────────
+
+message GetDiagnosticsRequest {}
+
+message GetDiagnosticsResponse {
+  string agent_version = 1;
+  string os = 2;
+  string kernel = 3;
+  repeated ServiceStatus services = 4;
+  SystemResources resources = 5;
+}
+
+// ── Shared types ──────────────────────────────────────────────────────────────
+
+message ApplicationConfig {
+  string kind = 1;
+  string runtime_version = 2;
+  string build_command = 3;
+  string start_command = 4;
+  uint32 process_count = 5;
+  string health_check_path = 6;
+  string document_root = 7;
+}
+
+message SourceArchive {
+  oneof source {
+    GitSource git = 1;
+    TarballSource tarball = 2;
+  }
+}
+
+message GitSource {
+  string repository_url = 1;
+  string ref = 2;
+  bool shallow = 3;
+}
+
+message TarballSource {
+  string url = 1;
+  bytes sha256 = 2;
+}
+
+message EnvVars {
+  map<string, string> vars = 1;
+}
+
+message ResourceLimits {
+  optional string memory_max = 1;
+  optional string cpu_quota = 2;
+}
+
+message FirewallRule {
+  string direction = 1;
+  string protocol = 2;
+  uint32 port_from = 3;
+  uint32 port_to = 4;
+  string source_cidr = 5;
+  string action = 6;
+  int32 priority = 7;
+}
+
+message ServiceStatus {
+  string name = 1;
+  string kind = 2;
+  string status = 3;
+}
+
+message SystemResources {
+  double cpu_pct = 1;
+  int64 mem_used_bytes = 2;
+  int64 mem_total_bytes = 3;
+  int64 disk_used_bytes = 4;
+  int64 disk_total_bytes = 5;
+}
+
+message ProvisionStarted { string site_id = 1; }
+message ProvisionStage { string stage = 1; }
+message ProvisionLog { string line = 1; string level = 2; }
+message ProvisionFinished { string site_id = 1; }
+message ProvisionFailed { string error = 1; string stage = 2; }
+
+message DeployStarted { string deployment_id = 1; }
+message DeployStage { string stage = 1; }
+message DeployLog { string line = 1; string level = 2; }
+message DeployFinished { string deployment_id = 1; string release_id = 2; uint64 duration_ms = 3; }
+message DeployFailed { string deployment_id = 1; string error = 1; string stage = 2; }

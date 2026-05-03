@@ -1,0 +1,12 @@
+[package]
+name = "tundra-cli"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "tundra"
+path = "src/main.rs"

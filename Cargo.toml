@@ -1,0 +1,107 @@
+[workspace]
+members = [
+    "crates/tundrad-bin",
+    "crates/tundrad-api",
+    "crates/tundrad-grpc",
+    "crates/tundrad-domain",
+    "crates/tundrad-repo",
+    "crates/tundrad-jobs",
+    "crates/tundrad-events",
+    "crates/tundrad-acme",
+    "crates/tundrad-auth",
+    "crates/tundrad-crypto",
+    "crates/tundrad-plugin-host",
+    "crates/tundrad-config",
+    "crates/tundrad-telemetry",
+    "crates/tundra-agent-bin",
+    "crates/tundra-agent-rpc",
+    "crates/tundra-agent-reconciler",
+    "crates/tundra-agent-providers",
+    "crates/tundra-agent-metrics",
+    "crates/tundra-agent-logs",
+    "crates/tundra-cli",
+    "crates/tundra-shared",
+    "crates/tundra-test-harness",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.95"
+authors = ["Al Amin Ahamed <mrabir.ahamed@gmail.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/mralaminahamed/tundra"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# HTTP framework — Axum 0.8 (spec §3.1)
+axum = { version = "0.8", features = ["macros"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "cors", "compression-gzip"] }
+
+# gRPC — Tonic 0.13 (spec §3.1)
+tonic = "0.13"
+prost = "0.13"
+prost-types = "0.13"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bincode = "1"
+
+# Database — SQLx 0.8 (spec §3.1); rustls only, no openssl-sys
+sqlx = { version = "0.8", features = [
+    "runtime-tokio",
+    "tls-rustls",
+    "postgres",
+    "uuid",
+    "time",
+    "json",
+    "migrate",
+] }
+
+# TLS — rustls only; openssl-sys is banned (deny.toml)
+rustls = "0.23"
+rustls-pemfile = "2"
+
+# Cryptography
+argon2 = "0.5"
+aes-gcm = "0.10"
+hkdf = "0.12"
+sha2 = "0.10"
+blake3 = "1"
+rand = "0.8"
+zeroize = { version = "1", features = ["derive"] }
+
+# UUID / time
+uuid = { version = "1", features = ["v7", "serde"] }
+time = { version = "0.3", features = ["serde"] }
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+
+# Config — figment (spec §3.1)
+figment = { version = "0.10", features = ["toml", "env"] }
+
+# Plugin sandbox — Wasmtime latest stable (spec §3.1)
+wasmtime = { version = "28", features = ["component-model"] }
+
+# ACME client — instant-acme (spec §3.4)
+instant-acme = "0.7"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# HTTP client — rustls-tls only
+reqwest = { version = "0.12", features = ["rustls-tls", "json"], default-features = false }
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+
+# Async utilities
+async-trait = "0.1"
+futures = "0.3"
