@@ -5,7 +5,9 @@ pub mod master_key;
 pub mod password;
 
 pub use encrypted_field::{
-    EncryptedEnvVar, EncryptedField, EncryptedFamily, EncryptedPluginSettings,
+    BackupRepoPasswordFamily, DbSuperuserPasswordFamily, DbUserPasswordFamily,
+    EncryptedBackupRepoPassword, EncryptedDbSuperuserPassword, EncryptedDbUserPassword,
+    EncryptedEnvVar, EncryptedFamily, EncryptedField, EncryptedPluginSettings,
     EncryptedRecoveryCodes, EncryptedTotpSecret, EnvVarFamily, IntegrationSecretFamily,
     PluginSettingsFamily, RecoveryCodesFamily, TotpSecretFamily,
 };

@@ -151,11 +151,23 @@ def_family!(RecoveryCodesFamily, "tundra:v1:identity:recovery_codes");
 def_family!(EnvVarFamily, "tundra:v1:site:env_var");
 def_family!(PluginSettingsFamily, "tundra:v1:plugin:settings");
 def_family!(IntegrationSecretFamily, "tundra:v1:integration:secret");
+def_family!(
+    DbSuperuserPasswordFamily,
+    "tundra:v1:db_server:superuser_password"
+);
+def_family!(DbUserPasswordFamily, "tundra:v1:db_user:password");
+def_family!(
+    BackupRepoPasswordFamily,
+    "tundra:v1:backup_target:repo_password"
+);
 
 pub type EncryptedTotpSecret = EncryptedField<String, TotpSecretFamily>;
 pub type EncryptedRecoveryCodes = EncryptedField<Vec<String>, RecoveryCodesFamily>;
 pub type EncryptedEnvVar = EncryptedField<String, EnvVarFamily>;
 pub type EncryptedPluginSettings = EncryptedField<serde_json::Value, PluginSettingsFamily>;
+pub type EncryptedDbSuperuserPassword = EncryptedField<String, DbSuperuserPasswordFamily>;
+pub type EncryptedDbUserPassword = EncryptedField<String, DbUserPasswordFamily>;
+pub type EncryptedBackupRepoPassword = EncryptedField<String, BackupRepoPasswordFamily>;
 
 #[cfg(test)]
 mod tests {
