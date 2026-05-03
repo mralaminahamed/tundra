@@ -1,7 +1,7 @@
 use crate::{PgPool, RepoError};
-use tundrad_crypto::{EncryptedDbSuperuserPassword, EncryptedDbUserPassword, EncryptedField};
+use tundrad_crypto::{EncryptedDbSuperuserPassword, EncryptedDbUserPassword};
 use tundrad_domain::database::{
-    Database, DatabaseServer, DbEngine, DbGrant, DbServerStatus, DbUser, NewDatabase,
+    Database, DatabaseServer, DbGrant, DbUser, NewDatabase,
     NewDatabaseServer, NewDbUser,
 };
 use uuid::Uuid;

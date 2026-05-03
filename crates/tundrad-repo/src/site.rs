@@ -1,5 +1,5 @@
 use crate::{PgPool, RepoError};
-use tundrad_domain::site::{Application, Deployment, DeploymentStatus, Site, SiteStatus};
+use tundrad_domain::site::{Application, Deployment, Site};
 use uuid::Uuid;
 
 // ── Site ──────────────────────────────────────────────────────────────────────

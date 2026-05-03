@@ -6,7 +6,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tundrad_auth::{Action, AuthzService, Resource};
-use tundrad_pki::{SetupToken, SetupTokenHash};
+use tundrad_pki::SetupToken;
 use tundrad_repo::PgPool;
 use uuid::Uuid;
 

@@ -4,7 +4,7 @@ pub mod routes;
 
 use axum::{
     Router,
-    routing::{delete, get, patch, post},
+    routing::{delete, get, post},
 };
 use routes::ws;
 use tower_http::trace::TraceLayer;
