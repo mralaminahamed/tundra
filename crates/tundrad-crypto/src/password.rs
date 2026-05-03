@@ -1,7 +1,7 @@
 use crate::CryptoError;
 use argon2::{
-    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2, Params, Version,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
 };
 use rand::rngs::OsRng;
 
@@ -14,7 +14,11 @@ fn argon2() -> Result<Argon2<'static>, CryptoError> {
         None,
     )
     .map_err(|_| CryptoError::AeadInit)?; // reuse AeadInit as "bad params"
-    Ok(Argon2::new(argon2::Algorithm::Argon2id, Version::V0x13, params))
+    Ok(Argon2::new(
+        argon2::Algorithm::Argon2id,
+        Version::V0x13,
+        params,
+    ))
 }
 
 /// Hash a password. Returns the PHC string (includes algorithm, params, salt, hash).
@@ -49,7 +53,10 @@ mod tests {
     #[test]
     fn hash_includes_argon2id_algorithm_tag() {
         let hash = hash_password("test").unwrap();
-        assert!(hash.starts_with("$argon2id$"), "expected PHC argon2id prefix, got: {hash}");
+        assert!(
+            hash.starts_with("$argon2id$"),
+            "expected PHC argon2id prefix, got: {hash}"
+        );
     }
 
     #[test]

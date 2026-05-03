@@ -1,7 +1,7 @@
 use crate::{PgPool, RepoError};
-use tundrad_crypto::{EncryptedBackupRepoPassword, EncryptedField};
+use tundrad_crypto::EncryptedBackupRepoPassword;
 use tundrad_domain::backup::{
-    BackupJob, BackupRestore, BackupSnapshot, BackupTarget, BackupTargetKind, NewBackupJob,
+    BackupJob, BackupRestore, BackupSnapshot, BackupTarget, NewBackupJob,
     NewBackupTarget,
 };
 use uuid::Uuid;
