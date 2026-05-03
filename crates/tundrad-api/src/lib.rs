@@ -41,6 +41,19 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/servers/{id}",
             get(routes::servers::get).delete(routes::servers::delete),
         )
+        // ── Sites ──────────────────────────────────────────────────────────
+        .route(
+            "/api/v1/sites",
+            get(routes::sites::list).post(routes::sites::create),
+        )
+        .route(
+            "/api/v1/sites/{id}",
+            get(routes::sites::get).delete(routes::sites::delete),
+        )
+        .route(
+            "/api/v1/sites/{id}/deployments",
+            get(routes::sites::list_deployments).post(routes::sites::trigger_deploy),
+        )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))
         // ── Middleware ─────────────────────────────────────────────────────
