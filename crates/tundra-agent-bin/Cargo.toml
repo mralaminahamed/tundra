@@ -10,3 +10,14 @@ publish = false
 [[bin]]
 name = "tundra-agent"
 path = "src/main.rs"
+
+[dependencies]
+tundra-agent-reconciler = { path = "../tundra-agent-reconciler" }
+tundra-agent-rpc       = { path = "../tundra-agent-rpc" }
+tundra-agent-metrics   = { path = "../tundra-agent-metrics" }
+tundra-agent-logs      = { path = "../tundra-agent-logs" }
+anyhow.workspace = true
+clap.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

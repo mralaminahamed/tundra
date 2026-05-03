@@ -11,6 +11,13 @@ publish = false
 name = "tundrad_repo"
 path = "src/lib.rs"
 
+[dev-dependencies]
+tundra-test-harness = { path = "../tundra-test-harness" }
+tundrad-crypto = { path = "../tundrad-crypto" }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+serde_json.workspace = true
+uuid.workspace = true
+
 [dependencies]
 tundrad-crypto = { path = "../tundrad-crypto" }
 tundrad-domain = { path = "../tundrad-domain" }
