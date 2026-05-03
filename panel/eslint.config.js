@@ -24,6 +24,8 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // TanStack Router uses `throw redirect(...)` and `throw notFound()` as control flow
+      '@typescript-eslint/only-throw-error': 'off',
     },
   },
 )
