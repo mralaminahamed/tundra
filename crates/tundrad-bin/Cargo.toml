@@ -10,3 +10,16 @@ publish = false
 [[bin]]
 name = "tundrad"
 path = "src/main.rs"
+
+[dependencies]
+tundrad-api = { path = "../tundrad-api" }
+tundrad-config = { path = "../tundrad-config" }
+tundrad-crypto = { path = "../tundrad-crypto" }
+tundrad-telemetry = { path = "../tundrad-telemetry" }
+anyhow.workspace = true
+axum.workspace = true
+clap.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true

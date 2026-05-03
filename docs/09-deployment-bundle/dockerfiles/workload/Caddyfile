@@ -1,0 +1,22 @@
+{
+    auto_https off
+    admin off
+    log {
+        output stdout
+        format json
+        level INFO
+    }
+}
+
+:80 {
+    handle /healthz {
+        respond "ok" 200
+    }
+
+    handle {
+        respond "Tundra workload ready. No site is bound to this hostname yet." 404
+    }
+}
+
+# Per-site config files are written here by tundra-agent.
+import /etc/caddy/sites.d/*.caddy

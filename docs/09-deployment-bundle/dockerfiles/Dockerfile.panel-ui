@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1.7
+# ============================================================================
+#  Tundra — panel UI image
+#  Builds the React/Vite SPA and ships it behind a tiny Caddy that serves
+#  the static bundle and proxies /api/* + /ws/* to tundrad.
+#  Author: Al Amin Ahamed  <github.com/mralaminahamed>
+# ============================================================================
+
+ARG NODE_VERSION=22
+ARG CADDY_VERSION=2.10
+ARG PNPM_VERSION=9
+
+# ---------------------------------------------------------------------------
+# Stage 1 — install pnpm + lockfile-only fetch (cached when lockfile unchanged)
+# ---------------------------------------------------------------------------
+FROM node:${NODE_VERSION}-bookworm-slim AS deps
+WORKDIR /app
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN corepack enable \
+ && corepack prepare pnpm@${PNPM_VERSION} --activate
+COPY panel/package.json panel/pnpm-lock.yaml* panel/.npmrc* ./
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm fetch
+
+# ---------------------------------------------------------------------------
+# Stage 2 — install + build
+# ---------------------------------------------------------------------------
+FROM deps AS builder
+COPY panel/ .
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --offline --frozen-lockfile
+ARG VITE_API_BASE=/api/v1
+ENV VITE_API_BASE=${VITE_API_BASE}
+RUN pnpm run build
+
+# ---------------------------------------------------------------------------
+# Stage 3 — runtime: Caddy serving the static bundle
+# ---------------------------------------------------------------------------
+FROM caddy:${CADDY_VERSION}-alpine AS runtime
+COPY --from=builder /app/dist /srv
+COPY dockerfiles/panel-ui/Caddyfile /etc/caddy/Caddyfile
+EXPOSE 8080
+HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/healthz >/dev/null || exit 1

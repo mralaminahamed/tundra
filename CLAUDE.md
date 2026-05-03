@@ -179,8 +179,8 @@ Use these skills for the corresponding tasks when working in this repository:
 | Phase | Status | Notes |
 |-------|--------|-------|
 | P0 — Bootstrap | ✅ Done | `cargo check`, `pnpm typecheck`, all lints pass |
-| P1 — Foundation | 🔄 Next | Panel DB schema, auth, RBAC, audit log, Axum skeleton, React UI base |
-| P2 — Single-host MVP | ⬜ | `tundra-agent` base, site creation, Nginx + PHP-FPM, Let's Encrypt, Git deploy |
+| P1 — Foundation | ✅ Done | Crypto, migrations, domain, repo, auth, API skeleton, config, telemetry, panel shell |
+| P2 — Single-host MVP | 🔄 Next | `tundra-agent` base, site creation, Nginx + PHP-FPM, Let's Encrypt, Git deploy |
 
 Full phase breakdown: `docs/01-architecture/tundra-technical-implementation-plan-v3.md` §11.1.
 Build prompts for each phase: `docs/08-build-prompts/tundra-claude-code-prompts-v1.md`.

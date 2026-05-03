@@ -1,0 +1,31 @@
+{
+    auto_https off
+    admin off
+    log {
+        output stdout
+        format json
+        level INFO
+    }
+}
+
+:8080 {
+    encode zstd gzip
+
+    handle /healthz {
+        respond "ok" 200
+    }
+
+    @assets path /assets/*
+    handle @assets {
+        header Cache-Control "public, max-age=31536000, immutable"
+        root * /srv
+        file_server
+    }
+
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+        header Cache-Control "no-cache"
+    }
+}

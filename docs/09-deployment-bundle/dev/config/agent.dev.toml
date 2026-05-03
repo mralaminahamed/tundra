@@ -1,0 +1,28 @@
+# Tundra dev compose — tundra-agent configuration
+# Mounted read-only into the workload container.
+# Author: Al Amin Ahamed  <github.com/mralaminahamed>
+
+[agent]
+control_plane_url  = "https://tundrad:7447"
+heartbeat_interval = 10
+state_dir          = "/var/lib/tundra-agent/state"
+log_dir            = "/var/lib/tundra-agent/logs"
+
+[identity]
+# In dev, the agent enrols itself on first boot using a shared dev token.
+# Production agents enrol via the panel's add-server wizard (see
+# tundra-deployment-overview-v1.md §3).
+enrolment_token_path = "/etc/tundra/enrolment.token"
+hostname             = "workload-1.tundra.local"
+
+[tls]
+# Dev: trust the dev tundrad's self-signed cert. Production agents pin the
+# tundra internal CA cert distributed at install time.
+verify_peer            = false
+client_cert_path       = "/var/lib/tundra-agent/credentials/client.pem"
+client_key_path        = "/var/lib/tundra-agent/credentials/client.key"
+
+[providers]
+caddy_config_dir   = "/etc/caddy/sites.d"
+phpfpm_pool_dir    = "/etc/php/8.4/fpm/pool.d"
+sites_root         = "/srv/sites"

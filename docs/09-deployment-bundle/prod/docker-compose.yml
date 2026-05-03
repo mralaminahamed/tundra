@@ -1,0 +1,321 @@
+# ============================================================================
+#  Tundra — Production single-host compose stack
+#  -------------------------------------------------------------------------
+#  Operator-facing production deployment for a single VPS. Brings up the full
+#  Tundra control plane plus one local managed-workload container, behind a
+#  Caddy reverse proxy that handles ACME for the panel hostname.
+#
+#  Use this when:
+#    - you are running Tundra to manage your own infrastructure
+#    - you want a Compose-managed deployment (vs the systemd-native install
+#      documented in tundra-deployment-runbook-v1.md)
+#    - your host has docker compose v2.30+ and at least 4 GB RAM
+#
+#  This stack is feature-equivalent to the systemd install but trades the
+#  systemd hardening surface for Docker's process isolation. For maximal
+#  hardening, the systemd install remains preferred — see the runbook.
+#
+#  Quickstart:
+#    cd prod/
+#    cp .env.example .env
+#    # edit .env: set TUNDRA_HOSTNAME, ACME_EMAIL, POSTGRES_PASSWORD,
+#    #            generate MASTER_KEY_BASE64 (32 bytes, base64url)
+#    docker compose pull        # if using a registry (optional)
+#    docker compose build       # builds tundrad/agent/workload from sources
+#    docker compose up -d
+#    docker compose logs -f tundrad
+#    open https://${TUNDRA_HOSTNAME}/setup
+#
+#  Author: Al Amin Ahamed  <github.com/mralaminahamed>
+# ============================================================================
+
+name: tundra
+
+x-restart-policy: &restart-policy
+  restart: unless-stopped
+
+x-logging: &json-logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+
+  # -------------------------------------------------------------------------
+  postgres:
+    image: postgres:18-trixie
+    container_name: tundra-postgres
+    <<: [*restart-policy, *json-logging]
+    environment:
+      POSTGRES_USER: tundra
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB: tundra
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements,auto_explain
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - work_mem=8MB
+      - -c
+      - max_connections=200
+      - -c
+      - wal_compression=on
+      - -c
+      - synchronous_commit=on
+      - -c
+      - random_page_cost=1.1
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/postgres-init.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
+    secrets:
+      - postgres_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tundra -d tundra"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      tundra-internal:
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # -------------------------------------------------------------------------
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: tundra-valkey
+    <<: [*restart-policy, *json-logging]
+    command:
+      - valkey-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --maxmemory
+      - 512mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --requirepass-file
+      - /run/secrets/valkey_password
+    volumes:
+      - valkey-data:/data
+    secrets:
+      - valkey_password
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli -a $$(cat /run/secrets/valkey_password) ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      tundra-internal:
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+  # -------------------------------------------------------------------------
+  tundrad:
+    build:
+      context: ../
+      dockerfile: dockerfiles/Dockerfile.tundrad
+      args:
+        RUST_VERSION: "1.95"
+        DEBIAN_VERSION: "trixie"
+    image: tundra/tundrad:${TUNDRA_VERSION:-latest}
+    container_name: tundra-tundrad
+    <<: [*restart-policy, *json-logging]
+    environment:
+      TUNDRAD_CONFIG: /etc/tundra/tundrad.toml
+      TUNDRAD_PROFILE: production
+      RUST_LOG: ${RUST_LOG:-tundrad=info,tower_http=info}
+      RUST_BACKTRACE: "1"
+    env_file:
+      - ./tundrad.env       # DATABASE_URL, VALKEY_URL, etc.
+    volumes:
+      - tundra-data:/var/lib/tundra
+      - ./config/tundrad.prod.toml:/etc/tundra/tundrad.toml:ro
+    secrets:
+      - master_key
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/local/bin/tundrad health --addr 127.0.0.1:7400"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 4
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:size=128M
+    networks:
+      tundra-internal:
+      tundra-edge:
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # -------------------------------------------------------------------------
+  panel-ui:
+    build:
+      context: ../
+      dockerfile: dockerfiles/Dockerfile.panel-ui
+      args:
+        VITE_API_BASE: /api/v1
+    image: tundra/panel-ui:${TUNDRA_VERSION:-latest}
+    container_name: tundra-panel-ui
+    <<: [*restart-policy, *json-logging]
+    depends_on:
+      tundrad:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    networks:
+      tundra-edge:
+
+  # -------------------------------------------------------------------------
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: tundra-caddy
+    <<: [*restart-policy, *json-logging]
+    environment:
+      TUNDRA_HOSTNAME: ${TUNDRA_HOSTNAME:?TUNDRA_HOSTNAME must be set}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL must be set}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"          # HTTP/3
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      tundrad:
+        condition: service_healthy
+      panel-ui:
+        condition: service_started
+    networks:
+      tundra-edge:
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # -------------------------------------------------------------------------
+  workload-1:
+    build:
+      context: ../
+      dockerfile: dockerfiles/Dockerfile.workload
+    image: tundra/workload:${TUNDRA_VERSION:-latest}
+    container_name: tundra-workload-1
+    <<: [*restart-policy, *json-logging]
+    hostname: workload-1
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - workload-1-agent:/var/lib/tundra-agent
+      - workload-1-srv:/srv/sites
+      - ./config/agent.prod.toml:/etc/tundra/agent.toml:ro
+    depends_on:
+      tundrad:
+        condition: service_healthy
+    networks:
+      tundra-internal:
+      tundra-workload:
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # -------------------------------------------------------------------------
+  # Self-backup runs every night at 02:30 (configured inside the script)
+  self-backup:
+    image: tundra/tundrad:${TUNDRA_VERSION:-latest}
+    container_name: tundra-self-backup
+    <<: *json-logging
+    restart: "no"
+    profiles:
+      - tools                  # `docker compose --profile tools run self-backup`
+    entrypoint:
+      - /usr/local/bin/tundra-self-backup
+    command:
+      - --gpg-recipient
+      - ${BACKUP_GPG_RECIPIENT:?BACKUP_GPG_RECIPIENT must be set}
+      - --output
+      - /var/backups/tundra-backup-$(date +%Y%m%d-%H%M%S).tar.gpg
+    volumes:
+      - tundra-data:/var/lib/tundra:ro
+      - ./backups:/var/backups
+    networks:
+      tundra-internal:
+
+# ----------------------------------------------------------------------------
+networks:
+  tundra-internal:
+    name: tundra-internal
+    driver: bridge
+    internal: true                # no outbound from this network
+  tundra-edge:
+    name: tundra-edge
+    driver: bridge
+  tundra-workload:
+    name: tundra-workload
+    driver: bridge
+
+volumes:
+  postgres-data:
+    name: tundra-postgres-data
+  valkey-data:
+    name: tundra-valkey-data
+  tundra-data:
+    name: tundra-data
+  caddy-data:
+    name: tundra-caddy-data
+  caddy-config:
+    name: tundra-caddy-config
+  workload-1-agent:
+    name: tundra-workload-1-agent
+  workload-1-srv:
+    name: tundra-workload-1-srv
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  valkey_password:
+    file: ./secrets/valkey_password.txt
+  master_key:
+    file: ./secrets/master_key.bin

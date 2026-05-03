@@ -1,0 +1,85 @@
+# syntax=docker/dockerfile:1.7
+# ============================================================================
+#  Tundra — tundrad (control plane) image
+#  Multi-stage Rust build → distroless-style debian:stable-slim runtime.
+#  Author: Al Amin Ahamed  <github.com/mralaminahamed>
+# ============================================================================
+
+ARG RUST_VERSION=1.95
+ARG DEBIAN_VERSION=trixie
+
+# ---------------------------------------------------------------------------
+# Stage 1 — chef: cargo-chef plan  (only Cargo.toml/Cargo.lock change → cached)
+# ---------------------------------------------------------------------------
+FROM rust:${RUST_VERSION}-slim-${DEBIAN_VERSION} AS chef
+WORKDIR /build
+RUN cargo install cargo-chef --locked --version ^0.1
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+# ---------------------------------------------------------------------------
+# Stage 2 — cacher: build only the dependency graph
+# ---------------------------------------------------------------------------
+FROM chef AS cacher
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y \
+        pkg-config libssl-dev protobuf-compiler ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=planner /build/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+# ---------------------------------------------------------------------------
+# Stage 3 — builder: compile tundrad
+# ---------------------------------------------------------------------------
+FROM chef AS builder
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y \
+        pkg-config libssl-dev protobuf-compiler ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=cacher /build/target target
+COPY --from=cacher /usr/local/cargo /usr/local/cargo
+COPY . .
+RUN cargo build --release --bin tundrad --bin tundra-self-backup --bin tundra-restore \
+ && strip target/release/tundrad target/release/tundra-self-backup target/release/tundra-restore
+
+# ---------------------------------------------------------------------------
+# Stage 4 — runtime
+# ---------------------------------------------------------------------------
+FROM debian:${DEBIAN_VERSION}-slim AS runtime
+
+ARG TUNDRA_UID=10001
+ARG TUNDRA_GID=10001
+
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y \
+        ca-certificates tini libssl3 \
+ && rm -rf /var/lib/apt/lists/* \
+ && groupadd --system --gid ${TUNDRA_GID} tundra \
+ && useradd  --system --uid ${TUNDRA_UID} --gid tundra \
+             --home-dir /var/lib/tundra --shell /usr/sbin/nologin tundra \
+ && install -d -o tundra -g tundra -m 0750 /var/lib/tundra \
+ && install -d -o tundra -g tundra -m 0750 /var/lib/tundra/data \
+ && install -d -o tundra -g tundra -m 0700 /var/lib/tundra/data/ca \
+ && install -d -o tundra -g tundra -m 0700 /var/lib/tundra/data/jwks \
+ && install -d -o tundra -g tundra -m 0750 /var/lib/tundra/logs \
+ && install -d -o tundra -g tundra -m 0750 /var/lib/tundra/artifacts \
+ && install -d -o tundra -g tundra -m 0750 /var/lib/tundra/backups \
+ && install -d -o tundra -g tundra -m 0750 /var/lib/tundra/plugins \
+ && install -d -o tundra -g tundra -m 0750 /var/lib/tundra/tmp
+
+COPY --from=builder /build/target/release/tundrad           /usr/local/bin/tundrad
+COPY --from=builder /build/target/release/tundra-self-backup /usr/local/bin/tundra-self-backup
+COPY --from=builder /build/target/release/tundra-restore     /usr/local/bin/tundra-restore
+
+USER tundra:tundra
+WORKDIR /var/lib/tundra
+EXPOSE 7400 7447
+
+# Healthcheck honours the readiness endpoint defined in the API spec
+HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=4 \
+  CMD ["/usr/local/bin/tundrad", "health", "--addr", "127.0.0.1:7400"]
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/usr/local/bin/tundrad", "serve"]

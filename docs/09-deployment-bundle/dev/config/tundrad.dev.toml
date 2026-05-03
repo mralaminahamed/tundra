@@ -1,0 +1,47 @@
+# Tundra dev compose — tundrad configuration
+# This config is mounted read-only into the tundrad container.
+# Author: Al Amin Ahamed  <github.com/mralaminahamed>
+
+[server]
+listen_addr  = "0.0.0.0:7400"
+public_url   = "http://localhost:7400"
+shutdown_grace_secs = 5
+
+[grpc]
+listen_addr = "0.0.0.0:7447"
+
+[database]
+url             = "postgres://tundra:devsecret@postgres:5432/tundra"
+max_connections = 20
+
+[valkey]
+url      = "redis://valkey:6379"
+db_cache = 0
+db_queue = 1
+
+[paths]
+data_dir      = "/tmp/tundra/data"
+log_dir       = "/tmp/tundra/logs"
+artifacts_dir = "/tmp/tundra/artifacts"
+
+[security]
+master_key_path        = "/tmp/tundra/data/master.key"
+session_max_age_hours  = 12         # short for dev to exercise expiry
+require_2fa_for_owners = false      # dev convenience
+
+[security.dev]
+# Unsafe defaults that exist ONLY in development profile. tundrad refuses to
+# load them when TUNDRAD_PROFILE=production.
+auto_create_owner          = true
+auto_owner_email           = "owner@example.test"
+auto_owner_password        = "developmentonly"
+allow_self_signed_outbound = true
+
+[agent]
+heartbeat_interval_secs   = 10
+cert_validity_days        = 7        # short for dev
+cert_renewal_window_days  = 2
+
+[telemetry]
+otlp_endpoint = ""                   # disabled in dev
+log_format    = "pretty"             # tracing-subscriber pretty output

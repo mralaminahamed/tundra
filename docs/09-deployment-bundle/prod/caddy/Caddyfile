@@ -1,0 +1,65 @@
+# Tundra production compose — edge Caddyfile
+# Terminates TLS for the panel hostname, proxies API and WebSocket to
+# tundrad, static SPA traffic to panel-ui.
+# Author: Al Amin Ahamed  <github.com/mralaminahamed>
+
+{
+    email {$ACME_EMAIL}
+    log {
+        output stdout
+        format json
+        level INFO
+    }
+    servers {
+        protocols h1 h2 h3
+    }
+}
+
+# HTTP → HTTPS redirect (Caddy does this automatically when TLS is set up,
+# but we keep it explicit for clarity).
+http://{$TUNDRA_HOSTNAME} {
+    redir https://{$TUNDRA_HOSTNAME}{uri} permanent
+}
+
+https://{$TUNDRA_HOSTNAME} {
+    encode zstd gzip
+
+    # Security headers per tundra-security-audit-v1.md §6.3
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Content-Type-Options    "nosniff"
+        X-Frame-Options           "DENY"
+        Referrer-Policy           "strict-origin-when-cross-origin"
+        Permissions-Policy        "geolocation=(), microphone=(), camera=()"
+        # CSP is set by tundrad on the index document; not duplicated here.
+        -Server
+    }
+
+    # API → tundrad
+    handle /api/* {
+        reverse_proxy tundrad:7400 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Real-IP         {remote_host}
+            header_up X-Request-ID      {http.request.uuid}
+        }
+    }
+
+    # WebSocket → tundrad with frame-level flushing (per API spec §4)
+    handle /ws/* {
+        reverse_proxy tundrad:7400 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Real-IP         {remote_host}
+            flush_interval -1
+        }
+    }
+
+    # Setup endpoint (one-time owner setup) → tundrad directly
+    handle /setup* {
+        reverse_proxy tundrad:7400
+    }
+
+    # Everything else → panel-ui (static SPA + index fallback)
+    handle {
+        reverse_proxy panel-ui:8080
+    }
+}

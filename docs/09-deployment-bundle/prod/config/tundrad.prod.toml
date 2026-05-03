@@ -1,0 +1,62 @@
+# Tundra production compose — tundrad configuration
+# Mounted read-only into the tundrad container.
+# Mirrors the canonical config from tundra-deployment-runbook-v1.md §2.6,
+# adapted for in-container paths and Docker secrets.
+# Author: Al Amin Ahamed  <github.com/mralaminahamed>
+
+[server]
+listen_addr        = "0.0.0.0:7400"
+public_url         = "https://${TUNDRA_HOSTNAME}"
+shutdown_grace_secs = 15
+
+[grpc]
+listen_addr = "0.0.0.0:7447"
+
+[database]
+host              = "postgres"
+port              = 5432
+user              = "tundra"
+database          = "tundra"
+password_file     = "/run/secrets/postgres_password"
+max_connections   = 50
+ssl_mode          = "disable"   # internal compose network; promote to verify-full
+                                # if you split Postgres onto a separate host
+
+[valkey]
+host          = "valkey"
+port          = 6379
+password_file = "/run/secrets/valkey_password"
+db_cache      = 0
+db_queue      = 1
+
+[paths]
+data_dir      = "/var/lib/tundra/data"
+log_dir       = "/var/lib/tundra/logs"
+artifacts_dir = "/var/lib/tundra/artifacts"
+
+[security]
+master_key_file        = "/run/secrets/master_key"
+session_max_age_hours  = 720      # 30 days
+require_2fa_for_owners = true
+require_step_up_for_sensitive_actions = true
+step_up_max_age_secs   = 300
+
+[security.session]
+cookie_name      = "tundra_session"
+cookie_secure    = true
+cookie_same_site = "strict"
+cookie_http_only = true
+
+[agent]
+heartbeat_interval_secs   = 30
+cert_validity_days        = 90
+cert_renewal_window_days  = 30
+
+[plugins]
+sandbox_fuel_per_invocation = 10000000
+sandbox_memory_max_bytes    = 134217728
+sandbox_epoch_interval_ms   = 100
+
+[telemetry]
+otlp_endpoint = ""                # populate if you run an OTLP collector
+log_format    = "json"

@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-tundra-ink: #1c1f1a;
+  --color-tundra-ink-50: #f2f3f1;
+  --color-tundra-ink-100: #e5e7e3;
+  --color-tundra-ink-200: #cacec5;
+  --color-tundra-ink-300: #aeb5a8;
+  --color-tundra-ink-400: #929c8b;
+  --color-tundra-ink-500: #76836e;
+  --color-tundra-ink-600: #5e6958;
+  --color-tundra-ink-700: #465042;
+  --color-tundra-ink-800: #2e362b;
+  --color-tundra-ink-900: #1c1f1a;
+
+  --color-tundra-paper: #f5f2e9;
+  --color-tundra-paper-50: #fdfcf8;
+  --color-tundra-paper-100: #f5f2e9;
+  --color-tundra-paper-200: #ede8d3;
+
+  --color-tundra-lichen: #7a8a5c;
+  --color-tundra-lichen-50: #f3f5ec;
+  --color-tundra-lichen-100: #e6ebd9;
+  --color-tundra-lichen-200: #ccd6b3;
+  --color-tundra-lichen-300: #b3c28d;
+  --color-tundra-lichen-400: #99ad67;
+  --color-tundra-lichen-500: #7a8a5c;
+  --color-tundra-lichen-600: #626f4a;
+  --color-tundra-lichen-700: #4a5437;
+  --color-tundra-lichen-800: #313825;
+  --color-tundra-lichen-900: #191c12;
+
+  --color-tundra-rust: #b5613a;
+  --color-tundra-rust-50: #faf3ef;
+  --color-tundra-rust-100: #f5e6df;
+  --color-tundra-rust-200: #eacdbe;
+  --color-tundra-rust-300: #dfb49e;
+  --color-tundra-rust-400: #d49b7e;
+  --color-tundra-rust-500: #c9825d;
+  --color-tundra-rust-600: #b5613a;
+  --color-tundra-rust-700: #8e4c2e;
+  --color-tundra-rust-800: #673722;
+  --color-tundra-rust-900: #402216;
+
+  --color-tundra-aurora: #5b7a8c;
+  --color-tundra-aurora-50: #eff3f5;
+  --color-tundra-aurora-100: #dfe7eb;
+  --color-tundra-aurora-200: #bfcfd7;
+  --color-tundra-aurora-300: #9fb7c3;
+  --color-tundra-aurora-400: #7f9faf;
+  --color-tundra-aurora-500: #5b7a8c;
+  --color-tundra-aurora-600: #496270;
+  --color-tundra-aurora-700: #374954;
+  --color-tundra-aurora-800: #253138;
+  --color-tundra-aurora-900: #13181c;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius: 0.5rem;
+}
+
+:root {
+  color-scheme: light;
+  background-color: var(--color-tundra-paper);
+  color: var(--color-tundra-ink);
+  font-family: var(--font-sans);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  background-color: var(--color-tundra-ink-900);
+  color: var(--color-tundra-paper-50);
+}
