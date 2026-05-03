@@ -10,3 +10,8 @@ publish = false
 [lib]
 name = "tundrad_config"
 path = "src/lib.rs"
+
+[dependencies]
+figment.workspace = true
+serde.workspace = true
+thiserror.workspace = true

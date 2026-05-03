@@ -10,3 +10,8 @@ publish = false
 [lib]
 name = "tundrad_telemetry"
 path = "src/lib.rs"
+
+[dependencies]
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
