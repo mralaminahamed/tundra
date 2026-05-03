@@ -6,6 +6,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-03 — Single-host MVP (P2)
+
+### Added
+
+#### gRPC + Proto (`tundra-proto`, `tundrad-grpc`)
+- `proto/tundra/v1/agent.proto`: `Agent` service — `Heartbeat`, `ReportStatus`, `StreamEvents`, `ExecuteAction`, `StreamLogs`
+- `tundra-proto` build crate with `tonic-build` codegen for both server and client stubs
+- `tundrad-grpc`: `AgentServiceImpl` stub registered on the Axum router
+
+#### PKI / Agent CA (`tundrad-pki`)
+- `TundraCA`: self-signed root CA (rcgen 0.13) with 10-year validity; persisted to `data/ca/ca.pem` + `ca-key.pem`
+- `sign_agent_cert`: issues 1-year leaf cert per server with `tundra-agent://server-<id>` SAN URI
+- `SetupToken`: 32-byte CSPRNG, `tnd_setup_<base64url>`, 24 h TTL; hash-only storage (SHA-256)
+
+#### Agent crates (6 crates)
+- `tundra-agent-rpc`: Tonic gRPC client stub
+- `tundra-agent-reconciler`: `Provider` trait — `observe`/`reconcile`/`destroy` with `Spec`/`State` associated types; `ReconcileLoop` with `desired_state` map and `reconcile_all` tick
+- `tundra-agent-providers`: `DeployPipeline` — 6-stage atomic deploy (clone→build→release-dir→env-write→symlink-swap→prune); rolling 5-release window
+- `tundra-agent-metrics`: `MetricsScraper` stub
+- `tundra-agent-logs`: `LogShipper` stub
+- `tundra-agent-bin`: agent binary wiring all providers + reconcile loop
+
+#### Server enrolment
+- Migration `20260503000010_servers.sql`: `servers`, `agent_credentials`, `services`, `packages`, `firewall_rules`
+- `ServerRepo`: create (generates setup token), enrol (verifies token + stores cert), list, find, delete
+- REST: `GET/POST /api/v1/servers`, `GET/DELETE /api/v1/servers/:id`, `POST /api/v1/servers/:id/enrol`
+
+#### Sites, Applications, Deployments
+- Migration `20260503000020_sites.sql`: `sites`, `applications`, `deployments`, `env_vars`, `releases`, `site_aliases`, `site_health_checks`
+- `SiteRepo`: `create_with_application` (atomic TX), list deployments, trigger deploy
+- REST: `GET/POST /api/v1/sites`, `GET/DELETE /api/v1/sites/:id`, `GET /api/v1/sites/:id/deployments`, `POST /api/v1/sites/:id/deploy`
+
+#### ACME + Certificates
+- Migration `20260503000030_certificates.sql`: `acme_accounts`, `certificates`
+
+#### Job queue
+- `JobQueue`: `enqueue`, `dispatch` (`SELECT … FOR UPDATE SKIP LOCKED`), `ack`, `fail` with exponential retry
+
+#### Event bus
+- `EventBus` (fred 10.x): `publish`, `subscribe` on typed channels (`deployment:<id>`, `site:<id>:logs`, …)
+
+#### Panel UI
+- Servers list, Add Server form (enrolment command flow), Server detail
+- Sites list, 4-step Create Site wizard (Formik + Yup), Site detail with deployments table
+- `api-types.ts`: TypeScript interfaces for Server, Site, Deployment, response types
+
+#### E2e tests
+- Playwright 1.45 config; 4 spec files: setup-wizard, add-server, create-site, deploy-rollback
+
 ## [0.1.0] - 2026-05-03 — Foundation (P1)
 
 ### Added
