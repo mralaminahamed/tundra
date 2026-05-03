@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthDaemonsRouteImport } from './routes/_auth.daemons'
+import { Route as AuthScheduledTasksRouteImport } from './routes/_auth.scheduled-tasks'
 import { Route as AuthAuditLogRouteImport } from './routes/_auth.audit-log'
 import { Route as AuthDashboardRouteImport } from './routes/_auth.dashboard'
 import { Route as AuthOperatorsRouteImport } from './routes/_auth.operators'
@@ -59,6 +61,18 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+
+const AuthDaemonsRoute = AuthDaemonsRouteImport.update({
+  id: '/daemons',
+  path: '/daemons',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthScheduledTasksRoute = AuthScheduledTasksRouteImport.update({
+  id: '/scheduled-tasks',
+  path: '/scheduled-tasks',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 const AuthAuditLogRoute = AuthAuditLogRouteImport.update({
@@ -251,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/audit-log': typeof AuthAuditLogRoute
+  '/daemons': typeof AuthDaemonsRoute
   '/dashboard': typeof AuthDashboardRoute
   '/operators': typeof AuthOperatorsRoute
   '/servers': typeof AuthServersRouteWithChildren
@@ -281,12 +296,14 @@ export interface FileRoutesByFullPath {
   '/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
+  '/scheduled-tasks': typeof AuthScheduledTasksRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/audit-log': typeof AuthAuditLogRoute
+  '/daemons': typeof AuthDaemonsRoute
   '/dashboard': typeof AuthDashboardRoute
   '/operators': typeof AuthOperatorsRoute
   '/servers': typeof AuthServersRouteWithChildren
@@ -317,6 +334,7 @@ export interface FileRoutesByTo {
   '/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
+  '/scheduled-tasks': typeof AuthScheduledTasksRoute
 }
 
 export interface FileRoutesById {
@@ -325,6 +343,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/_auth/audit-log': typeof AuthAuditLogRoute
+  '/_auth/daemons': typeof AuthDaemonsRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_auth/operators': typeof AuthOperatorsRoute
   '/_auth/servers': typeof AuthServersRouteWithChildren
@@ -355,6 +374,7 @@ export interface FileRoutesById {
   '/_auth/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
   '/_auth/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/_auth/mail/queue': typeof AuthMailQueueRoute
+  '/_auth/scheduled-tasks': typeof AuthScheduledTasksRoute
 }
 
 export interface FileRouteTypes {
@@ -363,6 +383,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/audit-log'
+    | '/daemons'
     | '/dashboard'
     | '/operators'
     | '/servers'
@@ -393,11 +414,13 @@ export interface FileRouteTypes {
     | '/mail/domains/$mailDomainId/diagnostics'
     | '/mail/mailboxes'
     | '/mail/queue'
+    | '/scheduled-tasks'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/audit-log'
+    | '/daemons'
     | '/dashboard'
     | '/operators'
     | '/servers'
@@ -428,12 +451,14 @@ export interface FileRouteTypes {
     | '/mail/domains/$mailDomainId/diagnostics'
     | '/mail/mailboxes'
     | '/mail/queue'
+    | '/scheduled-tasks'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/login'
     | '/_auth/audit-log'
+    | '/_auth/daemons'
     | '/_auth/dashboard'
     | '/_auth/operators'
     | '/_auth/servers'
@@ -464,6 +489,7 @@ export interface FileRouteTypes {
     | '/_auth/mail/domains/$mailDomainId/diagnostics'
     | '/_auth/mail/mailboxes'
     | '/_auth/mail/queue'
+    | '/_auth/scheduled-tasks'
   fileRoutesById: FileRoutesById
 }
 
@@ -501,6 +527,20 @@ declare module '@tanstack/react-router' {
       path: '/audit-log'
       fullPath: '/audit-log'
       preLoaderRoute: typeof AuthAuditLogRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/daemons': {
+      id: '/_auth/daemons'
+      path: '/daemons'
+      fullPath: '/daemons'
+      preLoaderRoute: typeof AuthDaemonsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/scheduled-tasks': {
+      id: '/_auth/scheduled-tasks'
+      path: '/scheduled-tasks'
+      fullPath: '/scheduled-tasks'
+      preLoaderRoute: typeof AuthScheduledTasksRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/dashboard': {
@@ -859,6 +899,8 @@ const AuthMailRouteWithChildren =
 
 interface AuthRouteChildren {
   AuthAuditLogRoute: typeof AuthAuditLogRoute
+  AuthDaemonsRoute: typeof AuthDaemonsRoute
+  AuthScheduledTasksRoute: typeof AuthScheduledTasksRoute
   AuthDashboardRoute: typeof AuthDashboardRoute
   AuthOperatorsRoute: typeof AuthOperatorsRoute
   AuthServersRoute: typeof AuthServersRouteWithChildren
@@ -872,6 +914,8 @@ interface AuthRouteChildren {
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthAuditLogRoute: AuthAuditLogRoute,
+  AuthDaemonsRoute: AuthDaemonsRoute,
+  AuthScheduledTasksRoute: AuthScheduledTasksRoute,
   AuthDashboardRoute: AuthDashboardRoute,
   AuthOperatorsRoute: AuthOperatorsRoute,
   AuthServersRoute: AuthServersRouteWithChildren,

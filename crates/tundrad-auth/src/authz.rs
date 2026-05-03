@@ -36,6 +36,8 @@ pub enum Resource {
     Mailbox,
     Alias,
     MailQueue,
+    Daemon,
+    ScheduledTask,
 }
 
 pub struct AuthzService;
@@ -74,20 +76,46 @@ impl AuthzService {
             ),
             OperatorRole::Operator => matches!(
                 (action, resource),
-                (Action::Read | Action::Create | Action::Update | Action::Delete, Resource::Site)
-                | (Action::Read | Action::Create | Action::Update | Action::Delete, Resource::Deployment)
-                | (Action::Read, Resource::Server)
-                | (Action::Read, Resource::AuditLog)
-                | (Action::Read | Action::Create | Action::Delete, Resource::ApiToken)
-                | (Action::Read, Resource::Mcp)
-                | (Action::Read | Action::Create | Action::Update | Action::Delete,
-                    Resource::DatabaseServer | Resource::Database | Resource::DbUser)
-                | (Action::Read | Action::Create | Action::Update,
-                    Resource::BackupTarget | Resource::BackupJob | Resource::BackupSnapshot)
-                | (Action::Read | Action::Create | Action::Update | Action::Delete,
-                    Resource::Domain | Resource::DnsRecord)
-                | (Action::Read | Action::Create | Action::Update | Action::Delete,
-                    Resource::MailDomain | Resource::Mailbox | Resource::Alias | Resource::MailQueue)
+                (
+                    Action::Read | Action::Create | Action::Update | Action::Delete,
+                    Resource::Site
+                ) | (
+                    Action::Read | Action::Create | Action::Update | Action::Delete,
+                    Resource::Deployment
+                ) | (Action::Read, Resource::Server)
+                    | (Action::Read, Resource::AuditLog)
+                    | (
+                        Action::Read | Action::Create | Action::Delete,
+                        Resource::ApiToken
+                    )
+                    | (Action::Read, Resource::Mcp)
+                    | (
+                        Action::Read | Action::Create | Action::Update | Action::Delete,
+                        Resource::DatabaseServer | Resource::Database | Resource::DbUser
+                    )
+                    | (
+                        Action::Read | Action::Create | Action::Update,
+                        Resource::BackupTarget | Resource::BackupJob | Resource::BackupSnapshot
+                    )
+                    | (
+                        Action::Read | Action::Create | Action::Update | Action::Delete,
+                        Resource::Domain | Resource::DnsRecord
+                    )
+                    | (
+                        Action::Read | Action::Create | Action::Update | Action::Delete,
+                        Resource::MailDomain
+                            | Resource::Mailbox
+                            | Resource::Alias
+                            | Resource::MailQueue
+                    )
+                    | (
+                        Action::Read | Action::Create | Action::Delete,
+                        Resource::Daemon
+                    )
+                    | (
+                        Action::Read | Action::Create | Action::Delete,
+                        Resource::ScheduledTask
+                    )
             ),
             OperatorRole::Readonly => action == Action::Read,
         }

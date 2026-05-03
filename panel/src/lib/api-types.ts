@@ -192,6 +192,18 @@ export interface Alias {
   created_at: string
 }
 
+export interface Daemon {
+  id: string
+  site_id: string
+  name: string
+  command: string
+  working_dir: string
+  env_file: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 export interface MailQueueEntry {
   id: string
   queue_id: string
@@ -202,4 +214,17 @@ export interface MailQueueEntry {
   size_bytes: number
   arrival_time: string
   reason: string | null
+}
+
+export interface ScheduledTask {
+  id: string
+  site_id: string
+  name: string
+  schedule: string
+  command: string
+  working_dir: string
+  is_active: boolean
+  last_run_at: string | null
+  created_at: string
+  updated_at: string
 }

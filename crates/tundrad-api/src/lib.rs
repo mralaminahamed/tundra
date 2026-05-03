@@ -144,37 +144,91 @@ pub fn router(pool: PgPool) -> Router {
             delete(routes::backups::cancel_restore),
         )
         // ── Domains ────────────────────────────────────────────────────────
-        .route("/api/v1/domains",
-            get(routes::domains::list_domains).post(routes::domains::create_domain))
-        .route("/api/v1/domains/{id}",
-            get(routes::domains::get_domain).delete(routes::domains::delete_domain))
-        .route("/api/v1/domains/{id}/dns-records",
-            get(routes::domains::list_dns_records).post(routes::domains::create_dns_record))
-        .route("/api/v1/domains/{id}/dns-records/batch",
-            post(routes::domains::batch_update_dns_records))
-        .route("/api/v1/domains/{id}/dns-records/{record_id}",
-            put(routes::domains::update_dns_record).delete(routes::domains::delete_dns_record))
+        .route(
+            "/api/v1/domains",
+            get(routes::domains::list_domains).post(routes::domains::create_domain),
+        )
+        .route(
+            "/api/v1/domains/{id}",
+            get(routes::domains::get_domain).delete(routes::domains::delete_domain),
+        )
+        .route(
+            "/api/v1/domains/{id}/dns-records",
+            get(routes::domains::list_dns_records).post(routes::domains::create_dns_record),
+        )
+        .route(
+            "/api/v1/domains/{id}/dns-records/batch",
+            post(routes::domains::batch_update_dns_records),
+        )
+        .route(
+            "/api/v1/domains/{id}/dns-records/{record_id}",
+            put(routes::domains::update_dns_record).delete(routes::domains::delete_dns_record),
+        )
         // ── Mail domains ───────────────────────────────────────────────────
-        .route("/api/v1/mail/domains",
-            get(routes::mail::list_mail_domains).post(routes::mail::create_mail_domain))
-        .route("/api/v1/mail/domains/{id}",
-            get(routes::mail::get_mail_domain).delete(routes::mail::delete_mail_domain))
-        .route("/api/v1/mail/domains/{id}/regenerate-dkim",
-            post(routes::mail::regenerate_dkim))
-        .route("/api/v1/mail/domains/{id}/mailboxes",
-            get(routes::mail::list_mailboxes))
-        .route("/api/v1/mail/domains/{id}/aliases",
-            get(routes::mail::list_aliases))
+        .route(
+            "/api/v1/mail/domains",
+            get(routes::mail::list_mail_domains).post(routes::mail::create_mail_domain),
+        )
+        .route(
+            "/api/v1/mail/domains/{id}",
+            get(routes::mail::get_mail_domain).delete(routes::mail::delete_mail_domain),
+        )
+        .route(
+            "/api/v1/mail/domains/{id}/regenerate-dkim",
+            post(routes::mail::regenerate_dkim),
+        )
+        .route(
+            "/api/v1/mail/domains/{id}/mailboxes",
+            get(routes::mail::list_mailboxes),
+        )
+        .route(
+            "/api/v1/mail/domains/{id}/aliases",
+            get(routes::mail::list_aliases),
+        )
         .route("/api/v1/mail/mailboxes", post(routes::mail::create_mailbox))
-        .route("/api/v1/mail/mailboxes/{id}", delete(routes::mail::delete_mailbox))
-        .route("/api/v1/mail/mailboxes/{id}/reset-password",
-            post(routes::mail::reset_mailbox_password))
+        .route(
+            "/api/v1/mail/mailboxes/{id}",
+            delete(routes::mail::delete_mailbox),
+        )
+        .route(
+            "/api/v1/mail/mailboxes/{id}/reset-password",
+            post(routes::mail::reset_mailbox_password),
+        )
         .route("/api/v1/mail/aliases", post(routes::mail::create_alias))
-        .route("/api/v1/mail/aliases/{id}", delete(routes::mail::delete_alias))
+        .route(
+            "/api/v1/mail/aliases/{id}",
+            delete(routes::mail::delete_alias),
+        )
         .route("/api/v1/mail/queue", get(routes::mail::list_queue))
         .route("/api/v1/mail/queue/hold", post(routes::mail::queue_hold))
-        .route("/api/v1/mail/queue/release", post(routes::mail::queue_release))
-        .route("/api/v1/mail/queue/delete", post(routes::mail::queue_delete))
+        .route(
+            "/api/v1/mail/queue/release",
+            post(routes::mail::queue_release),
+        )
+        .route(
+            "/api/v1/mail/queue/delete",
+            post(routes::mail::queue_delete),
+        )
+        // ── Daemons ────────────────────────────────────────────────────────
+        .route(
+            "/api/v1/sites/{site_id}/daemons",
+            get(routes::daemons::list_daemons).post(routes::daemons::create_daemon),
+        )
+        .route(
+            "/api/v1/daemons/{id}",
+            get(routes::daemons::get_daemon).delete(routes::daemons::delete_daemon),
+        )
+        // ── Scheduled tasks ────────────────────────────────────────────────
+        .route(
+            "/api/v1/sites/{site_id}/scheduled-tasks",
+            get(routes::scheduled_tasks::list_scheduled_tasks)
+                .post(routes::scheduled_tasks::create_scheduled_task),
+        )
+        .route(
+            "/api/v1/scheduled-tasks/{id}",
+            get(routes::scheduled_tasks::get_scheduled_task)
+                .delete(routes::scheduled_tasks::delete_scheduled_task),
+        )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))
         // ── WebSocket event gateway ────────────────────────────────────────
