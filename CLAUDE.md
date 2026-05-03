@@ -183,7 +183,8 @@ Use these skills for the corresponding tasks when working in this repository:
 | P2 — Single-host MVP | ✅ Done | proto+gRPC, PKI/mTLS, agent crates, server enrolment, sites+deployments, job queue, Valkey events, panel UI, Playwright e2e |
 | P3 — Databases & Backups | ✅ Done | DB engine providers (PG/MySQL/MariaDB/Valkey), database schema+REST+panel, restic backup module, preview-then-confirm restore, self-backup+restore tools, e2e specs |
 | P4 — Email & DNS | ✅ Done | PowerDNS/Unbound/Postfix/Dovecot/Rspamd/Roundcube providers, domain+DNS schema+REST+panel, mail schema+DKIM+REST+panel, diagnostics, e2e specs |
-| P5 — Production hardening | ⬜ | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, plugin host, billing |
+| P5 — Multi-runtime | ✅ Done | Node/Python/Go/Rust/Ruby/.NET providers, systemd Appendix B templates, blue/green deploy, daemons+cron schema+REST+panel, site wizard enhancements, starter templates, e2e specs |
+| P6 — Production hardening | ⬜ | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, plugin host, billing |
 
 Full phase breakdown: `docs/01-architecture/tundra-technical-implementation-plan-v3.md` §11.1.
 Build prompts for each phase: `docs/08-build-prompts/tundra-claude-code-prompts-v1.md`.
