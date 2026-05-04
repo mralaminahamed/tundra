@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth'
 
 export const Route = createFileRoute('/_auth')({
@@ -11,28 +11,82 @@ export const Route = createFileRoute('/_auth')({
   component: AuthLayout,
 })
 
+const NAV_GROUPS = [
+  {
+    label: 'Overview',
+    items: [
+      { to: '/dashboard', label: 'Dashboard' },
+      { to: '/servers', label: 'Servers' },
+      { to: '/sites', label: 'Sites' },
+    ],
+  },
+  {
+    label: 'Data',
+    items: [
+      { to: '/database-servers', label: 'DB Servers' },
+      { to: '/databases', label: 'Databases' },
+      { to: '/backups', label: 'Backups' },
+    ],
+  },
+  {
+    label: 'Services',
+    items: [
+      { to: '/domains', label: 'Domains' },
+      { to: '/mail', label: 'Mail' },
+      { to: '/daemons', label: 'Daemons' },
+      { to: '/scheduled-tasks', label: 'Scheduled Tasks' },
+    ],
+  },
+  {
+    label: 'Platform',
+    items: [
+      { to: '/templates', label: 'Templates' },
+      { to: '/plugins', label: 'Plugins' },
+      { to: '/alerts', label: 'Alerts' },
+    ],
+  },
+  {
+    label: 'Admin',
+    items: [
+      { to: '/operators', label: 'Operators' },
+      { to: '/audit-log', label: 'Audit Log' },
+      { to: '/settings', label: 'Settings' },
+    ],
+  },
+] as const
+
 function AuthLayout() {
   const operator = useAuthStore((s) => s.operator)
 
   return (
     <div className="flex min-h-screen bg-tundra-paper">
-      {/* Sidebar */}
-      <aside className="w-60 border-r border-tundra-ink-200 bg-white p-4 flex flex-col gap-2">
-        <div className="mb-6 font-semibold text-tundra-ink text-lg">Tundra</div>
-        <nav className="flex flex-col gap-1 text-sm">
-          <a href="/dashboard" className="rounded px-3 py-2 hover:bg-tundra-ink-50">
-            Dashboard
-          </a>
-          <a href="/operators" className="rounded px-3 py-2 hover:bg-tundra-ink-50">
-            Operators
-          </a>
-          <a href="/audit-log" className="rounded px-3 py-2 hover:bg-tundra-ink-50">
-            Audit Log
-          </a>
+      <aside className="w-60 shrink-0 border-r border-tundra-ink-200 bg-white flex flex-col">
+        <div className="px-4 py-5 font-semibold text-tundra-ink text-lg">Tundra</div>
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-4 text-sm">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label}>
+              <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-tundra-ink-400">
+                {group.label}
+              </div>
+              {group.items.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="block rounded px-3 py-2 transition-colors"
+                  activeProps={{ className: 'bg-tundra-lichen-50 text-tundra-lichen font-medium' }}
+                  inactiveProps={{ className: 'text-tundra-ink-600 hover:bg-tundra-ink-50 hover:text-tundra-ink' }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          ))}
         </nav>
-        <div className="mt-auto text-xs text-tundra-ink-500">{operator?.email}</div>
+        <div className="px-4 py-3 border-t border-tundra-ink-100 text-xs text-tundra-ink-500 truncate">
+          {operator?.email}
+        </div>
       </aside>
-      <main className="flex-1 p-6">
+      <main className="flex-1 overflow-auto p-6">
         <Outlet />
       </main>
     </div>

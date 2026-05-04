@@ -1039,17 +1039,6 @@ const AuthMailRouteChildren: AuthMailRouteChildren = {
 const AuthMailRouteWithChildren =
   AuthMailRoute._addFileChildren(AuthMailRouteChildren)
 
-interface AuthSettingsRouteChildren {
-  AuthSettingsMcpRoute: typeof AuthSettingsMcpRoute
-}
-
-const AuthSettingsRouteChildren: AuthSettingsRouteChildren = {
-  AuthSettingsMcpRoute: AuthSettingsMcpRoute,
-}
-
-const AuthSettingsRouteWithChildren =
-  AuthSettingsRoute._addFileChildren(AuthSettingsRouteChildren)
-
 interface AuthRouteChildren {
   AuthAuditLogRoute: typeof AuthAuditLogRoute
   AuthDaemonsRoute: typeof AuthDaemonsRoute

@@ -1,9 +1,10 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_auth/mail')({
-  component: MailLayout,
+  beforeLoad: ({ location }) => {
+    if (location.pathname === '/mail') {
+      throw redirect({ to: '/mail/domains' })
+    }
+  },
+  component: () => <Outlet />,
 })
-
-function MailLayout() {
-  return <Outlet />
-}
