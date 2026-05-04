@@ -52,6 +52,7 @@ const NAV_GROUPS = [
       { to: '/operators', label: 'Operators' },
       { to: '/audit-log', label: 'Audit Log' },
       { to: '/settings', label: 'Settings' },
+      { to: '/settings/security', label: 'Security' },
     ],
   },
 ] as const
