@@ -1,3 +1,5 @@
+mod seeders;
+
 use clap::{Parser, Subcommand};
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
@@ -20,6 +22,11 @@ enum Command {
         #[command(subcommand)]
         action: MasterKeyAction,
     },
+    /// Seed the database with demo / development data
+    Seed {
+        #[command(subcommand)]
+        action: SeedAction,
+    },
 }
 
 #[derive(Subcommand)]
@@ -36,6 +43,14 @@ enum MasterKeyAction {
     },
 }
 
+#[derive(Subcommand)]
+enum SeedAction {
+    /// Run all seeders in order (idempotent — safe to re-run)
+    Run,
+    /// Hash a password with Argon2id and print the PHC string
+    HashPassword { password: String },
+}
+
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
@@ -50,6 +65,7 @@ async fn run(cli: Cli) -> anyhow::Result<()> {
         Command::Serve => serve().await,
         Command::Migrate => migrate().await,
         Command::MasterKey { action } => master_key(action),
+        Command::Seed { action } => seed(action).await,
     }
 }
 
@@ -72,7 +88,9 @@ async fn serve() -> anyhow::Result<()> {
         .connect(&cfg.database.url)
         .await?;
 
-    sqlx::migrate!("../../migrations").run(&pool).await?;
+    sqlx::migrate!("../../database/migrations")
+        .run(&pool)
+        .await?;
 
     let addr = format!("{}:{}", cfg.server.listen_addr, cfg.server.port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
@@ -88,7 +106,9 @@ async fn migrate() -> anyhow::Result<()> {
         .max_connections(2)
         .connect(&cfg.database.url)
         .await?;
-    sqlx::migrate!("../../migrations").run(&pool).await?;
+    sqlx::migrate!("../../database/migrations")
+        .run(&pool)
+        .await?;
     println!("migrations applied");
     Ok(())
 }
@@ -104,7 +124,6 @@ fn master_key(action: MasterKeyAction) -> anyhow::Result<()> {
             }
             let (file_bytes, _) = tundrad_crypto::MasterKey::generate();
             std::fs::write(&path, &file_bytes)?;
-            // mode 0400 — owner read-only
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
@@ -115,6 +134,27 @@ fn master_key(action: MasterKeyAction) -> anyhow::Result<()> {
         MasterKeyAction::Verify { path } => {
             tundrad_crypto::MasterKey::load(&path)?;
             println!("master key at {} is valid", path.display());
+        }
+    }
+    Ok(())
+}
+
+async fn seed(action: SeedAction) -> anyhow::Result<()> {
+    match action {
+        SeedAction::Run => {
+            let cfg = tundrad_config::load()?;
+            let master = tundrad_crypto::MasterKey::load(&cfg.master_key.path)?;
+            tundrad_crypto::KeyRing::init_global(master)?;
+            let pool = PgPoolOptions::new()
+                .max_connections(2)
+                .connect(&cfg.database.url)
+                .await?;
+            seeders::run_all(&pool).await?;
+        }
+        SeedAction::HashPassword { password } => {
+            let (_, master) = tundrad_crypto::MasterKey::generate();
+            tundrad_crypto::KeyRing::init_global(master).ok();
+            println!("{}", tundrad_crypto::hash_password(&password)?);
         }
     }
     Ok(())
