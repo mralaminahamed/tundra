@@ -49,6 +49,8 @@ import { Route as AuthMailQueueRouteImport } from './routes/_auth.mail.queue'
 import { Route as AuthTemplatesRouteImport } from './routes/_auth.templates'
 import { Route as AuthPluginsRouteImport } from './routes/_auth.plugins'
 import { Route as AuthAlertsRouteImport } from './routes/_auth.alerts'
+import { Route as AuthSettingsRouteImport } from './routes/_auth.settings'
+import { Route as AuthSettingsMcpRouteImport } from './routes/_auth.settings.mcp'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -290,6 +292,18 @@ const AuthAlertsRoute = AuthAlertsRouteImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthSettingsRoute = AuthSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthSettingsMcpRoute = AuthSettingsMcpRouteImport.update({
+  id: '/settings/mcp',
+  path: '/mcp',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
@@ -330,6 +344,8 @@ export interface FileRoutesByFullPath {
   '/templates': typeof AuthTemplatesRoute
   '/plugins': typeof AuthPluginsRoute
   '/alerts': typeof AuthAlertsRoute
+  '/settings': typeof AuthSettingsRouteWithChildren
+  '/settings/mcp': typeof AuthSettingsMcpRoute
 }
 
 export interface FileRoutesByTo {
@@ -372,6 +388,8 @@ export interface FileRoutesByTo {
   '/templates': typeof AuthTemplatesRoute
   '/plugins': typeof AuthPluginsRoute
   '/alerts': typeof AuthAlertsRoute
+  '/settings': typeof AuthSettingsRouteWithChildren
+  '/settings/mcp': typeof AuthSettingsMcpRoute
 }
 
 export interface FileRoutesById {
@@ -416,6 +434,8 @@ export interface FileRoutesById {
   '/_auth/templates': typeof AuthTemplatesRoute
   '/_auth/plugins': typeof AuthPluginsRoute
   '/_auth/alerts': typeof AuthAlertsRoute
+  '/_auth/settings': typeof AuthSettingsRouteWithChildren
+  '/_auth/settings/mcp': typeof AuthSettingsMcpRoute
 }
 
 export interface FileRouteTypes {
@@ -459,6 +479,8 @@ export interface FileRouteTypes {
     | '/templates'
     | '/plugins'
     | '/alerts'
+    | '/settings'
+    | '/settings/mcp'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -499,6 +521,8 @@ export interface FileRouteTypes {
     | '/templates'
     | '/plugins'
     | '/alerts'
+    | '/settings'
+    | '/settings/mcp'
   id:
     | '__root__'
     | '/'
@@ -541,6 +565,8 @@ export interface FileRouteTypes {
     | '/_auth/templates'
     | '/_auth/plugins'
     | '/_auth/alerts'
+    | '/_auth/settings'
+    | '/_auth/settings/mcp'
   fileRoutesById: FileRoutesById
 }
 
@@ -832,8 +858,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAlertsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/settings': {
+      id: '/_auth/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthSettingsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/settings/mcp': {
+      id: '/_auth/settings/mcp'
+      path: '/mcp'
+      fullPath: '/settings/mcp'
+      preLoaderRoute: typeof AuthSettingsMcpRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
   }
 }
+
+interface AuthSettingsMcpRouteChildren {
+  AuthSettingsMcpRoute: typeof AuthSettingsMcpRoute
+}
+
+const AuthSettingsMcpRouteChildren: AuthSettingsMcpRouteChildren = {
+  AuthSettingsMcpRoute: AuthSettingsMcpRoute,
+}
+
+const AuthSettingsRouteWithChildren = AuthSettingsRoute._addFileChildren(
+  AuthSettingsMcpRouteChildren,
+)
 
 interface AuthServersServerIdRouteChildren {
   AuthServersServerIdMaintenanceRoute: typeof AuthServersServerIdMaintenanceRoute
@@ -987,6 +1039,17 @@ const AuthMailRouteChildren: AuthMailRouteChildren = {
 const AuthMailRouteWithChildren =
   AuthMailRoute._addFileChildren(AuthMailRouteChildren)
 
+interface AuthSettingsRouteChildren {
+  AuthSettingsMcpRoute: typeof AuthSettingsMcpRoute
+}
+
+const AuthSettingsRouteChildren: AuthSettingsRouteChildren = {
+  AuthSettingsMcpRoute: AuthSettingsMcpRoute,
+}
+
+const AuthSettingsRouteWithChildren =
+  AuthSettingsRoute._addFileChildren(AuthSettingsRouteChildren)
+
 interface AuthRouteChildren {
   AuthAuditLogRoute: typeof AuthAuditLogRoute
   AuthDaemonsRoute: typeof AuthDaemonsRoute
@@ -1003,6 +1066,7 @@ interface AuthRouteChildren {
   AuthTemplatesRoute: typeof AuthTemplatesRoute
   AuthPluginsRoute: typeof AuthPluginsRoute
   AuthAlertsRoute: typeof AuthAlertsRoute
+  AuthSettingsRoute: typeof AuthSettingsRouteWithChildren
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -1021,6 +1085,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthTemplatesRoute: AuthTemplatesRoute,
   AuthPluginsRoute: AuthPluginsRoute,
   AuthAlertsRoute: AuthAlertsRoute,
+  AuthSettingsRoute: AuthSettingsRouteWithChildren,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
