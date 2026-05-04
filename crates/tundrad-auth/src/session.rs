@@ -1,6 +1,6 @@
 //! Session lifecycle: authenticate, refresh, revoke, lookup.
 
-use rand::RngCore;
+use rand::TryRng;
 use time::OffsetDateTime;
 use tundrad_domain::{AuditActor, NewAuditEntry, NewSession, Session};
 use tundrad_repo::{AuditLogRepo, OperatorRepo, PgPool, RepoError, SessionRepo};
@@ -188,6 +188,6 @@ impl<'a> SessionService<'a> {
 
 fn generate_refresh_token() -> Vec<u8> {
     let mut bytes = vec![0u8; REFRESH_TOKEN_BYTES];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().try_fill_bytes(&mut bytes).expect("rng");
     bytes
 }

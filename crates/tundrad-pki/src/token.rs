@@ -1,5 +1,5 @@
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
-use rand::RngCore;
+use rand::TryRng;
 use sha2::{Digest, Sha256};
 use time::OffsetDateTime;
 
@@ -17,7 +17,7 @@ impl SetupToken {
     /// Generate a new 32-byte random token, valid 24 hours.
     pub fn generate() -> Self {
         let mut bytes = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut bytes);
+        rand::rng().try_fill_bytes(&mut bytes).expect("rng");
         let encoded = URL_SAFE_NO_PAD.encode(bytes);
         Self {
             raw: format!("tnd_setup_{encoded}"),

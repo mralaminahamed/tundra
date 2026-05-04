@@ -3,7 +3,7 @@ use argon2::{
     Argon2, Params, Version,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
 };
-use rand::rngs::OsRng;
+use rand_core::OsRng;
 
 /// Argon2id — m=64MiB, t=3, p=1. Non-negotiable per security audit §4.1.
 fn argon2() -> Result<Argon2<'static>, CryptoError> {

@@ -2,9 +2,9 @@
 //! No third-party TOTP crate — uses `hmac` + `sha1` crates only.
 
 use hmac::{Hmac, Mac};
-use rand::RngCore;
-use sha1::digest::KeyInit;
+use rand::TryRng;
 use sha1::Sha1;
+use sha1::digest::KeyInit;
 
 type HmacSha1 = Hmac<Sha1>;
 
@@ -69,7 +69,7 @@ fn base32_decode(input: &str) -> Option<Vec<u8>> {
 /// Generate a new TOTP secret: 20 random bytes encoded as base32.
 pub fn generate_secret() -> String {
     let mut bytes = [0u8; 20];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().try_fill_bytes(&mut bytes).expect("rng");
     base32_encode(&bytes)
 }
 
@@ -138,11 +138,11 @@ fn current_t() -> u64 {
 
 /// Generate 10 single-use recovery codes (16 lowercase hex chars each).
 pub fn generate_recovery_codes() -> Vec<String> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     (0..10)
         .map(|_| {
             let mut bytes = [0u8; 8]; // 8 bytes → 16 hex chars
-            rng.fill_bytes(&mut bytes);
+            rng.try_fill_bytes(&mut bytes).expect("rng");
             bytes.iter().map(|b| format!("{b:02x}")).collect()
         })
         .collect()

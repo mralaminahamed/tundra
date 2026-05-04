@@ -1,5 +1,5 @@
 use crate::CryptoError;
-use rand::RngCore;
+use rand::TryRng;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// 64-byte file layout: [0..32] = key material, [32..64] = BLAKE3-256(key material).
@@ -26,7 +26,7 @@ impl MasterKey {
     /// Generate a fresh master key. Returns the raw 64-byte file contents (caller writes to disk).
     pub fn generate() -> ([u8; 64], Self) {
         let mut key = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut key);
+        rand::rng().try_fill_bytes(&mut key).expect("rng");
         let hash = blake3::hash(&key);
         let mut file_bytes = [0u8; 64];
         file_bytes[..32].copy_from_slice(&key);

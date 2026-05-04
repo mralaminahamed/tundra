@@ -5,7 +5,7 @@ use axum::{
     response::IntoResponse,
 };
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
-use rand::RngCore;
+use rand::TryRng;
 use serde::{Deserialize, Serialize};
 use tundrad_auth::{Action, AuthzService, Resource};
 use tundrad_repo::{AuditLogRepo, NewPasskey, PasskeyChallengeRepo, PasskeyRepo, PgPool};
@@ -179,7 +179,7 @@ pub async fn passkey_register_challenge(
     AuthSession(session): AuthSession,
 ) -> Result<impl IntoResponse, ApiError> {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().try_fill_bytes(&mut bytes).expect("rng");
 
     let challenge_id = PasskeyChallengeRepo::new(&pool)
         .create(&bytes, Some(session.operator_id))

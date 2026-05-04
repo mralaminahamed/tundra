@@ -5,7 +5,7 @@ use axum::{
     response::IntoResponse,
 };
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
-use rand::RngCore;
+use rand::TryRng;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tundrad_auth::SessionService;
@@ -318,7 +318,7 @@ pub struct PasskeyChallengeResponse {
 
 pub async fn passkey_challenge(State(pool): State<PgPool>) -> Result<impl IntoResponse, ApiError> {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().try_fill_bytes(&mut bytes).expect("rng");
 
     let challenge_id = PasskeyChallengeRepo::new(&pool)
         .create(&bytes, None)
@@ -438,7 +438,7 @@ pub async fn passkey_verify(
         .map(str::to_owned);
 
     let mut raw_token = vec![0u8; 32];
-    rand::thread_rng().fill_bytes(&mut raw_token);
+    rand::rng().try_fill_bytes(&mut raw_token).expect("rng");
     let expires_at = time::OffsetDateTime::now_utc() + time::Duration::days(30);
 
     let session = tundrad_repo::SessionRepo::new(&pool)

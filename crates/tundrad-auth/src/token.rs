@@ -3,7 +3,7 @@
 //! Format: `tnd_<env>_<base64url-no-pad of 32 random bytes>` (43 chars for the random part).
 
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
-use rand::RngCore;
+use rand::TryRng;
 use sha2::{Digest, Sha256};
 
 /// The deployment environment encoded in the token prefix.
@@ -31,7 +31,7 @@ impl TokenEnv {
 /// - `sha256_hash` is what gets stored in the database.
 pub fn mint_token(env: TokenEnv) -> (String, Vec<u8>) {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().try_fill_bytes(&mut bytes).expect("rng");
     let random_part = URL_SAFE_NO_PAD.encode(bytes);
     let raw = format!("tnd_{}_{}", env.as_str(), random_part);
     let hash = hash_token(&raw);

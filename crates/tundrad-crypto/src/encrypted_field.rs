@@ -1,6 +1,6 @@
 use crate::CryptoError;
 use aes_gcm::{Nonce, aead::Aead};
-use rand::RngCore;
+use rand::TryRng;
 use serde::{Serialize, de::DeserializeOwned};
 use sqlx::{
     Decode, Encode, Postgres, Type,
@@ -61,7 +61,7 @@ pub fn encrypt_value<T: Serialize>(value: &T, family: &str) -> Result<Vec<u8>, C
     let plaintext = serde_json::to_vec(value)?;
 
     let mut nonce_bytes = [0u8; NONCE_LEN];
-    rand::thread_rng().fill_bytes(&mut nonce_bytes);
+    rand::rng().try_fill_bytes(&mut nonce_bytes).expect("rng");
     let nonce = Nonce::from_slice(&nonce_bytes);
 
     // aes-gcm appends the 16-byte tag to the ciphertext
@@ -184,7 +184,7 @@ mod tests {
         let cipher = ring.family_cipher(FAM).unwrap();
         let plaintext = serde_json::to_vec(&value).unwrap();
         let mut nonce_bytes = [0u8; NONCE_LEN];
-        rand::thread_rng().fill_bytes(&mut nonce_bytes);
+        rand::rng().try_fill_bytes(&mut nonce_bytes).expect("rng");
         let nonce = Nonce::from_slice(&nonce_bytes);
         let ct = cipher.encrypt(nonce, plaintext.as_slice()).unwrap();
         let mut blob = vec![VERSION];
