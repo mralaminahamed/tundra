@@ -1,0 +1,25 @@
+# docker/Dockerfile.tundrad
+# Usage: docker build --build-arg BINARY=path/to/tundrad -f docker/Dockerfile.tundrad .
+FROM ubuntu:24.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --system tundra && \
+    useradd --system --gid tundra --home-dir /var/lib/tundra --shell /usr/sbin/nologin tundra && \
+    mkdir -p /var/lib/tundra /etc/tundra && \
+    chown tundra:tundra /var/lib/tundra
+
+COPY tundrad /usr/local/bin/tundrad
+RUN chmod 0755 /usr/local/bin/tundrad
+
+USER tundra
+WORKDIR /var/lib/tundra
+
+EXPOSE 7400 7447 9447
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+    CMD curl -fsS http://localhost:7400/healthz || exit 1
+
+ENTRYPOINT ["/usr/local/bin/tundrad"]
+CMD ["serve"]
