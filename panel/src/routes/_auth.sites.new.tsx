@@ -7,7 +7,6 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { CreateSiteResponse, ListResponse, Server, TemplateManifest } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
-import { SITE_TEMPLATES } from '@/lib/site-templates'
 
 interface SitesNewSearch {
   template?: string
@@ -83,16 +82,20 @@ function CreateSitePage() {
     queryFn: () => api<ListResponse<Server>>('/servers'),
   })
 
-  // Fetch templates so we can pre-fill values from the ?template= search param.
+  // Always fetch all templates — used both for ?template= pre-fill and the template picker grid.
   const { data: templatesData } = useQuery({
     queryKey: ['templates'],
     queryFn: () => api<{ data: TemplateManifest[] }>('/templates'),
     staleTime: Infinity,
-    enabled: !!templateId,
   })
 
-  const selectedTemplate = templateId
-    ? (templatesData?.data ?? []).find((t) => t.id === templateId)
+  const allTemplates = templatesData?.data ?? []
+
+  // Track which template was picked inside the wizard (separate from URL param).
+  const [pickedTemplateId, setPickedTemplateId] = useState<string | undefined>(templateId)
+
+  const selectedTemplate = pickedTemplateId
+    ? allTemplates.find((t) => t.id === pickedTemplateId)
     : undefined
 
   const initialValues: FormValues = {
@@ -167,8 +170,8 @@ function CreateSitePage() {
                   source_kind: values.sourceKind,
                   source_config: {
                     branch: values.branch || undefined,
-                    template_id: values.sourceKind === 'template' && selectedTemplate
-                      ? selectedTemplate.id
+                    template_id: values.sourceKind === 'template' && pickedTemplateId
+                      ? pickedTemplateId
                       : undefined,
                   },
                 },
@@ -183,7 +186,7 @@ function CreateSitePage() {
           }
         }}
       >
-        {({ isSubmitting, values, setValues }) => (
+        {({ isSubmitting, values, setValues, setFieldValue }) => (
           <Form className="flex flex-col gap-5">
             <h2 className="text-lg font-medium">{STEPS[step]}</h2>
 
@@ -192,7 +195,11 @@ function CreateSitePage() {
                 <label className="flex flex-col gap-1.5 text-sm">
                   Source type
                   <Field as="select" name="sourceKind"
-                    className="rounded border border-tundra-ink-200 px-3 py-2">
+                    className="rounded border border-tundra-ink-200 px-3 py-2"
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                      void setFieldValue('sourceKind', e.target.value)
+                      if (e.target.value !== 'template') setPickedTemplateId(undefined)
+                    }}>
                     <option value="blank">Blank (empty)</option>
                     <option value="github">GitHub</option>
                     <option value="gitlab">GitLab</option>
@@ -202,29 +209,44 @@ function CreateSitePage() {
 
                 {values.sourceKind === 'template' && (
                   <div>
-                    <p className="mb-2 text-sm text-tundra-ink-500">Pick a starter template — fields on the next step will be pre-filled.</p>
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {SITE_TEMPLATES.map((tmpl) => (
-                        <button
-                          key={tmpl.id}
-                          type="button"
-                          className="rounded-lg border border-tundra-ink-200 p-3 text-left hover:border-tundra-lichen hover:bg-tundra-lichen/5 transition-colors"
-                          onClick={() => {
-                            void setValues((prev) => ({
-                              ...prev,
-                              kind: tmpl.kind,
-                              runtimeVersion: tmpl.runtimeVersion,
-                              buildCommand: tmpl.buildCommand,
-                              startCommand: tmpl.startCommand,
-                              listenPort: tmpl.listenPort,
-                            }))
-                          }}
-                        >
-                          <p className="font-medium text-sm">{tmpl.label}</p>
-                          <p className="text-xs text-tundra-ink-400 mt-0.5">{tmpl.description}</p>
-                        </button>
-                      ))}
-                    </div>
+                    <p className="mb-2 text-sm text-tundra-ink-500">
+                      Pick a starter template — fields on the next step will be pre-filled.
+                    </p>
+                    {allTemplates.length === 0 ? (
+                      <p className="text-xs text-tundra-ink-400 animate-pulse">Loading templates…</p>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {allTemplates.map((tmpl) => {
+                          const isPicked = pickedTemplateId === tmpl.id
+                          return (
+                            <button
+                              key={tmpl.id}
+                              type="button"
+                              className={`rounded-lg border p-3 text-left transition-colors ${
+                                isPicked
+                                  ? 'border-tundra-lichen bg-tundra-lichen/10 ring-1 ring-tundra-lichen'
+                                  : 'border-tundra-ink-200 hover:border-tundra-lichen hover:bg-tundra-lichen/5'
+                              }`}
+                              onClick={() => {
+                                setPickedTemplateId(tmpl.id)
+                                const kind = tmpl.runtime.kind === 'static' ? 'static' : tmpl.runtime.kind
+                                void setValues((prev) => ({
+                                  ...prev,
+                                  kind,
+                                  runtimeVersion: tmpl.runtime.version,
+                                  buildCommand: tmpl.build_command ?? '',
+                                  startCommand: tmpl.start_command ?? '',
+                                  listenPort: tmpl.listen_port != null ? String(tmpl.listen_port) : '',
+                                }))
+                              }}
+                            >
+                              <p className="font-medium text-sm">{tmpl.name}</p>
+                              <p className="text-xs text-tundra-ink-400 mt-0.5 line-clamp-2">{tmpl.description}</p>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
