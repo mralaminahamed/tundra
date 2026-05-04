@@ -303,6 +303,14 @@ pub fn router(pool: PgPool) -> Router {
         )
         // ── Plugins ────────────────────────────────────────────────────────
         .route("/api/v1/plugins", get(routes::plugins::list_plugins))
+        .route(
+            "/api/v1/plugins/available",
+            get(routes::plugins::list_available),
+        )
+        .route(
+            "/api/v1/plugins/install",
+            post(routes::plugins::install_plugin),
+        )
         .route("/api/v1/plugins/{id}", get(routes::plugins::get_plugin))
         .route(
             "/api/v1/plugins/{id}/enable",
