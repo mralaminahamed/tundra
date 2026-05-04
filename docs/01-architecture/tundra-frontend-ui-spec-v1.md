@@ -26,28 +26,28 @@ The frontend is delivered as **static assets** by `tundrad` over HTTPS, with all
 
 ### 1.2 Core Stack (May 2026)
 
-| Layer | Technology | Version | Why |
-|-------|------------|---------|-----|
-| Language | TypeScript | 5.7+ (strict) | Compile-time safety, mature React 19 types |
-| Framework | React | 19 | Concurrent rendering, Server Components opt-out (we use SPA), use() hook, ref-as-prop |
-| Build | Vite | 8.0.10 | Rolldown-based, 10-30× faster builds than Vite 7, single bundler |
-| Package manager | pnpm | 10+ | Strict dependency hoisting, fast |
-| Styling | Tailwind CSS | v4 | OKLCH colors, `@theme` directive, no postcss config |
-| Component library | shadcn/ui | CLI v4 | Owned components, Radix primitives, install-not-import |
-| Routing | TanStack Router | 1.x | Type-safe routes, file-based or code-based, modern data loading |
-| Server state | TanStack Query | 5.x | The de facto standard for async data, caching, mutations |
-| Client state | Zustand | 5.x | Minimal, hook-based, no boilerplate |
-| Forms (simple) | React Hook Form + Zod | latest | Tiny, fast, schema-driven validation |
-| Forms (complex/wizards) | Formik + Yup | latest | Maturity for multi-step flows, field-level orchestration |
-| Real-time | Native WebSocket | — | Tundra's panel forwards events on `/api/v1/events` |
-| Icons | Lucide React | latest | Consistent icon set; Tundra brand uses Lucide naming for diagrams |
-| Charts | Recharts | latest | Recharts pairs cleanly with shadcn/ui |
-| Testing — unit | Vitest 3 | latest | Vite-native test runner |
-| Testing — component | React Testing Library | latest | User-centric component tests |
-| Testing — E2E | Playwright | latest | Headless multi-browser |
-| Linting | ESLint 9 (flat config) + typescript-eslint | latest | The 2026 standard |
-| Formatting | Prettier 3 | latest | With `prettier-plugin-tailwindcss` for class sorting |
-| Accessibility audit | axe-core (via Playwright) | latest | Automated WCAG 2.1 AA verification |
+| Layer                   | Technology                                 | Version       | Why                                                                                   |
+|-------------------------|--------------------------------------------|---------------|---------------------------------------------------------------------------------------|
+| Language                | TypeScript                                 | 5.7+ (strict) | Compile-time safety, mature React 19 types                                            |
+| Framework               | React                                      | 19            | Concurrent rendering, Server Components opt-out (we use SPA), use() hook, ref-as-prop |
+| Build                   | Vite                                       | 8.0.10        | Rolldown-based, 10-30× faster builds than Vite 7, single bundler                      |
+| Package manager         | pnpm                                       | 10+           | Strict dependency hoisting, fast                                                      |
+| Styling                 | Tailwind CSS                               | v4            | OKLCH colors, `@theme` directive, no postcss config                                   |
+| Component library       | shadcn/ui                                  | CLI v4        | Owned components, Radix primitives, install-not-import                                |
+| Routing                 | TanStack Router                            | 1.x           | Type-safe routes, file-based or code-based, modern data loading                       |
+| Server state            | TanStack Query                             | 5.x           | The de facto standard for async data, caching, mutations                              |
+| Client state            | Zustand                                    | 5.x           | Minimal, hook-based, no boilerplate                                                   |
+| Forms (simple)          | React Hook Form + Zod                      | latest        | Tiny, fast, schema-driven validation                                                  |
+| Forms (complex/wizards) | Formik + Yup                               | latest        | Maturity for multi-step flows, field-level orchestration                              |
+| Real-time               | Native WebSocket                           | —             | Tundra's panel forwards events on `/api/v1/events`                                    |
+| Icons                   | Lucide React                               | latest        | Consistent icon set; Tundra brand uses Lucide naming for diagrams                     |
+| Charts                  | Recharts                                   | latest        | Recharts pairs cleanly with shadcn/ui                                                 |
+| Testing — unit          | Vitest 3                                   | latest        | Vite-native test runner                                                               |
+| Testing — component     | React Testing Library                      | latest        | User-centric component tests                                                          |
+| Testing — E2E           | Playwright                                 | latest        | Headless multi-browser                                                                |
+| Linting                 | ESLint 9 (flat config) + typescript-eslint | latest        | The 2026 standard                                                                     |
+| Formatting              | Prettier 3                                 | latest        | With `prettier-plugin-tailwindcss` for class sorting                                  |
+| Accessibility audit     | axe-core (via Playwright)                  | latest        | Automated WCAG 2.1 AA verification                                                    |
 
 ### 1.3 Design Goals
 

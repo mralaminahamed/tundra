@@ -41,14 +41,14 @@ The gRPC API uses **protobuf field numbers and reserved ranges** to maintain wir
 
 ### 1.2 Authentication & Authorization
 
-| Surface | Auth |
-|---------|------|
-| REST (panel) | Session cookie (HttpOnly, SameSite=Strict) + CSRF header on state-changing requests |
+| Surface            | Auth                                                                                               |
+|--------------------|----------------------------------------------------------------------------------------------------|
+| REST (panel)       | Session cookie (HttpOnly, SameSite=Strict) + CSRF header on state-changing requests                |
 | REST (integration) | Bearer token (`Authorization: Bearer tundra_pat_<...>`) issued from the Settings → API Tokens page |
-| gRPC | mTLS — client cert issued by Tundra's internal CA; agent identity in the cert subject |
-| WebSocket | Session token presented as query param at upgrade; one connection per session |
-| MCP (stdio) | Process-level — the local user already authenticated to the host |
-| MCP (HTTP) | Bearer token with scope `mcp:*` |
+| gRPC               | mTLS — client cert issued by Tundra's internal CA; agent identity in the cert subject              |
+| WebSocket          | Session token presented as query param at upgrade; one connection per session                      |
+| MCP (stdio)        | Process-level — the local user already authenticated to the host                                   |
+| MCP (HTTP)         | Bearer token with scope `mcp:*`                                                                    |
 
 Every request resolves to a **principal** (operator, plugin, MCP session, system) and a **scope** (global, server, site). RBAC is evaluated by Tundra's policy layer before any handler runs; handlers do not re-check authorization.
 
@@ -97,12 +97,12 @@ GET /api/v1/sites?limit=50&cursor=eyJpZCI6IjAxSDhYS...
 
 REST endpoints are rate-limited per principal:
 
-| Principal | Default | Burst |
-|-----------|---------|-------|
-| Operator session | 600/min | 60 |
-| Personal access token | 1200/min | 120 |
-| Plugin | configured per capability | 1× |
-| MCP session | 60/min for write tools, 600/min for read | 30 |
+| Principal             | Default                                  | Burst |
+|-----------------------|------------------------------------------|-------|
+| Operator session      | 600/min                                  | 60    |
+| Personal access token | 1200/min                                 | 120   |
+| Plugin                | configured per capability                | 1×    |
+| MCP session           | 60/min for write tools, 600/min for read | 30    |
 
 Limit headers (`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`) are returned on every response. `429` responses include `Retry-After` in seconds.
 
@@ -114,41 +114,41 @@ The full OpenAPI 3.1 document is published at `/api/v1/openapi.yaml` and rendere
 
 ### 2.1 Resource Map
 
-| Resource | Path prefix | Operations |
-|----------|-------------|------------|
-| Auth | `/api/v1/auth/*` | login, logout, refresh, totp-setup, passkey-register/verify |
-| Operators | `/api/v1/operators` | list, get, create, update, delete, invite |
-| API tokens | `/api/v1/operators/me/tokens` | list, create, revoke |
-| Servers | `/api/v1/servers` | list, get, create (init), update, delete, action: reboot/disable |
-| Services | `/api/v1/servers/:id/services` | list, get, action: start/stop/restart |
-| Packages | `/api/v1/servers/:id/packages` | list, action: update/install/remove |
-| Firewall rules | `/api/v1/servers/:id/firewall` | list, create, update, delete, action: apply |
-| Sites | `/api/v1/sites` | list, get, create, update, delete, action: archive/restore/suspend |
-| Applications | `/api/v1/sites/:id/application` | get, update |
-| Deployments | `/api/v1/sites/:id/deployments` | list, get, create (trigger), get-logs, action: cancel/promote/rollback |
-| Env vars | `/api/v1/sites/:id/env-vars` | list, create, update, delete |
-| Scheduled tasks | `/api/v1/sites/:id/scheduled-tasks` | list, create, update, delete, action: run-now |
-| Site aliases | `/api/v1/sites/:id/aliases` | list, create, delete |
-| Domains | `/api/v1/domains` | list, get, create (register/import), update, delete |
-| DNS records | `/api/v1/domains/:id/dns-records` | list, create, update, delete, batch-update |
-| Database servers | `/api/v1/database-servers` | list, get, create, update, delete |
-| Databases | `/api/v1/databases` | list, get, create, delete |
-| DB users | `/api/v1/db-users` | list, create, update, delete, action: grant/revoke |
-| Mail domains | `/api/v1/mail/domains` | list, get, create, delete, action: regenerate-dkim |
-| Mailboxes | `/api/v1/mail/mailboxes` | list, get, create, update, delete, action: reset-password |
-| Aliases | `/api/v1/mail/aliases` | list, create, update, delete |
-| Mail queue | `/api/v1/mail/queue` | list, action: hold/release/delete |
-| Backup targets | `/api/v1/backups/targets` | list, get, create, update, delete, action: test |
-| Backup jobs | `/api/v1/backups/jobs` | list, get, create, update, delete, action: run-now |
-| Backup snapshots | `/api/v1/backups/snapshots` | list, get, action: restore |
-| Plugins | `/api/v1/plugins` | list, get, action: install/uninstall/enable/disable/update |
-| Plugin capabilities | `/api/v1/plugins/:id/capabilities` | list, action: grant/revoke |
-| Plugin settings | `/api/v1/plugins/:id/settings` | get, update |
-| Migrations | `/api/v1/migrations` | list, get, create, action: stage/sync/cutover/rollback |
-| Certificates | `/api/v1/certificates` | list, get, create (request), action: renew/revoke |
-| Settings | `/api/v1/settings` | get, update (per group) |
-| Audit log | `/api/v1/audit-log` | list (read-only) |
-| Health | `/api/v1/health`, `/api/v1/healthz`, `/api/v1/readyz` | get |
+| Resource            | Path prefix                                           | Operations                                                             |
+|---------------------|-------------------------------------------------------|------------------------------------------------------------------------|
+| Auth                | `/api/v1/auth/*`                                      | login, logout, refresh, totp-setup, passkey-register/verify            |
+| Operators           | `/api/v1/operators`                                   | list, get, create, update, delete, invite                              |
+| API tokens          | `/api/v1/operators/me/tokens`                         | list, create, revoke                                                   |
+| Servers             | `/api/v1/servers`                                     | list, get, create (init), update, delete, action: reboot/disable       |
+| Services            | `/api/v1/servers/:id/services`                        | list, get, action: start/stop/restart                                  |
+| Packages            | `/api/v1/servers/:id/packages`                        | list, action: update/install/remove                                    |
+| Firewall rules      | `/api/v1/servers/:id/firewall`                        | list, create, update, delete, action: apply                            |
+| Sites               | `/api/v1/sites`                                       | list, get, create, update, delete, action: archive/restore/suspend     |
+| Applications        | `/api/v1/sites/:id/application`                       | get, update                                                            |
+| Deployments         | `/api/v1/sites/:id/deployments`                       | list, get, create (trigger), get-logs, action: cancel/promote/rollback |
+| Env vars            | `/api/v1/sites/:id/env-vars`                          | list, create, update, delete                                           |
+| Scheduled tasks     | `/api/v1/sites/:id/scheduled-tasks`                   | list, create, update, delete, action: run-now                          |
+| Site aliases        | `/api/v1/sites/:id/aliases`                           | list, create, delete                                                   |
+| Domains             | `/api/v1/domains`                                     | list, get, create (register/import), update, delete                    |
+| DNS records         | `/api/v1/domains/:id/dns-records`                     | list, create, update, delete, batch-update                             |
+| Database servers    | `/api/v1/database-servers`                            | list, get, create, update, delete                                      |
+| Databases           | `/api/v1/databases`                                   | list, get, create, delete                                              |
+| DB users            | `/api/v1/db-users`                                    | list, create, update, delete, action: grant/revoke                     |
+| Mail domains        | `/api/v1/mail/domains`                                | list, get, create, delete, action: regenerate-dkim                     |
+| Mailboxes           | `/api/v1/mail/mailboxes`                              | list, get, create, update, delete, action: reset-password              |
+| Aliases             | `/api/v1/mail/aliases`                                | list, create, update, delete                                           |
+| Mail queue          | `/api/v1/mail/queue`                                  | list, action: hold/release/delete                                      |
+| Backup targets      | `/api/v1/backups/targets`                             | list, get, create, update, delete, action: test                        |
+| Backup jobs         | `/api/v1/backups/jobs`                                | list, get, create, update, delete, action: run-now                     |
+| Backup snapshots    | `/api/v1/backups/snapshots`                           | list, get, action: restore                                             |
+| Plugins             | `/api/v1/plugins`                                     | list, get, action: install/uninstall/enable/disable/update             |
+| Plugin capabilities | `/api/v1/plugins/:id/capabilities`                    | list, action: grant/revoke                                             |
+| Plugin settings     | `/api/v1/plugins/:id/settings`                        | get, update                                                            |
+| Migrations          | `/api/v1/migrations`                                  | list, get, create, action: stage/sync/cutover/rollback                 |
+| Certificates        | `/api/v1/certificates`                                | list, get, create (request), action: renew/revoke                      |
+| Settings            | `/api/v1/settings`                                    | get, update (per group)                                                |
+| Audit log           | `/api/v1/audit-log`                                   | list (read-only)                                                       |
+| Health              | `/api/v1/health`, `/api/v1/healthz`, `/api/v1/readyz` | get                                                                    |
 
 ### 2.2 Representative Endpoint — `POST /api/v1/sites`
 
@@ -222,15 +222,15 @@ Idempotency-Key: e3f4-...-9c7a
 
 **Errors:**
 
-| Status | Code | Meaning |
-|--------|------|---------|
-| 400 | `validation.required_field` | A required field is missing. `details.field` names it. |
-| 400 | `validation.invalid_format` | A field has the wrong format. `details.field` and `details.expected` describe what's wrong. |
-| 403 | `policy.forbidden` | Caller lacks `sites.create` permission, or the chosen server is outside their scope. |
-| 404 | `server.not_found` | `server_id` does not resolve. |
-| 409 | `domain.already_in_use` | `primary_domain` is bound to another site. `details.existing_site_id` identifies the conflict. |
-| 422 | `application.unsupported_runtime` | The runtime version isn't installed on the chosen server. `details.available_versions` lists what is. |
-| 503 | `agent.unreachable` | The chosen server's agent hasn't checked in within the heartbeat window; the request is rejected rather than queued, to avoid silent failures. |
+| Status | Code                              | Meaning                                                                                                                                        |
+|--------|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| 400    | `validation.required_field`       | A required field is missing. `details.field` names it.                                                                                         |
+| 400    | `validation.invalid_format`       | A field has the wrong format. `details.field` and `details.expected` describe what's wrong.                                                    |
+| 403    | `policy.forbidden`                | Caller lacks `sites.create` permission, or the chosen server is outside their scope.                                                           |
+| 404    | `server.not_found`                | `server_id` does not resolve.                                                                                                                  |
+| 409    | `domain.already_in_use`           | `primary_domain` is bound to another site. `details.existing_site_id` identifies the conflict.                                                 |
+| 422    | `application.unsupported_runtime` | The runtime version isn't installed on the chosen server. `details.available_versions` lists what is.                                          |
+| 503    | `agent.unreachable`               | The chosen server's agent hasn't checked in within the heartbeat window; the request is rejected rather than queued, to avoid silent failures. |
 
 Note the design choice: the response includes the **first deployment**, queued. Site creation kicks off an initial deploy automatically. The client subscribes to `deployment.log_stream` for live progress and renders the result when `deploy.succeeded` arrives.
 
@@ -570,24 +570,24 @@ The `event_id` is monotonic per session and used for client-side deduplication o
 
 The complete v1 event type set:
 
-| Type | Channel | Payload |
-|------|---------|---------|
-| `welcome` | (initial frame) | operator info, server time |
-| `subscribed` / `unsubscribed` | (client-server response) | channel list |
-| `deploy.queued` | `site:<id>:events` | deployment_id, trigger |
-| `deploy.started` | `site:<id>:events`, `deployment:<id>` | deployment_id |
-| `deploy.stage` | `deployment:<id>` | stage name (`fetching`, `building`, ...) |
-| `deploy.log` | `deployment:<id>` | log line |
-| `deploy.succeeded` | `site:<id>:events`, `deployment:<id>` | release_id, duration_ms |
-| `deploy.failed` | `site:<id>:events`, `deployment:<id>` | error code + message |
-| `site.health.changed` | `site:<id>:events` | new status |
-| `site.tls.renewed` | `site:<id>:events` | not_after timestamp |
-| `server.metrics` | `server:<id>:metrics` | cpu, mem, disk samples |
-| `server.status.changed` | `server:<id>:events` | new status |
-| `log.line` | `site:<id>:logs`, `server:<id>:logs` | level, line, source, ts |
-| `alert.fired` | `alerts` | alert_id, severity, summary |
-| `alert.resolved` | `alerts` | alert_id |
-| `migration.progress` | `migration:<id>` | stage, progress percent |
+| Type                          | Channel                               | Payload                                  |
+|-------------------------------|---------------------------------------|------------------------------------------|
+| `welcome`                     | (initial frame)                       | operator info, server time               |
+| `subscribed` / `unsubscribed` | (client-server response)              | channel list                             |
+| `deploy.queued`               | `site:<id>:events`                    | deployment_id, trigger                   |
+| `deploy.started`              | `site:<id>:events`, `deployment:<id>` | deployment_id                            |
+| `deploy.stage`                | `deployment:<id>`                     | stage name (`fetching`, `building`, ...) |
+| `deploy.log`                  | `deployment:<id>`                     | log line                                 |
+| `deploy.succeeded`            | `site:<id>:events`, `deployment:<id>` | release_id, duration_ms                  |
+| `deploy.failed`               | `site:<id>:events`, `deployment:<id>` | error code + message                     |
+| `site.health.changed`         | `site:<id>:events`                    | new status                               |
+| `site.tls.renewed`            | `site:<id>:events`                    | not_after timestamp                      |
+| `server.metrics`              | `server:<id>:metrics`                 | cpu, mem, disk samples                   |
+| `server.status.changed`       | `server:<id>:events`                  | new status                               |
+| `log.line`                    | `site:<id>:logs`, `server:<id>:logs`  | level, line, source, ts                  |
+| `alert.fired`                 | `alerts`                              | alert_id, severity, summary              |
+| `alert.resolved`              | `alerts`                              | alert_id                                 |
+| `migration.progress`          | `migration:<id>`                      | stage, progress percent                  |
 
 New event types may be added freely (additive change). Clients tolerate unknown types by ignoring them.
 
@@ -643,9 +643,9 @@ A few explicit principles that shape every endpoint in this spec:
 
 ## 8. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial complete API specification. REST surface mapped end-to-end with representative endpoint specs, gRPC service map for control-plane↔agent, WebSocket event catalog, MCP and Plugin APIs cross-referenced. OpenAPI 3.1 spec-first discipline. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                            |
+|---------|----------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial complete API specification. REST surface mapped end-to-end with representative endpoint specs, gRPC service map for control-plane↔agent, WebSocket event catalog, MCP and Plugin APIs cross-referenced. OpenAPI 3.1 spec-first discipline. |
 
 **Companion Documents:**
 

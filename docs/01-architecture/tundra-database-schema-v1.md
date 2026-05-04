@@ -38,22 +38,22 @@ JSON is stored as `jsonb`. Long-form text uses `text` (PostgreSQL has no varchar
 
 The schema is organized into 14 logical modules. Each is presented as its own subsection in §3 with the canonical DDL for the major tables and architectural notes on the rest.
 
-| Module | Tables | Purpose |
-|--------|--------|---------|
-| Identity & Access | 9 | Operators, sessions, passkeys, RBAC, audit |
-| Servers | 6 | Server records, agents, services, packages, firewall rules |
-| Sites | 8 | Sites, applications, deployments, env vars, scheduled tasks |
-| Domains | 5 | Domains, DNS zones, DNS records, registrations, NS history |
-| Databases | 4 | Database servers, databases, db-users, grants |
-| Mail | 7 | Mail domains, mailboxes, aliases, queue, DKIM keys |
-| Backups | 6 | Targets, repositories, jobs, snapshots, restores, locks |
-| Plugins | 8 | Plugins, manifests, capabilities, settings, jobs, events |
-| Migrations | 4 | Migration jobs, source connections, site states, mail bridges |
-| Certificates | 3 | Certificates, ACME accounts, challenges |
-| Real-time | 3 | Event subscriptions, websocket sessions, alert rules |
-| Metrics | 3 | Metrics samples, alerts, alert deliveries |
-| Internal | 4 | Job queue, locks, settings, schema migrations |
-| Federation | 3 | API tokens, MCP sessions, MCP audit |
+| Module            | Tables | Purpose                                                       |
+|-------------------|--------|---------------------------------------------------------------|
+| Identity & Access | 9      | Operators, sessions, passkeys, RBAC, audit                    |
+| Servers           | 6      | Server records, agents, services, packages, firewall rules    |
+| Sites             | 8      | Sites, applications, deployments, env vars, scheduled tasks   |
+| Domains           | 5      | Domains, DNS zones, DNS records, registrations, NS history    |
+| Databases         | 4      | Database servers, databases, db-users, grants                 |
+| Mail              | 7      | Mail domains, mailboxes, aliases, queue, DKIM keys            |
+| Backups           | 6      | Targets, repositories, jobs, snapshots, restores, locks       |
+| Plugins           | 8      | Plugins, manifests, capabilities, settings, jobs, events      |
+| Migrations        | 4      | Migration jobs, source connections, site states, mail bridges |
+| Certificates      | 3      | Certificates, ACME accounts, challenges                       |
+| Real-time         | 3      | Event subscriptions, websocket sessions, alert rules          |
+| Metrics           | 3      | Metrics samples, alerts, alert deliveries                     |
+| Internal          | 4      | Job queue, locks, settings, schema migrations                 |
+| Federation        | 3      | API tokens, MCP sessions, MCP audit                           |
 
 Total: **73 tables** in v1.0.
 
@@ -98,16 +98,16 @@ CREATE EXTENSION IF NOT EXISTS "citext";             -- case-insensitive text (e
 
 Tunables enforced at install time (see `tundrad-installer` in the Implementation Plan §17):
 
-| Setting | Value | Rationale |
-|---------|-------|-----------|
-| `shared_buffers` | 25% of RAM | Standard PG guidance |
-| `effective_cache_size` | 70% of RAM | OS page cache + shared_buffers |
-| `work_mem` | 16 MB | Conservative; bumped per-query for reports |
-| `maintenance_work_mem` | 256 MB | For VACUUM, index builds |
-| `max_connections` | 200 | The agent fleet pool sizes against this |
-| `wal_compression` | `on` | Free CPU, less WAL volume |
-| `random_page_cost` | 1.1 | Assumes SSD; safe default for Tundra deployments |
-| `synchronous_commit` | `on` | Tundra's small writes are not bottleneck-y |
+| Setting                | Value      | Rationale                                        |
+|------------------------|------------|--------------------------------------------------|
+| `shared_buffers`       | 25% of RAM | Standard PG guidance                             |
+| `effective_cache_size` | 70% of RAM | OS page cache + shared_buffers                   |
+| `work_mem`             | 16 MB      | Conservative; bumped per-query for reports       |
+| `maintenance_work_mem` | 256 MB     | For VACUUM, index builds                         |
+| `max_connections`      | 200        | The agent fleet pool sizes against this          |
+| `wal_compression`      | `on`       | Free CPU, less WAL volume                        |
+| `random_page_cost`     | 1.1        | Assumes SSD; safe default for Tundra deployments |
+| `synchronous_commit`   | `on`       | Tundra's small writes are not bottleneck-y       |
 
 ### 2.2 Valkey Configuration
 
@@ -866,13 +866,13 @@ This keeps the index size and vacuum cost predictable even with millions of samp
 
 The schema declares its hot-path indexes inline. Beyond those, the following secondary indexes are added in a dedicated migration with explicit rationale:
 
-| Index | Why |
-|-------|-----|
-| `idx_sites_search` — GIN trigram on `(primary_domain || ' ' || name)` | The global command palette and site search bar; sub-50ms partial match for 10k+ sites |
-| `idx_deployments_site_succeeded_recent` — partial index on `(site_id, created_at DESC) WHERE status = 'succeeded'` | "When was the last successful deploy?" called on every site detail page |
-| `idx_audit_log_actor_recent` — partial on `(actor_id, occurred_at DESC) WHERE actor_type = 'operator'` | The "your recent activity" view in the operator menu |
-| `idx_jobs_pending` — partial on `(kind, next_run_at) WHERE status = 'pending'` | The job dispatcher's hot path |
-| `idx_metrics_scope_metric_recent` — covering on `(scope_type, scope_id, metric)` INCLUDE `(value, occurred_at)` for last 24h partition | Dashboard sparklines |
+| Index                                                                                                                                  | Why                                                                     |
+|----------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| `idx_sites_search` — GIN trigram on `(primary_domain                                                                                   |                                                                         | ' ' || name)` | The global command palette and site search bar; sub-50ms partial match for 10k+ sites |
+| `idx_deployments_site_succeeded_recent` — partial index on `(site_id, created_at DESC) WHERE status = 'succeeded'`                     | "When was the last successful deploy?" called on every site detail page |
+| `idx_audit_log_actor_recent` — partial on `(actor_id, occurred_at DESC) WHERE actor_type = 'operator'`                                 | The "your recent activity" view in the operator menu                    |
+| `idx_jobs_pending` — partial on `(kind, next_run_at) WHERE status = 'pending'`                                                         | The job dispatcher's hot path                                           |
+| `idx_metrics_scope_metric_recent` — covering on `(scope_type, scope_id, metric)` INCLUDE `(value, occurred_at)` for last 24h partition | Dashboard sparklines                                                    |
 
 We do **not** add indexes speculatively. Every index is justified by a measured query plan from the test fleet, captured in the migration commit message.
 
@@ -884,15 +884,15 @@ The schema relies heavily on database-level constraints rather than application-
 
 **Foreign keys are mandatory.** Every referential relationship has a foreign key with declared `ON DELETE` and `ON UPDATE` behavior. The matrix:
 
-| When you delete | Cascades to | Restricts on |
-|-----------------|-------------|--------------|
-| `operator` | `sessions`, `passkeys`, `operator_roles`, `mcp_sessions` | `audit_log` (NULL'd via SET NULL); `plugins.installed_by` (SET NULL); `deployments.triggered_by_id` (SET NULL) |
-| `server` | `services`, `agent_credentials`, `packages`, `firewall_rules`, `database_servers` | `sites` (RESTRICT — must be moved or deleted first) |
-| `site` | `applications` (which cascades to `deployments`, etc.), `certificates`, `site_aliases`, `site_health_checks` | — |
-| `application` | `deployments`, `env_vars`, `scheduled_tasks`, `releases` | `databases` (SET NULL — preserves the DB even if the app is removed) |
-| `domain` | `dns_records`, `dns_zones`, `domain_registrations`, `ns_history` | `sites.primary_domain` (no FK; managed at the application level for flexibility) |
-| `plugin` | `plugin_capabilities`, `plugin_settings`, `plugin_jobs`, `plugin_events`, `plugin_kv` | `audit_log` rows referencing the plugin (logical only — no FK from audit_log) |
-| `database_server` | `databases`, `db_users` | — |
+| When you delete   | Cascades to                                                                                                  | Restricts on                                                                                                   |
+|-------------------|--------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `operator`        | `sessions`, `passkeys`, `operator_roles`, `mcp_sessions`                                                     | `audit_log` (NULL'd via SET NULL); `plugins.installed_by` (SET NULL); `deployments.triggered_by_id` (SET NULL) |
+| `server`          | `services`, `agent_credentials`, `packages`, `firewall_rules`, `database_servers`                            | `sites` (RESTRICT — must be moved or deleted first)                                                            |
+| `site`            | `applications` (which cascades to `deployments`, etc.), `certificates`, `site_aliases`, `site_health_checks` | —                                                                                                              |
+| `application`     | `deployments`, `env_vars`, `scheduled_tasks`, `releases`                                                     | `databases` (SET NULL — preserves the DB even if the app is removed)                                           |
+| `domain`          | `dns_records`, `dns_zones`, `domain_registrations`, `ns_history`                                             | `sites.primary_domain` (no FK; managed at the application level for flexibility)                               |
+| `plugin`          | `plugin_capabilities`, `plugin_settings`, `plugin_jobs`, `plugin_events`, `plugin_kv`                        | `audit_log` rows referencing the plugin (logical only — no FK from audit_log)                                  |
+| `database_server` | `databases`, `db_users`                                                                                      | —                                                                                                              |
 
 **CHECK constraints** enforce enumerated value domains. The application's enum types match these constraints exactly; updating an enum requires updating the constraint and writing a corresponding migration.
 
@@ -985,9 +985,9 @@ Rotation of the master key is supported: `tundra master-key rotate` re-encrypts 
 
 ## 10. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial complete database & storage specification. PostgreSQL 18 with `uuidv7()`, partitioned `metrics_samples`, encrypted-column discipline, full RBAC + audit, file/blob layout, self-backup. 73 tables across 14 modules. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                      |
+|---------|----------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial complete database & storage specification. PostgreSQL 18 with `uuidv7()`, partitioned `metrics_samples`, encrypted-column discipline, full RBAC + audit, file/blob layout, self-backup. 73 tables across 14 modules. |
 
 **Companion Documents:**
 

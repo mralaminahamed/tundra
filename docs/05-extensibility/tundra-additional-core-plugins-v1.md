@@ -41,11 +41,11 @@ The MCP server plugin is the third leg of that "make things handy" stool: AI age
 
 All three are core (native) plugins, not third-party WASM. The reasoning differs per plugin:
 
-| Plugin | Why core (not third-party WASM) |
-|--------|--------------------------------|
-| Namecheap | Holds a registrar API token that controls billing, transfers, and ownership of domains worth real money. Compromise of this token is a high-severity event. The shorter chain of custody (first-party code, signed releases, native execution) materially reduces risk. |
-| GitHub | Holds a GitHub App private key with installation access to potentially hundreds of repositories. Same trust calculus as Namecheap — the blast radius from key compromise warrants the highest trust tier. |
-| MCP Server | Has read access to most of the panel database to answer AI queries. Has callable references to nearly every Tundra mutation API. The plugin literally **is** an authorization boundary — and security-critical authorization boundaries belong in core. |
+| Plugin     | Why core (not third-party WASM)                                                                                                                                                                                                                                         |
+|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Namecheap  | Holds a registrar API token that controls billing, transfers, and ownership of domains worth real money. Compromise of this token is a high-severity event. The shorter chain of custody (first-party code, signed releases, native execution) materially reduces risk. |
+| GitHub     | Holds a GitHub App private key with installation access to potentially hundreds of repositories. Same trust calculus as Namecheap — the blast radius from key compromise warrants the highest trust tier.                                                               |
+| MCP Server | Has read access to most of the panel database to answer AI queries. Has callable references to nearly every Tundra mutation API. The plugin literally **is** an authorization boundary — and security-critical authorization boundaries belong in core.                 |
 
 Each plugin's permissions are still scoped through the same capability system third-party plugins use. Being core means the plugin code itself is reviewed and signed by the Tundra project; it does not mean the plugin can ignore the permission system.
 
@@ -74,20 +74,20 @@ and auto-renewal across every domain in the account, without leaving the panel.
 
 ### 2.2 What It Does
 
-| Capability | Detail |
-|------------|--------|
-| Domain inventory | Lists every domain in the connected Namecheap account; auto-imports them as Tundra `Domain` records |
-| Nameserver management | Set, swap, validate nameservers per domain. Default action when a domain becomes Tundra-managed: point NS at Tundra's PowerDNS |
-| DNS records (Namecheap-hosted) | Read, create, update, delete A/AAAA/CNAME/MX/TXT/SRV/CAA/ALIAS records via the Namecheap Domains API |
-| Glue records | Create, update, delete glue records (host registration) for vanity nameservers |
-| Domain registration | Search availability, register new domains directly from Tundra; supports all TLDs Namecheap offers |
-| Domain transfer | Initiate and monitor inbound transfers; auth-code retrieval |
-| Auto-renewal | Toggle auto-renewal per domain; renewal alerts at T-30, T-7, T-1 days |
-| WHOIS privacy | Toggle WHOIS privacy per domain |
-| Contact information | View and update registrant/admin/tech/billing contacts |
-| Transfer lock | Toggle transfer (registrar) lock per domain |
-| Email forwarding (Namecheap MX) | List and manage Namecheap's free email-forwarding service |
-| URL forwarding | List and manage Namecheap's URL-redirect service |
+| Capability                      | Detail                                                                                                                         |
+|---------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| Domain inventory                | Lists every domain in the connected Namecheap account; auto-imports them as Tundra `Domain` records                            |
+| Nameserver management           | Set, swap, validate nameservers per domain. Default action when a domain becomes Tundra-managed: point NS at Tundra's PowerDNS |
+| DNS records (Namecheap-hosted)  | Read, create, update, delete A/AAAA/CNAME/MX/TXT/SRV/CAA/ALIAS records via the Namecheap Domains API                           |
+| Glue records                    | Create, update, delete glue records (host registration) for vanity nameservers                                                 |
+| Domain registration             | Search availability, register new domains directly from Tundra; supports all TLDs Namecheap offers                             |
+| Domain transfer                 | Initiate and monitor inbound transfers; auth-code retrieval                                                                    |
+| Auto-renewal                    | Toggle auto-renewal per domain; renewal alerts at T-30, T-7, T-1 days                                                          |
+| WHOIS privacy                   | Toggle WHOIS privacy per domain                                                                                                |
+| Contact information             | View and update registrant/admin/tech/billing contacts                                                                         |
+| Transfer lock                   | Toggle transfer (registrar) lock per domain                                                                                    |
+| Email forwarding (Namecheap MX) | List and manage Namecheap's free email-forwarding service                                                                      |
+| URL forwarding                  | List and manage Namecheap's URL-redirect service                                                                               |
 
 ### 2.3 The Killer Workflow
 
@@ -319,17 +319,17 @@ Both flows produce the same end state from the plugin's perspective: an installe
 
 ### 3.3 What It Does
 
-| Capability | Detail |
-|------------|--------|
-| Repository browser | Lists every repo accessible to every installation; searchable by name/org/visibility |
-| One-click deploy | Pick a repo + branch from the dropdown; Tundra creates the Site, sets up the deploy webhook, configures the App-token-based clone, runs the first deploy |
-| Auto-deploy on push | Webhook delivery (push, pull_request merged) triggers deployment for the configured branch; per-Site configurable |
-| Branch deployment | Deploy preview environments per pull request (optional, opt-in per Site) |
-| Commit status reporting | Tundra reports deployment status back to GitHub: `pending` on enqueue, `success`/`failure` on completion. Visible in PR checks. |
-| Action artifacts | Optionally pull build artifacts from the latest GitHub Actions workflow run instead of building on the Tundra server (Vercel-style "build elsewhere, deploy here") |
-| Repository metadata | Pull description, topics, default branch, language, stars — surfaced in the Tundra Site's "About" tab |
-| Issue/PR linking | When a deploy succeeds for a PR, Tundra comments on the PR with the preview URL |
-| GitHub Actions secrets sync (optional) | Push a Tundra environment variable to the matching GitHub Actions secret with one click — useful for CI/CD that needs the same credential the deployed app uses |
+| Capability                             | Detail                                                                                                                                                             |
+|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Repository browser                     | Lists every repo accessible to every installation; searchable by name/org/visibility                                                                               |
+| One-click deploy                       | Pick a repo + branch from the dropdown; Tundra creates the Site, sets up the deploy webhook, configures the App-token-based clone, runs the first deploy           |
+| Auto-deploy on push                    | Webhook delivery (push, pull_request merged) triggers deployment for the configured branch; per-Site configurable                                                  |
+| Branch deployment                      | Deploy preview environments per pull request (optional, opt-in per Site)                                                                                           |
+| Commit status reporting                | Tundra reports deployment status back to GitHub: `pending` on enqueue, `success`/`failure` on completion. Visible in PR checks.                                    |
+| Action artifacts                       | Optionally pull build artifacts from the latest GitHub Actions workflow run instead of building on the Tundra server (Vercel-style "build elsewhere, deploy here") |
+| Repository metadata                    | Pull description, topics, default branch, language, stars — surfaced in the Tundra Site's "About" tab                                                              |
+| Issue/PR linking                       | When a deploy succeeds for a PR, Tundra comments on the PR with the preview URL                                                                                    |
+| GitHub Actions secrets sync (optional) | Push a Tundra environment variable to the matching GitHub Actions secret with one click — useful for CI/CD that needs the same credential the deployed app uses    |
 
 ### 3.4 The Killer Workflow
 
@@ -589,11 +589,11 @@ can see and do.
 
 The plugin runs an MCP server that speaks the Model Context Protocol over two transports simultaneously, exposing Tundra's capabilities as MCP **tools**, **resources**, and **prompts**:
 
-| MCP Primitive | Surface |
-|---------------|---------|
-| **Tools** | Callable actions that can read or modify Tundra state (deploy a site, restart a service, run a database backup, fetch logs) |
+| MCP Primitive | Surface                                                                                                                                                   |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Tools**     | Callable actions that can read or modify Tundra state (deploy a site, restart a service, run a database backup, fetch logs)                               |
 | **Resources** | Read-only context the agent can attach to the conversation (a site's recent error logs, a server's system metrics, the panel audit log for the last hour) |
-| **Prompts** | Pre-baked operator-friendly prompts ("Diagnose why deploy X failed", "Suggest a security review of site Y") |
+| **Prompts**   | Pre-baked operator-friendly prompts ("Diagnose why deploy X failed", "Suggest a security review of site Y")                                               |
 
 ### 4.3 Transport Support
 
@@ -635,12 +635,12 @@ Authentication uses Tundra API tokens passed as `Authorization: Bearer <token>`.
 
 API tokens for MCP have a dedicated scope set, distinct from the general `tundra` API token scopes:
 
-| Scope | Grants |
-|-------|--------|
-| `mcp:read` | Read-only: list sites, read logs, view metrics, browse audit log |
+| Scope            | Grants                                                                                                                                             |
+|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mcp:read`       | Read-only: list sites, read logs, view metrics, browse audit log                                                                                   |
 | `mcp:write:safe` | Read + safe writes: restart a service, clear a cache, retry a failed job. **No site/server/database creation, no deletion, no credential changes** |
-| `mcp:write` | Read + safe writes + full mutation: create sites, deploy code, modify environment variables, trigger backups |
-| `mcp:admin` | All of the above plus operator-level mutations: invite operators, change permissions, modify the master configuration |
+| `mcp:write`      | Read + safe writes + full mutation: create sites, deploy code, modify environment variables, trigger backups                                       |
+| `mcp:admin`      | All of the above plus operator-level mutations: invite operators, change permissions, modify the master configuration                              |
 
 Tokens are minted by the operator with explicit scope. The `tundra mcp token create` command:
 
@@ -678,51 +678,51 @@ A representative selection of the tools exposed:
 
 #### Read tools (always available with `mcp:read`+)
 
-| Tool | Description |
-|------|-------------|
-| `list_servers` | Returns all Tundra-managed servers with status |
-| `list_sites` | Returns all Sites; filterable by server, application type, or status |
-| `get_site` | Full Site detail: domain, application, recent deployments, env vars (keys only, not values) |
-| `tail_logs` | Stream last N lines of a Site's nginx/application logs (resource, not tool, in MCP terms) |
-| `get_metrics` | Per-server or per-site metrics for a time window |
-| `list_databases` | All Tundra-managed databases with connection details (host, port, name; not credentials) |
-| `list_certificates` | All certificates with expiry timestamps |
-| `get_audit_log` | Recent entries from the Tundra audit log |
-| `get_deployment_status` | Status of a specific deployment, with build log |
-| `search` | Full-text search across sites, domains, deployments |
+| Tool                    | Description                                                                                 |
+|-------------------------|---------------------------------------------------------------------------------------------|
+| `list_servers`          | Returns all Tundra-managed servers with status                                              |
+| `list_sites`            | Returns all Sites; filterable by server, application type, or status                        |
+| `get_site`              | Full Site detail: domain, application, recent deployments, env vars (keys only, not values) |
+| `tail_logs`             | Stream last N lines of a Site's nginx/application logs (resource, not tool, in MCP terms)   |
+| `get_metrics`           | Per-server or per-site metrics for a time window                                            |
+| `list_databases`        | All Tundra-managed databases with connection details (host, port, name; not credentials)    |
+| `list_certificates`     | All certificates with expiry timestamps                                                     |
+| `get_audit_log`         | Recent entries from the Tundra audit log                                                    |
+| `get_deployment_status` | Status of a specific deployment, with build log                                             |
+| `search`                | Full-text search across sites, domains, deployments                                         |
 
 #### Safe-write tools (require `mcp:write:safe`+)
 
-| Tool | Description |
-|------|-------------|
-| `restart_service` | Restart a managed service (PHP-FPM pool, daemon, etc.) |
-| `clear_cache` | Clear application cache (per-Site) |
-| `retry_failed_job` | Retry a failed background job |
-| `renew_certificate` | Trigger ACME renewal for a certificate |
-| `run_health_check` | Trigger an immediate health check on a Site |
+| Tool                | Description                                            |
+|---------------------|--------------------------------------------------------|
+| `restart_service`   | Restart a managed service (PHP-FPM pool, daemon, etc.) |
+| `clear_cache`       | Clear application cache (per-Site)                     |
+| `retry_failed_job`  | Retry a failed background job                          |
+| `renew_certificate` | Trigger ACME renewal for a certificate                 |
+| `run_health_check`  | Trigger an immediate health check on a Site            |
 
 #### Full-write tools (require `mcp:write`+)
 
-| Tool | Description |
-|------|-------------|
-| `create_site` | Create a new Site (domain, application type, runtime, repo) |
-| `deploy_site` | Trigger a deployment for a Site |
-| `set_environment_variable` | Add/update an environment variable for a Site |
-| `delete_environment_variable` | Remove an environment variable |
-| `create_database` | Create a database |
-| `run_backup` | Run a backup job |
-| `restore_backup` | Restore from a backup snapshot |
-| `update_dns_record` | Modify a DNS record |
+| Tool                          | Description                                                 |
+|-------------------------------|-------------------------------------------------------------|
+| `create_site`                 | Create a new Site (domain, application type, runtime, repo) |
+| `deploy_site`                 | Trigger a deployment for a Site                             |
+| `set_environment_variable`    | Add/update an environment variable for a Site               |
+| `delete_environment_variable` | Remove an environment variable                              |
+| `create_database`             | Create a database                                           |
+| `run_backup`                  | Run a backup job                                            |
+| `restore_backup`              | Restore from a backup snapshot                              |
+| `update_dns_record`           | Modify a DNS record                                         |
 
 #### Admin tools (require `mcp:admin`)
 
-| Tool | Description |
-|------|-------------|
-| `delete_site` | Delete a Site (destructive) |
-| `delete_database` | Delete a database (destructive) |
-| `invite_operator` | Send an operator invitation |
-| `update_operator_role` | Change an operator's role |
-| `revoke_session` | Forcibly end an operator session |
+| Tool                   | Description                      |
+|------------------------|----------------------------------|
+| `delete_site`          | Delete a Site (destructive)      |
+| `delete_database`      | Delete a database (destructive)  |
+| `invite_operator`      | Send an operator invitation      |
+| `update_operator_role` | Change an operator's role        |
+| `revoke_session`       | Forcibly end an operator session |
 
 Every tool's input schema is JSON Schema generated automatically from the corresponding Tundra API DTOs. The MCP `tools/list` response describes inputs precisely so the AI agent constructs valid calls without trial-and-error.
 
@@ -730,14 +730,14 @@ Every tool's input schema is JSON Schema generated automatically from the corres
 
 Resources (read-only context attachable by the host application):
 
-| Resource URI | Content |
-|--------------|---------|
-| `tundra://sites/{site_id}/logs/recent` | Last 1000 lines of combined application logs |
-| `tundra://sites/{site_id}/deployments/{deployment_id}/log` | Build/deploy log for a specific deployment |
-| `tundra://servers/{server_id}/metrics/last-hour` | CSV of per-minute metrics |
-| `tundra://audit-log/recent` | Last 200 audit log entries |
-| `tundra://sites/{site_id}/config` | Generated Nginx config + systemd unit (read-only view) |
-| `tundra://databases/{database_id}/schema` | Tables, columns, indexes — no data |
+| Resource URI                                               | Content                                                |
+|------------------------------------------------------------|--------------------------------------------------------|
+| `tundra://sites/{site_id}/logs/recent`                     | Last 1000 lines of combined application logs           |
+| `tundra://sites/{site_id}/deployments/{deployment_id}/log` | Build/deploy log for a specific deployment             |
+| `tundra://servers/{server_id}/metrics/last-hour`           | CSV of per-minute metrics                              |
+| `tundra://audit-log/recent`                                | Last 200 audit log entries                             |
+| `tundra://sites/{site_id}/config`                          | Generated Nginx config + systemd unit (read-only view) |
+| `tundra://databases/{database_id}/schema`                  | Tables, columns, indexes — no data                     |
 
 ### 4.8 Prompts Catalog
 
@@ -1017,17 +1017,17 @@ This pattern is the most powerful — and the most dangerous. The configurable p
 
 Section 12.1 of `tundra-plugin-architecture-plan-v1.md` listed the v1.0 plugin shipping list. With the additions in this document, the corrected list is:
 
-| Plugin | Tier | Kind | Source |
-|--------|------|------|--------|
-| Plesk Obsidian Migration | Core | Native | First-party |
-| **Namecheap** | **Core** | **Native** | **First-party** |
-| **GitHub** | **Core** | **Native** | **First-party** |
-| **MCP Server** | **Core** | **Native** | **First-party** |
-| Cloudflare DNS Provider | Bundled | Native | First-party |
-| Mailgun smarthost relay | Bundled | Native | First-party |
-| S3-compatible backup target | Bundled | Native | First-party |
-| Slack alerting channel | Bundled | Native | First-party |
-| Discord alerting channel | Bundled | Native | First-party |
+| Plugin                      | Tier     | Kind       | Source          |
+|-----------------------------|----------|------------|-----------------|
+| Plesk Obsidian Migration    | Core     | Native     | First-party     |
+| **Namecheap**               | **Core** | **Native** | **First-party** |
+| **GitHub**                  | **Core** | **Native** | **First-party** |
+| **MCP Server**              | **Core** | **Native** | **First-party** |
+| Cloudflare DNS Provider     | Bundled  | Native     | First-party     |
+| Mailgun smarthost relay     | Bundled  | Native     | First-party     |
+| S3-compatible backup target | Bundled  | Native     | First-party     |
+| Slack alerting channel      | Bundled  | Native     | First-party     |
+| Discord alerting channel    | Bundled  | Native     | First-party     |
 
 Four core plugins is the right number for v1.0. Each addresses an explicit operator pain point that defines Tundra's "easy and handy" promise.
 
@@ -1037,10 +1037,10 @@ Four core plugins is the right number for v1.0. Each addresses an explicit opera
 
 The v1.0 timeline in `tundra-technical-implementation-plan-v2.md` §11 listed 9 phases over ~44 weeks. The three new core plugins fit into the existing structure:
 
-| Phase | Existing Scope | Added Scope From This Document |
-|-------|---------------|------------------------------|
-| Phase 6 — Templates & Polish (Weeks 34–37) | Templates, Docker, scheduled tasks, daemons, monitoring | **+ Namecheap plugin (week 34–35), GitHub plugin (week 35–36), MCP server (week 36–37)** |
-| Phase 7 — Hardening & Beta (Weeks 38–41) | Security audit, docs | **+ MCP penetration test, GitHub App security review, Namecheap spending-guard verification** |
+| Phase                                      | Existing Scope                                          | Added Scope From This Document                                                                |
+|--------------------------------------------|---------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| Phase 6 — Templates & Polish (Weeks 34–37) | Templates, Docker, scheduled tasks, daemons, monitoring | **+ Namecheap plugin (week 34–35), GitHub plugin (week 35–36), MCP server (week 36–37)**      |
+| Phase 7 — Hardening & Beta (Weeks 38–41)   | Security audit, docs                                    | **+ MCP penetration test, GitHub App security review, Namecheap spending-guard verification** |
 
 Net schedule impact: zero. The new plugins absorb the existing slack in Phase 6 and add specific items to Phase 7 that were already broadly scoped.
 
@@ -1050,24 +1050,24 @@ Net schedule impact: zero. The new plugins absorb the existing slack in Phase 6 
 
 Per the targets in `tundra-plugin-architecture-plan-v1.md` §13 (already accommodating these plugin counts):
 
-| Metric | Target |
-|--------|--------|
-| MCP `tools/list` response | < 50 ms |
-| MCP read tool latency (e.g., `list_sites`) | < 100 ms |
+| Metric                                           | Target                                           |
+|--------------------------------------------------|--------------------------------------------------|
+| MCP `tools/list` response                        | < 50 ms                                          |
+| MCP read tool latency (e.g., `list_sites`)       | < 100 ms                                         |
 | MCP write tool latency (e.g., `restart_service`) | < 500 ms (excluding service restart time itself) |
-| MCP concurrent sessions | 50 per `tundrad` (matches existing target) |
-| GitHub webhook → deploy-enqueue latency | < 200 ms |
-| Namecheap inventory of 100 domains | < 30 s |
-| Namecheap full sync (100 domains) | < 90 s |
-| GitHub repo browse (search across 1000 repos) | < 800 ms |
+| MCP concurrent sessions                          | 50 per `tundrad` (matches existing target)       |
+| GitHub webhook → deploy-enqueue latency          | < 200 ms                                         |
+| Namecheap inventory of 100 domains               | < 30 s                                           |
+| Namecheap full sync (100 domains)                | < 90 s                                           |
+| GitHub repo browse (search across 1000 repos)    | < 800 ms                                         |
 
 ---
 
 ## 9. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial specification of Namecheap, GitHub, and MCP Server core plugins. Defines `registrar`, `vcs-provider`, and `site-create-source` as new plugin extension points. Updates the v1.0 plugin shipping list in `tundra-plugin-architecture-plan-v1.md` §12.1. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                                        |
+|---------|----------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial specification of Namecheap, GitHub, and MCP Server core plugins. Defines `registrar`, `vcs-provider`, and `site-create-source` as new plugin extension points. Updates the v1.0 plugin shipping list in `tundra-plugin-architecture-plan-v1.md` §12.1. |
 
 **Companion Documents:**
 

@@ -26,15 +26,15 @@ If you need the deeper "what does each command actually do" view — service uni
 
 ### 1.1 What You Need
 
-| Resource | Recommendation |
-|----------|---------------|
-| Operating system | Ubuntu 24.04 LTS or Debian 12 (other modern Linux works; these are tested) |
-| CPU | 2 cores minimum, 4+ for a busy control plane |
-| RAM | 4 GiB minimum, 8 GiB recommended |
-| Disk | 40 GiB minimum on the control plane (more for backups) |
-| Network | A public IPv4 address (IPv6 optional but recommended); ports 80, 443 reachable for ACME |
-| DNS | A subdomain pointing at the control plane host — `panel.example.com` is conventional |
-| Email | One real email address for the owner account and ACME notifications |
+| Resource         | Recommendation                                                                          |
+|------------------|-----------------------------------------------------------------------------------------|
+| Operating system | Ubuntu 24.04 LTS or Debian 12 (other modern Linux works; these are tested)              |
+| CPU              | 2 cores minimum, 4+ for a busy control plane                                            |
+| RAM              | 4 GiB minimum, 8 GiB recommended                                                        |
+| Disk             | 40 GiB minimum on the control plane (more for backups)                                  |
+| Network          | A public IPv4 address (IPv6 optional but recommended); ports 80, 443 reachable for ACME |
+| DNS              | A subdomain pointing at the control plane host — `panel.example.com` is conventional    |
+| Email            | One real email address for the owner account and ACME notifications                     |
 
 You do not need: a managed PostgreSQL service (Tundra installs Postgres locally), a load balancer, Docker, or root SSH on the servers Tundra will manage (a sudoer account is enough).
 
@@ -172,12 +172,12 @@ Tundra supports multiple operators with role-based access.
 
 In the panel: **Settings → Operators → Invite**. Enter the new operator's email and choose their role:
 
-| Role | Can do |
-|------|--------|
-| **Owner** | Everything. Only one owner exists; ownership transfers via Settings. |
-| **Admin** | Everything except changing the owner or deleting Tundra itself. |
-| **Operator** | Day-to-day work: deploy, manage sites, review backups. Cannot create servers, manage operators, or change billing. |
-| **Read-only** | View everything, change nothing. Useful for stakeholders or investors. |
+| Role          | Can do                                                                                                             |
+|---------------|--------------------------------------------------------------------------------------------------------------------|
+| **Owner**     | Everything. Only one owner exists; ownership transfers via Settings.                                               |
+| **Admin**     | Everything except changing the owner or deleting Tundra itself.                                                    |
+| **Operator**  | Day-to-day work: deploy, manage sites, review backups. Cannot create servers, manage operators, or change billing. |
+| **Read-only** | View everything, change nothing. Useful for stakeholders or investors.                                             |
 
 The invitee receives an email with a link valid for 7 days. They follow the link, set up their password (and optionally a passkey), and they're in.
 
@@ -345,9 +345,9 @@ If you're stuck:
 
 ## 11. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial operator-facing deployment runbook. Install via one-line script, first-time setup, adding servers, upgrades, operator management, self-backup configuration, restore procedure. Pointers to the Engineering Edition for deeper topics. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                        |
+|---------|----------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial operator-facing deployment runbook. Install via one-line script, first-time setup, adding servers, upgrades, operator management, self-backup configuration, restore procedure. Pointers to the Engineering Edition for deeper topics. |
 
 **Companion Documents:**
 

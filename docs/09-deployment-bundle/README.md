@@ -2,11 +2,11 @@
 
 Three Compose stacks plus the Dockerfiles they share.
 
-| Stack | Use when | Key features |
-|-------|----------|--------------|
-| **`dev/`** | You are working on the Tundra codebase itself. | Source-mounted `tundrad` with `cargo-watch` hot reload, Vite dev server with HMR, ephemeral state, deterministic dev-mode owner. |
+| Stack       | Use when                                                                                                     | Key features                                                                                                                                                                             |
+|-------------|--------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **`dev/`**  | You are working on the Tundra codebase itself.                                                               | Source-mounted `tundrad` with `cargo-watch` hot reload, Vite dev server with HMR, ephemeral state, deterministic dev-mode owner.                                                         |
 | **`prod/`** | You are running Tundra to manage your own infrastructure and prefer Compose over the systemd-native install. | Prebuilt images (built locally from the Dockerfiles), persistent named volumes, Docker secrets, healthchecks, restart policies, `read_only` rootfs where possible, edge Caddy with ACME. |
-| **`e2e/`** | You are running the Playwright end-to-end suite from `tundra-test-plan-v1.md` §5.4. | `TUNDRA_TEST_MODE=1`, `POST /test/reset` endpoint, tmpfs-only state, deterministic seed, fast (insecure) Argon2, optional second agent under `--profile multi-server`. |
+| **`e2e/`**  | You are running the Playwright end-to-end suite from `tundra-test-plan-v1.md` §5.4.                          | `TUNDRA_TEST_MODE=1`, `POST /test/reset` endpoint, tmpfs-only state, deterministic seed, fast (insecure) Argon2, optional second agent under `--profile multi-server`.                   |
 
 ---
 

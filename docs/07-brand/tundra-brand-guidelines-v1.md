@@ -41,14 +41,14 @@ The Tundra mark is a **stylized polaris** — a four-pointed star with an elonga
 
 ### 2.2 Construction
 
-| Property | Value |
-|----------|-------|
-| Vertical axis (north–south) | 432 units (full mark height in 240×240 viewBox) |
-| Horizontal axis (east–west) | 208 units |
-| Aspect ratio | 2.077 : 1 (≈ golden ratio + half) |
-| Inner-vertex pull | 36 units from the center axis |
-| Construction | Single closed path, eight vertices (four tips, four inner vertices) |
-| Render | Solid fill only. No strokes, no gradients, no shadows |
+| Property                    | Value                                                               |
+|-----------------------------|---------------------------------------------------------------------|
+| Vertical axis (north–south) | 432 units (full mark height in 240×240 viewBox)                     |
+| Horizontal axis (east–west) | 208 units                                                           |
+| Aspect ratio                | 2.077 : 1 (≈ golden ratio + half)                                   |
+| Inner-vertex pull           | 36 units from the center axis                                       |
+| Construction                | Single closed path, eight vertices (four tips, four inner vertices) |
+| Render                      | Solid fill only. No strokes, no gradients, no shadows               |
 
 See the construction diagram (`docs/tundra-mark-construction.svg`) for the geometric reference.
 
@@ -56,14 +56,14 @@ See the construction diagram (`docs/tundra-mark-construction.svg`) for the geome
 
 Five variants ship in `logos/`. Choose the one that fits the context:
 
-| Variant | File | Use when |
-|---------|------|----------|
-| Mark | `tundra-mark.svg` | The mark alone, in any context above ~24px. Default symbol. |
-| Mark — compact | `tundra-mark-compact.svg` | The mark at 16–32px (favicons, dense UI, app icons). Slightly thicker arms to maintain visibility. |
-| Mark — horizon | `tundra-mark-horizon.svg` | Brand-storytelling contexts: install screens, hero panels, brand book covers. The mark sits above a tundra horizon line. |
-| Wordmark | `tundra-wordmark.svg` | Typography-only contexts where the mark would feel redundant: footer, fine print, embedded social headers. |
-| Lockup — horizontal | `tundra-lockup-horizontal.svg` | The default logo for most contexts. Mark + wordmark, side by side. |
-| Lockup — stacked | `tundra-lockup-stacked.svg` | Square or portrait contexts: app icons, social profile images, hero panels. |
+| Variant             | File                           | Use when                                                                                                                 |
+|---------------------|--------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| Mark                | `tundra-mark.svg`              | The mark alone, in any context above ~24px. Default symbol.                                                              |
+| Mark — compact      | `tundra-mark-compact.svg`      | The mark at 16–32px (favicons, dense UI, app icons). Slightly thicker arms to maintain visibility.                       |
+| Mark — horizon      | `tundra-mark-horizon.svg`      | Brand-storytelling contexts: install screens, hero panels, brand book covers. The mark sits above a tundra horizon line. |
+| Wordmark            | `tundra-wordmark.svg`          | Typography-only contexts where the mark would feel redundant: footer, fine print, embedded social headers.               |
+| Lockup — horizontal | `tundra-lockup-horizontal.svg` | The default logo for most contexts. Mark + wordmark, side by side.                                                       |
+| Lockup — stacked    | `tundra-lockup-stacked.svg`    | Square or portrait contexts: app icons, social profile images, hero panels.                                              |
 
 ### 2.4 Clear Space
 
@@ -73,11 +73,11 @@ This rule is non-negotiable. The most common brand violation is crowding the mar
 
 ### 2.5 Minimum Sizes
 
-| Form | Minimum size |
-|------|--------------|
-| Mark alone | 16px wide. Below this, use the favicon variant inside its rounded square container. |
-| Lockup horizontal | 96px wide. Below this, use the mark alone. |
-| Lockup stacked | 80px wide. Below this, use the mark alone. |
+| Form              | Minimum size                                                                        |
+|-------------------|-------------------------------------------------------------------------------------|
+| Mark alone        | 16px wide. Below this, use the favicon variant inside its rounded square container. |
+| Lockup horizontal | 96px wide. Below this, use the mark alone.                                          |
+| Lockup stacked    | 80px wide. Below this, use the mark alone.                                          |
 
 ### 2.6 Don'ts
 
@@ -96,15 +96,15 @@ See `docs/tundra-mark-construction.svg` for a visual reference of all six don'ts
 
 Acceptable mark color pairings:
 
-| Background | Mark color |
-|------------|-----------|
-| Tundra Paper (#F5F2E9) | Tundra Ink |
-| Tundra Bone (#FBF9F2) | Tundra Ink |
-| Tundra Frost (#E8E5DC) | Tundra Ink |
-| Tundra Ink (#1C1F1A) | Tundra Paper |
-| Tundra Stone (#3A3D38) | Tundra Paper |
+| Background              | Mark color   |
+|-------------------------|--------------|
+| Tundra Paper (#F5F2E9)  | Tundra Ink   |
+| Tundra Bone (#FBF9F2)   | Tundra Ink   |
+| Tundra Frost (#E8E5DC)  | Tundra Ink   |
+| Tundra Ink (#1C1F1A)    | Tundra Paper |
+| Tundra Stone (#3A3D38)  | Tundra Paper |
 | Lichen Accent (#7A8A5C) | Tundra Paper |
-| Rust Accent (#B5613A) | Tundra Paper |
+| Rust Accent (#B5613A)   | Tundra Paper |
 | Aurora Accent (#5B7A8C) | Tundra Paper |
 
 The mark is **never** rendered in an accent color on a structural background (no green star on white). The accent colors carry too much semantic weight in the system to be used decoratively.
@@ -123,25 +123,25 @@ The structural palette is the load-bearing backbone. The accent palette is what 
 
 ### 3.2 Structural
 
-| Token | Hex | Role |
-|-------|-----|------|
-| Tundra Ink | `#1C1F1A` | Primary dark text & dark surfaces. Warm near-black, very slight green tint. Not pure black. |
-| Tundra Stone | `#3A3D38` | Secondary text, mid-dark surfaces, code-block backgrounds. |
-| Tundra Slate | `#6B6F66` | Tertiary text, muted body copy, secondary metadata. |
-| Tundra Lichen | `#A8AC9F` | Dividers, line art, disabled states, faint UI. |
-| Tundra Frost | `#E8E5DC` | Subtle backgrounds, card surfaces on Paper, borders. |
-| Tundra Paper | `#F5F2E9` | Primary light background. Warm paper white, never pure white. |
-| Tundra Bone | `#FBF9F2` | Alternate lightest background. Slightly warmer than Paper. |
+| Token         | Hex       | Role                                                                                        |
+|---------------|-----------|---------------------------------------------------------------------------------------------|
+| Tundra Ink    | `#1C1F1A` | Primary dark text & dark surfaces. Warm near-black, very slight green tint. Not pure black. |
+| Tundra Stone  | `#3A3D38` | Secondary text, mid-dark surfaces, code-block backgrounds.                                  |
+| Tundra Slate  | `#6B6F66` | Tertiary text, muted body copy, secondary metadata.                                         |
+| Tundra Lichen | `#A8AC9F` | Dividers, line art, disabled states, faint UI.                                              |
+| Tundra Frost  | `#E8E5DC` | Subtle backgrounds, card surfaces on Paper, borders.                                        |
+| Tundra Paper  | `#F5F2E9` | Primary light background. Warm paper white, never pure white.                               |
+| Tundra Bone   | `#FBF9F2` | Alternate lightest background. Slightly warmer than Paper.                                  |
 
 ### 3.3 Accents
 
 Three accents, each with three depths (soft, default, deep):
 
-| Accent | Soft | Default | Deep | Role |
-|--------|------|---------|------|------|
+| Accent     | Soft      | Default   | Deep      | Role                                                                    |
+|------------|-----------|-----------|-----------|-------------------------------------------------------------------------|
 | **Lichen** | `#E8ECDD` | `#7A8A5C` | `#5A6943` | Primary accent. CTAs, success states, the "north-star" reference color. |
-| **Rust** | `#F2DDD0` | `#B5613A` | `#8A4626` | Emphasis & danger. Destructive actions, errors, important warnings. |
-| **Aurora** | `#DEE5EA` | `#5B7A8C` | `#3F5C6E` | Information. Links, info notices, hyperlinks in dense documentation. |
+| **Rust**   | `#F2DDD0` | `#B5613A` | `#8A4626` | Emphasis & danger. Destructive actions, errors, important warnings.     |
+| **Aurora** | `#DEE5EA` | `#5B7A8C` | `#3F5C6E` | Information. Links, info notices, hyperlinks in dense documentation.    |
 
 ### 3.4 Usage Discipline
 
@@ -157,14 +157,14 @@ Three rules govern color usage:
 
 Dark theme inverts the structural palette:
 
-| Token | Light | Dark |
-|-------|-------|------|
-| Background | Paper `#F5F2E9` | Ink `#1C1F1A` |
-| Subtle bg | Frost `#E8E5DC` | `#262924` |
-| Elevated bg | Bone `#FBF9F2` | `#2E312C` |
-| Foreground | Ink `#1C1F1A` | Paper `#F5F2E9` |
-| Muted fg | Stone `#3A3D38` | Lichen `#A8AC9F` |
-| Border | Frost `#E8E5DC` | `#2E312C` |
+| Token       | Light           | Dark             |
+|-------------|-----------------|------------------|
+| Background  | Paper `#F5F2E9` | Ink `#1C1F1A`    |
+| Subtle bg   | Frost `#E8E5DC` | `#262924`        |
+| Elevated bg | Bone `#FBF9F2`  | `#2E312C`        |
+| Foreground  | Ink `#1C1F1A`   | Paper `#F5F2E9`  |
+| Muted fg    | Stone `#3A3D38` | Lichen `#A8AC9F` |
+| Border      | Frost `#E8E5DC` | `#2E312C`        |
 
 Accents brighten slightly on dark to maintain contrast (Lichen `#7A8A5C` becomes `#94A472` in dark mode, etc.). The full mapping is in `tokens/tundra-tokens.css`.
 
@@ -172,14 +172,14 @@ Accents brighten slightly on dark to maintain contrast (Lichen `#7A8A5C` becomes
 
 All listed text-on-background combinations meet **WCAG 2.1 AA** for body text (4.5:1) and large text (3:1). Specifically verified pairings:
 
-| Text | Background | Contrast |
-|------|------------|----------|
-| Tundra Ink | Tundra Paper | 14.8 : 1 ✓ AAA |
-| Tundra Stone | Tundra Paper | 9.3 : 1 ✓ AAA |
-| Tundra Slate | Tundra Paper | 4.9 : 1 ✓ AA |
-| Tundra Paper | Tundra Ink | 14.8 : 1 ✓ AAA |
-| Lichen Deep | Tundra Paper | 6.1 : 1 ✓ AA |
-| Rust Deep | Tundra Paper | 7.2 : 1 ✓ AA |
+| Text         | Background   | Contrast       |
+|--------------|--------------|----------------|
+| Tundra Ink   | Tundra Paper | 14.8 : 1 ✓ AAA |
+| Tundra Stone | Tundra Paper | 9.3 : 1 ✓ AAA  |
+| Tundra Slate | Tundra Paper | 4.9 : 1 ✓ AA   |
+| Tundra Paper | Tundra Ink   | 14.8 : 1 ✓ AAA |
+| Lichen Deep  | Tundra Paper | 6.1 : 1 ✓ AA   |
+| Rust Deep    | Tundra Paper | 7.2 : 1 ✓ AA   |
 
 Tundra Lichen `#A8AC9F` on Tundra Paper is **3.0 : 1** — adequate for non-text UI (dividers, icons) only. Never use Lichen for body text on Paper.
 
@@ -191,11 +191,11 @@ The full type system is documented visually in `docs/tundra-typography.svg`.
 
 ### 4.1 The Three Families
 
-| Family | Role | Weights used |
-|--------|------|--------------|
-| **Inter Display** | Headlines, display, the wordmark itself | 700 (Bold), 900 (Black) |
-| **Inter** | Body, UI, paragraphs | 400 (Regular), 500 (Medium), 600 (SemiBold), 700 (Bold) |
-| **JetBrains Mono** | Code, terminal output, technical labels, metadata | 400 (Regular), 500 (Medium) |
+| Family             | Role                                              | Weights used                                            |
+|--------------------|---------------------------------------------------|---------------------------------------------------------|
+| **Inter Display**  | Headlines, display, the wordmark itself           | 700 (Bold), 900 (Black)                                 |
+| **Inter**          | Body, UI, paragraphs                              | 400 (Regular), 500 (Medium), 600 (SemiBold), 700 (Bold) |
+| **JetBrains Mono** | Code, terminal output, technical labels, metadata | 400 (Regular), 500 (Medium)                             |
 
 Inter is the open-source workhorse for screen typography in 2026 — designed for screens, optical-size aware, and globally available. Inter Display is its display-optimized sibling, used for sizes ≥24px where the tighter spacing and refined letterforms read better. JetBrains Mono is the open-source monospace standard with the best programming-ligature support and a humanist character that pairs well with Inter.
 
@@ -203,31 +203,31 @@ Inter is the open-source workhorse for screen typography in 2026 — designed fo
 
 A modular scale at ratio 1.250 ("Major Third"):
 
-| Token | Size | Line height | Use |
-|-------|------|-------------|-----|
-| `text-2xs` | 11px | 16px | Fine print, technical labels (uppercase mono) |
-| `text-xs` | 12px | 18px | Captions, footnotes |
-| `text-sm` | 14px | 20px | Secondary UI text, table cells |
-| `text-base` | 16px | 24px | Body text default |
-| `text-md` | 18px | 28px | Lead paragraphs, emphasized body |
-| `text-lg` | 22px | 30px | Small headings, callouts |
-| `text-xl` | 28px | 36px | h3 |
-| `text-2xl` | 36px | 44px | h2 |
-| `text-3xl` | 48px | 56px | h1 |
-| `text-4xl` | 64px | 72px | Display headings, hero subtitles |
-| `text-5xl` | 96px | 100px | Hero titles |
-| `text-display` | 148px | 148px | Brand display only (e.g., the wordmark on the OG card) |
+| Token          | Size  | Line height | Use                                                    |
+|----------------|-------|-------------|--------------------------------------------------------|
+| `text-2xs`     | 11px  | 16px        | Fine print, technical labels (uppercase mono)          |
+| `text-xs`      | 12px  | 18px        | Captions, footnotes                                    |
+| `text-sm`      | 14px  | 20px        | Secondary UI text, table cells                         |
+| `text-base`    | 16px  | 24px        | Body text default                                      |
+| `text-md`      | 18px  | 28px        | Lead paragraphs, emphasized body                       |
+| `text-lg`      | 22px  | 30px        | Small headings, callouts                               |
+| `text-xl`      | 28px  | 36px        | h3                                                     |
+| `text-2xl`     | 36px  | 44px        | h2                                                     |
+| `text-3xl`     | 48px  | 56px        | h1                                                     |
+| `text-4xl`     | 64px  | 72px        | Display headings, hero subtitles                       |
+| `text-5xl`     | 96px  | 100px       | Hero titles                                            |
+| `text-display` | 148px | 148px       | Brand display only (e.g., the wordmark on the OG card) |
 
 ### 4.3 Tracking
 
 Inter is optical-size-aware. Apply tracking by size:
 
-| Size range | Tracking | Token |
-|------------|----------|-------|
-| ≥80px | -0.04em | `tracking-tightest` |
-| 32–80px | -0.02em | `tracking-tight` |
-| 18–32px | -0.01em | `tracking-snug` |
-| 12–18px | 0 | `tracking-normal` |
+| Size range      | Tracking   | Token                                |
+|-----------------|------------|--------------------------------------|
+| ≥80px           | -0.04em    | `tracking-tightest`                  |
+| 32–80px         | -0.02em    | `tracking-tight`                     |
+| 18–32px         | -0.01em    | `tracking-snug`                      |
+| 12–18px         | 0          | `tracking-normal`                    |
 | Caps mono ≤14px | 0.05–0.1em | `tracking-wider` / `tracking-widest` |
 
 ### 4.4 Hierarchy Rules
@@ -362,43 +362,43 @@ This section catalogs the deliverables that ship with this brand system.
 
 ### 6.1 Logos (`logos/`)
 
-| File | Purpose |
-|------|---------|
-| `tundra-mark.svg` | Primary mark, full canvas |
-| `tundra-mark-compact.svg` | Mark for small sizes (≤32px) |
-| `tundra-mark-horizon.svg` | Brand-storytelling variant with horizon |
-| `tundra-wordmark.svg` | Type-only variant |
-| `tundra-lockup-horizontal.svg` | **Default logo** for most contexts |
-| `tundra-lockup-stacked.svg` | Vertical lockup for square contexts |
-| PNGs at 128, 256, 512, 1024, 2400px widths | Pre-rendered for non-SVG consumers |
+| File                                       | Purpose                                 |
+|--------------------------------------------|-----------------------------------------|
+| `tundra-mark.svg`                          | Primary mark, full canvas               |
+| `tundra-mark-compact.svg`                  | Mark for small sizes (≤32px)            |
+| `tundra-mark-horizon.svg`                  | Brand-storytelling variant with horizon |
+| `tundra-wordmark.svg`                      | Type-only variant                       |
+| `tundra-lockup-horizontal.svg`             | **Default logo** for most contexts      |
+| `tundra-lockup-stacked.svg`                | Vertical lockup for square contexts     |
+| PNGs at 128, 256, 512, 1024, 2400px widths | Pre-rendered for non-SVG consumers      |
 
 ### 6.2 Social (`social/`)
 
-| File | Purpose | Dimensions |
-|------|---------|------------|
-| `tundra-og-card.svg` / `.png` | Light Open Graph card | 1200×630 |
-| `tundra-og-card-dark.svg` / `.png` | Dark Open Graph card | 1200×630 |
+| File                               | Purpose               | Dimensions |
+|------------------------------------|-----------------------|------------|
+| `tundra-og-card.svg` / `.png`      | Light Open Graph card | 1200×630   |
+| `tundra-og-card-dark.svg` / `.png` | Dark Open Graph card  | 1200×630   |
 
 The OG card is what appears when a Tundra link is shared on Twitter, LinkedIn, Slack, GitHub previews, etc. The light variant is the default. The dark variant is for projects that opt into a dark social preview.
 
 ### 6.3 README & Docs (`readme/`)
 
-| File | Purpose | Dimensions |
-|------|---------|------------|
-| `tundra-readme-banner.svg` / `.png` | GitHub README header banner | 1280×360 |
+| File                                | Purpose                     | Dimensions |
+|-------------------------------------|-----------------------------|------------|
+| `tundra-readme-banner.svg` / `.png` | GitHub README header banner | 1280×360   |
 
 Drop the banner at the top of the README, the docs site landing, the install runbook. The badges row is updated each release; the install command line stays.
 
 ### 6.4 Favicon (`favicon/`)
 
-| File | Purpose |
-|------|---------|
-| `tundra-favicon.svg` | Source SVG (modern browsers prefer this) |
-| `tundra-favicon-{16,32,48,64,128,180,192,256,512}.png` | Pre-rendered raster variants |
-| `favicon.ico` | Multi-resolution legacy container (16/32/48) |
-| `apple-touch-icon.png` | iOS home screen (180×180) |
-| `android-chrome-{192,512}x{192,512}.png` | Android Chrome PWA icons |
-| `site.webmanifest` | PWA manifest, registers icons + theme colors |
+| File                                                   | Purpose                                      |
+|--------------------------------------------------------|----------------------------------------------|
+| `tundra-favicon.svg`                                   | Source SVG (modern browsers prefer this)     |
+| `tundra-favicon-{16,32,48,64,128,180,192,256,512}.png` | Pre-rendered raster variants                 |
+| `favicon.ico`                                          | Multi-resolution legacy container (16/32/48) |
+| `apple-touch-icon.png`                                 | iOS home screen (180×180)                    |
+| `android-chrome-{192,512}x{192,512}.png`               | Android Chrome PWA icons                     |
+| `site.webmanifest`                                     | PWA manifest, registers icons + theme colors |
 
 Reference these from the panel HTML head:
 
@@ -412,19 +412,19 @@ Reference these from the panel HTML head:
 
 ### 6.5 Tokens (`tokens/`)
 
-| File | For consumers using |
-|------|---------------------|
-| `tundra-tokens.css` | Vanilla CSS, any web framework |
-| `tundra-tokens.tailwind.css` | Tailwind v4 (drop into the main stylesheet) |
-| `tundra-tokens.json` | Design tools (Figma Tokens, Style Dictionary), non-CSS environments |
+| File                         | For consumers using                                                 |
+|------------------------------|---------------------------------------------------------------------|
+| `tundra-tokens.css`          | Vanilla CSS, any web framework                                      |
+| `tundra-tokens.tailwind.css` | Tailwind v4 (drop into the main stylesheet)                         |
+| `tundra-tokens.json`         | Design tools (Figma Tokens, Style Dictionary), non-CSS environments |
 
 ### 6.6 Brand Specs (`docs/`)
 
-| File | Content |
-|------|---------|
+| File                                    | Content                                      |
+|-----------------------------------------|----------------------------------------------|
 | `tundra-mark-construction.svg` / `.png` | The mark's geometry, clear-space, and don'ts |
-| `tundra-color-system.svg` / `.png` | Full color palette with hex codes and usage |
-| `tundra-typography.svg` / `.png` | Type scale specimen with real sample text |
+| `tundra-color-system.svg` / `.png`      | Full color palette with hex codes and usage  |
+| `tundra-typography.svg` / `.png`        | Type scale specimen with real sample text    |
 
 These three sheets are designed to be printed at A3 and pinned to a wall. They are also the canonical visual reference when this Markdown document is ambiguous.
 

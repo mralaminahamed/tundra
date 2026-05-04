@@ -30,9 +30,9 @@ It is written for two audiences:
 
 ### 1.2 Migration Scenarios Covered
 
-| Scenario | Description | Best For |
-|----------|-------------|----------|
-| **A. Parallel migration** | Tundra installed on a separate server; sites migrated one-by-one; DNS cutover per site | Production workloads, near-zero downtime, ability to roll back |
+| Scenario                  | Description                                                                                | Best For                                                                   |
+|---------------------------|--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| **A. Parallel migration** | Tundra installed on a separate server; sites migrated one-by-one; DNS cutover per site     | Production workloads, near-zero downtime, ability to roll back             |
 | **B. In-place migration** | Plesk uninstalled and Tundra installed on the same server; data preserved through the swap | Single-VPS deployments, cost-sensitive setups, accepted maintenance window |
 
 For each scenario, two cutover strategies are documented:
@@ -65,24 +65,24 @@ Before migration begins, the operator must produce a complete inventory of what 
 
 Plesk's data layout on a Linux host is consistent across the Obsidian line:
 
-| Plesk Asset | Filesystem Location | Authority |
-|-------------|---------------------|-----------|
-| Plesk configuration | `/etc/psa/`, `/usr/local/psa/admin/conf/` | Plesk |
-| Plesk MySQL database (`psa`) | `/var/lib/psa/` (data dir for Plesk's own MySQL) | Plesk internal MySQL |
-| Site document roots | `/var/www/vhosts/<domain>/` with subdirs `httpdocs`, `httpsdocs`, `cgi-bin`, `logs`, `statistics` | Plesk |
-| Site PHP-FPM pools | `/etc/php/<version>/fpm/pool.d/<domain>.conf` (Debian/Ubuntu) or `/opt/plesk/php/<version>/etc/php-fpm.d/` | Plesk |
-| Nginx vhost configs | `/etc/nginx/plesk.conf.d/vhosts/<domain>.conf` | Plesk |
-| Apache vhost configs | `/etc/apache2/plesk.conf.d/vhosts/<domain>.conf` (where Apache is in the stack) | Plesk |
-| User MySQL/MariaDB databases | `/var/lib/mysql/` | Server's MariaDB/MySQL |
-| User PostgreSQL databases | `/var/lib/postgresql/<ver>/main/` | Server's PostgreSQL |
-| Mail spools (Dovecot/Maildir) | `/var/qmail/mailnames/<domain>/<local>/Maildir` (legacy qmail layout retained) or `/var/vmail/<domain>/<local>` | Plesk Mail |
-| Mail aliases & forwards | Stored in the `psa` database, materialized to Postfix maps | Plesk Mail |
-| DNS zone data | Stored in the `psa` database, materialized to BIND zone files in `/var/named/run-root/var/` (RHEL) or `/var/cache/bind/` (Debian) | Plesk DNS |
-| SSL certificates | Stored in the `psa` database, materialized to `/etc/plesk/ssl/` and Nginx-referenced paths | Plesk |
-| Scheduled tasks | Stored in the `psa` database, materialized to per-user crontabs | Plesk |
-| Backups | `/var/lib/psa/dumps/` | Plesk Backup Manager |
-| FTP users | Stored in the `psa` database, materialized to ProFTPD/PureFTPd config | Plesk |
-| Webalizer/AWStats statistics | `/var/www/vhosts/<domain>/statistics/` | Plesk |
+| Plesk Asset                   | Filesystem Location                                                                                                               | Authority              |
+|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|------------------------|
+| Plesk configuration           | `/etc/psa/`, `/usr/local/psa/admin/conf/`                                                                                         | Plesk                  |
+| Plesk MySQL database (`psa`)  | `/var/lib/psa/` (data dir for Plesk's own MySQL)                                                                                  | Plesk internal MySQL   |
+| Site document roots           | `/var/www/vhosts/<domain>/` with subdirs `httpdocs`, `httpsdocs`, `cgi-bin`, `logs`, `statistics`                                 | Plesk                  |
+| Site PHP-FPM pools            | `/etc/php/<version>/fpm/pool.d/<domain>.conf` (Debian/Ubuntu) or `/opt/plesk/php/<version>/etc/php-fpm.d/`                        | Plesk                  |
+| Nginx vhost configs           | `/etc/nginx/plesk.conf.d/vhosts/<domain>.conf`                                                                                    | Plesk                  |
+| Apache vhost configs          | `/etc/apache2/plesk.conf.d/vhosts/<domain>.conf` (where Apache is in the stack)                                                   | Plesk                  |
+| User MySQL/MariaDB databases  | `/var/lib/mysql/`                                                                                                                 | Server's MariaDB/MySQL |
+| User PostgreSQL databases     | `/var/lib/postgresql/<ver>/main/`                                                                                                 | Server's PostgreSQL    |
+| Mail spools (Dovecot/Maildir) | `/var/qmail/mailnames/<domain>/<local>/Maildir` (legacy qmail layout retained) or `/var/vmail/<domain>/<local>`                   | Plesk Mail             |
+| Mail aliases & forwards       | Stored in the `psa` database, materialized to Postfix maps                                                                        | Plesk Mail             |
+| DNS zone data                 | Stored in the `psa` database, materialized to BIND zone files in `/var/named/run-root/var/` (RHEL) or `/var/cache/bind/` (Debian) | Plesk DNS              |
+| SSL certificates              | Stored in the `psa` database, materialized to `/etc/plesk/ssl/` and Nginx-referenced paths                                        | Plesk                  |
+| Scheduled tasks               | Stored in the `psa` database, materialized to per-user crontabs                                                                   | Plesk                  |
+| Backups                       | `/var/lib/psa/dumps/`                                                                                                             | Plesk Backup Manager   |
+| FTP users                     | Stored in the `psa` database, materialized to ProFTPD/PureFTPd config                                                             | Plesk                  |
+| Webalizer/AWStats statistics  | `/var/www/vhosts/<domain>/statistics/`                                                                                            | Plesk                  |
 
 ### 2.2 The Inventory Command
 
@@ -242,14 +242,14 @@ A site moves through six states during migration. The Tundra panel database trac
    └─────────┘               └──────────┘               └──────────┘
 ```
 
-| State | Source server status | Target server status | Public-facing behavior |
-|-------|---------------------|---------------------|------------------------|
-| `source` | Live | Not configured | Plesk serves the site |
-| `inventoried` | Live | Awareness only | Plesk serves |
-| `captured` | Live | Bundle on disk, not deployed | Plesk serves |
-| `restored` | Live | Site live on alternate hostname (e.g., `staging-example-com.tundra.<panel-host>`) for verification | Plesk serves; operator verifies on Tundra preview URL |
-| `cut-over` | Frozen (read-only or maintenance page) | Live, serving real domain | Tundra serves |
-| `retired` | Site removed | Live | Tundra serves; Plesk no longer has the site |
+| State         | Source server status                   | Target server status                                                                               | Public-facing behavior                                |
+|---------------|----------------------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| `source`      | Live                                   | Not configured                                                                                     | Plesk serves the site                                 |
+| `inventoried` | Live                                   | Awareness only                                                                                     | Plesk serves                                          |
+| `captured`    | Live                                   | Bundle on disk, not deployed                                                                       | Plesk serves                                          |
+| `restored`    | Live                                   | Site live on alternate hostname (e.g., `staging-example-com.tundra.<panel-host>`) for verification | Plesk serves; operator verifies on Tundra preview URL |
+| `cut-over`    | Frozen (read-only or maintenance page) | Live, serving real domain                                                                          | Tundra serves                                         |
+| `retired`     | Site removed                           | Live                                                                                               | Tundra serves; Plesk no longer has the site           |
 
 This explicit state machine matters: it allows the operator to **stop at any state** and either continue forward or roll back to `source` without surprises.
 
@@ -381,15 +381,15 @@ This removes the site's vhost, document root, mail spool, databases, and DNS zon
 
 For a server with ~30 mixed-workload sites:
 
-| Day | Activity |
-|-----|----------|
-| 1 | Tundra target provisioning, package installation, role configuration |
-| 2 | Full inventory of Plesk source; produce migration plan with per-site cutover schedule |
-| 3–7 | Capture, transfer, restore, and preview verification of all sites (no cutover yet) |
-| 8 | TTL reduction across all DNS zones to be cut over (drop to 60s, 24h before cutover) |
-| 9–11 | Cutover sites in batches (low-traffic ones first, weekend nights for high-traffic) |
-| 12–25 | Observation window — both servers running, Plesk in finalize state |
-| 26 | Decommission Plesk; uninstall |
+| Day   | Activity                                                                              |
+|-------|---------------------------------------------------------------------------------------|
+| 1     | Tundra target provisioning, package installation, role configuration                  |
+| 2     | Full inventory of Plesk source; produce migration plan with per-site cutover schedule |
+| 3–7   | Capture, transfer, restore, and preview verification of all sites (no cutover yet)    |
+| 8     | TTL reduction across all DNS zones to be cut over (drop to 60s, 24h before cutover)   |
+| 9–11  | Cutover sites in batches (low-traffic ones first, weekend nights for high-traffic)    |
+| 12–25 | Observation window — both servers running, Plesk in finalize state                    |
+| 26    | Decommission Plesk; uninstall                                                         |
 
 ---
 
@@ -510,11 +510,11 @@ Sites become reachable at the original IP. Downtime ends.
 
 ### 5.4 Estimated Maintenance Window
 
-| Workload | Estimated downtime |
-|----------|---------------------|
-| 1–3 small sites (<1 GB each), no mail | 45–75 min |
-| 5–10 mixed sites with mail, total <20 GB | 90–150 min |
-| 10–20 sites with significant data (50–100 GB) | 3–5 hours |
+| Workload                                      | Estimated downtime |
+|-----------------------------------------------|--------------------|
+| 1–3 small sites (<1 GB each), no mail         | 45–75 min          |
+| 5–10 mixed sites with mail, total <20 GB      | 90–150 min         |
+| 10–20 sites with significant data (50–100 GB) | 3–5 hours          |
 
 The capture phase is the longest for large datasets; snapshot-based capture (LVM or filesystem snapshots) can move significant work outside the maintenance window.
 
@@ -595,15 +595,15 @@ Suitable for sites where any visible interruption is unacceptable.
 
 ### 6.3 Choosing a Strategy Per Site
 
-| Site type | Recommended strategy |
-|-----------|----------------------|
-| Static brochure site | Either; Strategy 1 simpler |
-| WordPress (low traffic, mostly read) | Strategy 1 |
-| WordPress (high traffic, frequent writes — comments, WooCommerce orders) | Strategy 2 |
-| Laravel SaaS application | Strategy 2 |
-| Node.js / API service | Strategy 2 |
-| Mailbox-only domain | Strategy 1 with `--mail-bridge` |
-| Subdomain of a larger app (e.g., `cdn.example.com`) | Strategy 1; coordinate with parent |
+| Site type                                                                | Recommended strategy               |
+|--------------------------------------------------------------------------|------------------------------------|
+| Static brochure site                                                     | Either; Strategy 1 simpler         |
+| WordPress (low traffic, mostly read)                                     | Strategy 1                         |
+| WordPress (high traffic, frequent writes — comments, WooCommerce orders) | Strategy 2                         |
+| Laravel SaaS application                                                 | Strategy 2                         |
+| Node.js / API service                                                    | Strategy 2                         |
+| Mailbox-only domain                                                      | Strategy 1 with `--mail-bridge`    |
+| Subdomain of a larger app (e.g., `cdn.example.com`)                      | Strategy 1; coordinate with parent |
 
 ---
 
@@ -613,143 +613,143 @@ This is the authoritative mapping of every meaningful Plesk feature to its Tundr
 
 ### 7.1 Hosting & Sites
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
-| Subscription / Webspace | Site | One Site per Plesk subscription's primary domain; addon domains become separate Sites |
-| Domain (primary) | Site.domain | Direct map |
-| Subdomain | Site (separate) or Site.aliases | Operator choice during restore |
-| Domain alias | Site.aliases[] | Direct map |
-| Apache + Nginx (proxy) | Nginx only (Apache discarded) | Plesk's `.htaccess` rules captured and converted to Nginx equivalents where automatable; manual review for complex rules |
-| PHP version per site | Site.runtime_version | Direct map |
-| PHP handler (FPM, FastCGI, CGI) | PHP-FPM only | All sites converted to FPM; operator notified for sites previously using CGI/Apache module |
-| Custom php.ini per domain | Per-pool PHP-FPM settings | Plesk's `panel.ini` per-domain settings extracted, mapped to FPM `env[]`, `php_admin_value[]` |
-| Document root | Site.document_root | Direct map; Plesk's `httpdocs` or `httpsdocs` distinction collapses to one root |
-| `.htaccess` allowed | Nginx `try_files` + per-location rules | Auto-converted for common patterns (WordPress, Laravel rewrites); manual review prompt for unrecognized rules |
-| Hotlink protection | Nginx `valid_referers` config | Captured from Plesk settings, rendered to Nginx |
-| IP address binding | Nginx `listen` directives | Direct map |
-| Custom error documents | Nginx `error_page` directives | Direct map |
-| HTTP → HTTPS redirect | Site.redirect_to_https | Direct map |
-| Server-Side Includes (SSI) | Nginx `ssi on` | Direct map (rare; preserved if used) |
-| Web server logs | `/srv/sites/<id>/shared/logs/nginx-{access,error}.log` | Plesk log retention rules carried over; logs archived (not transferred) |
+| Plesk Feature                   | Tundra Equivalent                                      | Migration Mechanism                                                                                                      |
+|---------------------------------|--------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| Subscription / Webspace         | Site                                                   | One Site per Plesk subscription's primary domain; addon domains become separate Sites                                    |
+| Domain (primary)                | Site.domain                                            | Direct map                                                                                                               |
+| Subdomain                       | Site (separate) or Site.aliases                        | Operator choice during restore                                                                                           |
+| Domain alias                    | Site.aliases[]                                         | Direct map                                                                                                               |
+| Apache + Nginx (proxy)          | Nginx only (Apache discarded)                          | Plesk's `.htaccess` rules captured and converted to Nginx equivalents where automatable; manual review for complex rules |
+| PHP version per site            | Site.runtime_version                                   | Direct map                                                                                                               |
+| PHP handler (FPM, FastCGI, CGI) | PHP-FPM only                                           | All sites converted to FPM; operator notified for sites previously using CGI/Apache module                               |
+| Custom php.ini per domain       | Per-pool PHP-FPM settings                              | Plesk's `panel.ini` per-domain settings extracted, mapped to FPM `env[]`, `php_admin_value[]`                            |
+| Document root                   | Site.document_root                                     | Direct map; Plesk's `httpdocs` or `httpsdocs` distinction collapses to one root                                          |
+| `.htaccess` allowed             | Nginx `try_files` + per-location rules                 | Auto-converted for common patterns (WordPress, Laravel rewrites); manual review prompt for unrecognized rules            |
+| Hotlink protection              | Nginx `valid_referers` config                          | Captured from Plesk settings, rendered to Nginx                                                                          |
+| IP address binding              | Nginx `listen` directives                              | Direct map                                                                                                               |
+| Custom error documents          | Nginx `error_page` directives                          | Direct map                                                                                                               |
+| HTTP → HTTPS redirect           | Site.redirect_to_https                                 | Direct map                                                                                                               |
+| Server-Side Includes (SSI)      | Nginx `ssi on`                                         | Direct map (rare; preserved if used)                                                                                     |
+| Web server logs                 | `/srv/sites/<id>/shared/logs/nginx-{access,error}.log` | Plesk log retention rules carried over; logs archived (not transferred)                                                  |
 
 ### 7.2 Database Servers
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
-| MySQL/MariaDB databases | Tundra Database (engine=mariadb or mysql) | `mysqldump --single-transaction` → restore on Tundra DB server |
-| PostgreSQL databases | Tundra Database (engine=postgres) | `pg_dump -Fc` → `pg_restore` on Tundra |
-| Database users | Tundra DatabaseUser | Username preserved; **password reset to a new random value during migration** (Plesk stores hashes; cleartext is unrecoverable) |
-| Database grants | Tundra DatabaseGrant | Direct map of GRANTed privileges |
-| phpMyAdmin / phpPgAdmin | Built-in Tundra query console | Tundra's web SQL console replaces both |
-| Remote DB access | Tundra DB endpoint with TLS | Plesk's per-IP allowlists translated to firewall rules |
+| Plesk Feature           | Tundra Equivalent                         | Migration Mechanism                                                                                                             |
+|-------------------------|-------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| MySQL/MariaDB databases | Tundra Database (engine=mariadb or mysql) | `mysqldump --single-transaction` → restore on Tundra DB server                                                                  |
+| PostgreSQL databases    | Tundra Database (engine=postgres)         | `pg_dump -Fc` → `pg_restore` on Tundra                                                                                          |
+| Database users          | Tundra DatabaseUser                       | Username preserved; **password reset to a new random value during migration** (Plesk stores hashes; cleartext is unrecoverable) |
+| Database grants         | Tundra DatabaseGrant                      | Direct map of GRANTed privileges                                                                                                |
+| phpMyAdmin / phpPgAdmin | Built-in Tundra query console             | Tundra's web SQL console replaces both                                                                                          |
+| Remote DB access        | Tundra DB endpoint with TLS               | Plesk's per-IP allowlists translated to firewall rules                                                                          |
 
 **Important:** Database user passwords are reset during migration because Plesk stores them in a recoverable but vendor-internal way; Tundra refuses to store cleartext from another panel for security reasons. The migration tool produces a new password and updates the application's `.env`/wp-config.php in lockstep.
 
 ### 7.3 Mail (Postfix / Dovecot)
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
-| Mail domain | Tundra MailDomain | Direct map |
-| Mailbox | Tundra Mailbox | Maildir tarball restored to `/var/vmail/<domain>/<local>` |
-| Mailbox quota | Tundra Mailbox.quota_bytes | Direct map |
-| Mailbox password | Tundra Mailbox.password_hash | Plesk uses Dovecot's `{SHA512-CRYPT}` format compatible with Tundra; **passwords carry over without reset** |
-| Mail alias | Tundra MailAlias | Direct map |
-| Mail forward | Tundra MailForward | Direct map |
-| Catch-all | Tundra MailAlias with `source='*'` | Direct map |
-| Auto-responder / vacation | Sieve filter | Plesk vacation messages converted to Sieve rules |
-| Sieve filters | Sieve filters | Direct map; same upstream Pigeonhole format |
-| DKIM keys | Tundra DKIM | **Same key carried over** (no DNS update needed if DNS is on Plesk's side and migrating; DNS update needed if Plesk DNS is being abandoned) |
-| SPF, DMARC | Tundra DNS records | Direct map of zone records |
-| Anti-spam (SpamAssassin) | Rspamd | Score thresholds carried over; learned Bayesian database not migrated (acceptable; Rspamd relearns) |
-| Mail queue | Postfix mail queue | Queue is drained on source before cutover; never migrated mid-flight |
-| Webmail (Roundcube) | Webmail (Roundcube on Tundra) | Roundcube user prefs migrated from `roundcubemail` MySQL DB |
-| Mail server hostname / TLS | Tundra mail Server hostname / TLS | New Let's Encrypt cert issued on Tundra mail hostname |
+| Plesk Feature              | Tundra Equivalent                  | Migration Mechanism                                                                                                                         |
+|----------------------------|------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| Mail domain                | Tundra MailDomain                  | Direct map                                                                                                                                  |
+| Mailbox                    | Tundra Mailbox                     | Maildir tarball restored to `/var/vmail/<domain>/<local>`                                                                                   |
+| Mailbox quota              | Tundra Mailbox.quota_bytes         | Direct map                                                                                                                                  |
+| Mailbox password           | Tundra Mailbox.password_hash       | Plesk uses Dovecot's `{SHA512-CRYPT}` format compatible with Tundra; **passwords carry over without reset**                                 |
+| Mail alias                 | Tundra MailAlias                   | Direct map                                                                                                                                  |
+| Mail forward               | Tundra MailForward                 | Direct map                                                                                                                                  |
+| Catch-all                  | Tundra MailAlias with `source='*'` | Direct map                                                                                                                                  |
+| Auto-responder / vacation  | Sieve filter                       | Plesk vacation messages converted to Sieve rules                                                                                            |
+| Sieve filters              | Sieve filters                      | Direct map; same upstream Pigeonhole format                                                                                                 |
+| DKIM keys                  | Tundra DKIM                        | **Same key carried over** (no DNS update needed if DNS is on Plesk's side and migrating; DNS update needed if Plesk DNS is being abandoned) |
+| SPF, DMARC                 | Tundra DNS records                 | Direct map of zone records                                                                                                                  |
+| Anti-spam (SpamAssassin)   | Rspamd                             | Score thresholds carried over; learned Bayesian database not migrated (acceptable; Rspamd relearns)                                         |
+| Mail queue                 | Postfix mail queue                 | Queue is drained on source before cutover; never migrated mid-flight                                                                        |
+| Webmail (Roundcube)        | Webmail (Roundcube on Tundra)      | Roundcube user prefs migrated from `roundcubemail` MySQL DB                                                                                 |
+| Mail server hostname / TLS | Tundra mail Server hostname / TLS  | New Let's Encrypt cert issued on Tundra mail hostname                                                                                       |
 
 ### 7.4 DNS
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
-| Authoritative DNS (BIND/PowerDNS in Plesk) | Tundra PowerDNS | Zone exported via `pdnsutil list-zone <domain>` or Plesk's psa DB query, imported to Tundra |
-| DNS templates | Tundra DNS template | Plesk DNS templates manually re-created (rare; usually one template per operator) |
-| DNSSEC | Tundra DNSSEC | **Re-key required** — DNSSEC keys do not migrate; operator schedules re-signing window with parent zone DS record update |
-| Reverse DNS / PTR | Tundra DNS PTR | Direct map; operator must coordinate with VPS provider for in-addr.arpa delegation |
-| Slave / secondary DNS | Tundra slave config | Direct map of master IP, zone list |
+| Plesk Feature                              | Tundra Equivalent   | Migration Mechanism                                                                                                      |
+|--------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------------------------------|
+| Authoritative DNS (BIND/PowerDNS in Plesk) | Tundra PowerDNS     | Zone exported via `pdnsutil list-zone <domain>` or Plesk's psa DB query, imported to Tundra                              |
+| DNS templates                              | Tundra DNS template | Plesk DNS templates manually re-created (rare; usually one template per operator)                                        |
+| DNSSEC                                     | Tundra DNSSEC       | **Re-key required** — DNSSEC keys do not migrate; operator schedules re-signing window with parent zone DS record update |
+| Reverse DNS / PTR                          | Tundra DNS PTR      | Direct map; operator must coordinate with VPS provider for in-addr.arpa delegation                                       |
+| Slave / secondary DNS                      | Tundra slave config | Direct map of master IP, zone list                                                                                       |
 
 ### 7.5 SSL / TLS
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
-| Let's Encrypt (Plesk extension) | Tundra ACME (built-in) | **Fresh issuance** on Tundra side; Plesk certs not transferred. The HTTP-01 challenge succeeds during preview phase using the preview hostname; production cert issues at cutover |
-| ZeroSSL | Tundra ACME (ZeroSSL provider) | Same — fresh issuance |
-| Manual / BYO certificate | Tundra Certificate (manual) | Cert + key + chain transferred and registered as a manual certificate |
-| Wildcard certificate | Tundra wildcard via DNS-01 | Re-issued via Tundra's DNS-01 if Tundra hosts DNS, or operator provides DNS API credentials |
-| SSL It! extension settings (HSTS, OCSP, etc.) | Site.hsts_enabled and Nginx settings | Direct map |
+| Plesk Feature                                 | Tundra Equivalent                    | Migration Mechanism                                                                                                                                                               |
+|-----------------------------------------------|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Let's Encrypt (Plesk extension)               | Tundra ACME (built-in)               | **Fresh issuance** on Tundra side; Plesk certs not transferred. The HTTP-01 challenge succeeds during preview phase using the preview hostname; production cert issues at cutover |
+| ZeroSSL                                       | Tundra ACME (ZeroSSL provider)       | Same — fresh issuance                                                                                                                                                             |
+| Manual / BYO certificate                      | Tundra Certificate (manual)          | Cert + key + chain transferred and registered as a manual certificate                                                                                                             |
+| Wildcard certificate                          | Tundra wildcard via DNS-01           | Re-issued via Tundra's DNS-01 if Tundra hosts DNS, or operator provides DNS API credentials                                                                                       |
+| SSL It! extension settings (HSTS, OCSP, etc.) | Site.hsts_enabled and Nginx settings | Direct map                                                                                                                                                                        |
 
 ### 7.6 Scheduled Tasks (Cron)
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
-| Subscription cron tasks | Tundra ScheduledTask | Captured from Plesk DB; cron expression and command preserved |
-| Run-as user | Tundra ScheduledTask runs as Site's web_user | Direct map |
-| Email notification on failure | Tundra ScheduledTask alerting | Direct map; recipient address preserved |
+| Plesk Feature                 | Tundra Equivalent                            | Migration Mechanism                                           |
+|-------------------------------|----------------------------------------------|---------------------------------------------------------------|
+| Subscription cron tasks       | Tundra ScheduledTask                         | Captured from Plesk DB; cron expression and command preserved |
+| Run-as user                   | Tundra ScheduledTask runs as Site's web_user | Direct map                                                    |
+| Email notification on failure | Tundra ScheduledTask alerting                | Direct map; recipient address preserved                       |
 
 ### 7.7 Backups
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
-| Plesk Backup Manager | Tundra BackupJob | Plesk backup schedules captured; new Tundra BackupJobs configured to mirror. Existing Plesk backup archives are **not** migrated — they remain on the operator's backup target as cold archives (Plesk format), and Tundra starts fresh Restic-based backups. |
-| Backup destinations (FTP, S3, Dropbox) | Tundra BackupTarget | Same destinations; new credentials + Restic repos initialized |
+| Plesk Feature                          | Tundra Equivalent   | Migration Mechanism                                                                                                                                                                                                                                           |
+|----------------------------------------|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Plesk Backup Manager                   | Tundra BackupJob    | Plesk backup schedules captured; new Tundra BackupJobs configured to mirror. Existing Plesk backup archives are **not** migrated — they remain on the operator's backup target as cold archives (Plesk format), and Tundra starts fresh Restic-based backups. |
+| Backup destinations (FTP, S3, Dropbox) | Tundra BackupTarget | Same destinations; new credentials + Restic repos initialized                                                                                                                                                                                                 |
 
 ### 7.8 Users, FTP, SSH
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
+| Plesk Feature                        | Tundra Equivalent                          | Migration Mechanism                                                                                                                                    |
+|--------------------------------------|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Customer / Reseller / Admin accounts | Tundra Operator (Owner / Admin / Operator) | Plesk admin → Tundra Owner; Plesk customers do not have Tundra equivalents in v1.0 (single-tenant); each customer's sites become Sites under the Owner |
-| FTP user | Tundra SftpUser | SFTP-only by default; FTP/FTPS opt-in for legacy clients |
-| FTP password | New SFTP password generated | Plesk passwords are not extractable; operator notifies users with new credentials |
-| SSH access | Operator SSH keys via Tundra | Plesk shell users are converted to a single SSH key set per Site, managed centrally |
+| FTP user                             | Tundra SftpUser                            | SFTP-only by default; FTP/FTPS opt-in for legacy clients                                                                                               |
+| FTP password                         | New SFTP password generated                | Plesk passwords are not extractable; operator notifies users with new credentials                                                                      |
+| SSH access                           | Operator SSH keys via Tundra               | Plesk shell users are converted to a single SSH key set per Site, managed centrally                                                                    |
 
 ### 7.9 Application Catalog
 
-| Plesk Feature | Tundra Equivalent | Notes |
-|---------------|-------------------|-------|
-| WordPress Toolkit | Tundra `wordpress` template + WP-CLI integration | Tundra installs WP-CLI per site; bulk operations (update all WP, scan all WP) are first-class commands |
-| Joomla! Toolkit | Tundra `joomla` template (v1.5; v1.0 is generic PHP) | Migration restores files & DB; Toolkit features (cloning, scanning) are roadmap items |
-| .NET site | Out of v1.0 scope | Sites flagged for separate handling |
-| Ruby app | Tundra Ruby application type | Plesk uses Phusion Passenger; Tundra uses Puma/Unicorn behind Nginx |
-| Python app | Tundra Python application type | Plesk uses mod_wsgi/Passenger; Tundra uses gunicorn/uvicorn behind Nginx |
-| Node.js app | Tundra Node.js application type | Plesk uses Phusion Passenger; Tundra uses systemd unit + reverse proxy |
-| Docker | Tundra Docker provider (v1.0) | Docker containers carry over; Plesk's docker-compose translation is preserved |
-| Git deployment (built-in) | Tundra Git deploy (built-in) | Webhook URL changes; operator updates GitHub/GitLab webhook target |
+| Plesk Feature             | Tundra Equivalent                                    | Notes                                                                                                  |
+|---------------------------|------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| WordPress Toolkit         | Tundra `wordpress` template + WP-CLI integration     | Tundra installs WP-CLI per site; bulk operations (update all WP, scan all WP) are first-class commands |
+| Joomla! Toolkit           | Tundra `joomla` template (v1.5; v1.0 is generic PHP) | Migration restores files & DB; Toolkit features (cloning, scanning) are roadmap items                  |
+| .NET site                 | Out of v1.0 scope                                    | Sites flagged for separate handling                                                                    |
+| Ruby app                  | Tundra Ruby application type                         | Plesk uses Phusion Passenger; Tundra uses Puma/Unicorn behind Nginx                                    |
+| Python app                | Tundra Python application type                       | Plesk uses mod_wsgi/Passenger; Tundra uses gunicorn/uvicorn behind Nginx                               |
+| Node.js app               | Tundra Node.js application type                      | Plesk uses Phusion Passenger; Tundra uses systemd unit + reverse proxy                                 |
+| Docker                    | Tundra Docker provider (v1.0)                        | Docker containers carry over; Plesk's docker-compose translation is preserved                          |
+| Git deployment (built-in) | Tundra Git deploy (built-in)                         | Webhook URL changes; operator updates GitHub/GitLab webhook target                                     |
 
 ### 7.10 Statistics & Logs
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
+| Plesk Feature       | Tundra Equivalent                                             | Migration Mechanism                                                               |
+|---------------------|---------------------------------------------------------------|-----------------------------------------------------------------------------------|
 | AWStats / Webalizer | GoAccess (built-in to Tundra) or external (Matomo, Plausible) | Historical Plesk stats archived but not converted; Tundra starts fresh statistics |
-| Web log access | Tundra log streaming + download | Direct map |
-| Mail statistics | Tundra mail dashboard | Plesk historical mail stats not migrated |
+| Web log access      | Tundra log streaming + download                               | Direct map                                                                        |
+| Mail statistics     | Tundra mail dashboard                                         | Plesk historical mail stats not migrated                                          |
 
 ### 7.11 Security & Firewall
 
-| Plesk Feature | Tundra Equivalent | Migration Mechanism |
-|---------------|-------------------|---------------------|
-| Plesk Firewall | Tundra firewall (nftables) | Rules exported from Plesk DB, translated to nftables |
-| Fail2ban | Tundra built-in fail2ban (in agent) | Jails carried over; ban list cleared (acceptable; bans regenerate quickly) |
-| ModSecurity | Optional Nginx ModSecurity module | Custom rule sets transferred; default rule set replaced with OWASP CRS latest |
-| ImunifyAV / Imunify360 | Out of v1.0 scope | If used, operator must source replacement (e.g., ClamAV, MalCare) |
+| Plesk Feature          | Tundra Equivalent                   | Migration Mechanism                                                           |
+|------------------------|-------------------------------------|-------------------------------------------------------------------------------|
+| Plesk Firewall         | Tundra firewall (nftables)          | Rules exported from Plesk DB, translated to nftables                          |
+| Fail2ban               | Tundra built-in fail2ban (in agent) | Jails carried over; ban list cleared (acceptable; bans regenerate quickly)    |
+| ModSecurity            | Optional Nginx ModSecurity module   | Custom rule sets transferred; default rule set replaced with OWASP CRS latest |
+| ImunifyAV / Imunify360 | Out of v1.0 scope                   | If used, operator must source replacement (e.g., ClamAV, MalCare)             |
 
 ### 7.12 Plesk Extensions With No Direct Equivalent
 
-| Plesk Extension | Disposition |
-|-----------------|-------------|
-| Sitejet Builder | Drop. Operator must export Sitejet content as static files first. |
-| AI Website Generator | Drop. Generated content remains as static files. |
-| WP Toolkit Premium scanners | Replaced by manual scans + custom scripts; community Tundra extensions in roadmap. |
-| KernelCare / TuxCare | Direct upstream tooling; install on Tundra server independently if desired. |
-| Plesk Email Security | Built into Tundra (Rspamd + ARC). |
-| Plesk Migrator | Replaced by `tundra-import`. |
-| APS Catalog (deprecated by Plesk anyway) | No replacement; APS apps must be re-installed via Tundra templates or manually. |
+| Plesk Extension                          | Disposition                                                                        |
+|------------------------------------------|------------------------------------------------------------------------------------|
+| Sitejet Builder                          | Drop. Operator must export Sitejet content as static files first.                  |
+| AI Website Generator                     | Drop. Generated content remains as static files.                                   |
+| WP Toolkit Premium scanners              | Replaced by manual scans + custom scripts; community Tundra extensions in roadmap. |
+| KernelCare / TuxCare                     | Direct upstream tooling; install on Tundra server independently if desired.        |
+| Plesk Email Security                     | Built into Tundra (Rspamd + ARC).                                                  |
+| Plesk Migrator                           | Replaced by `tundra-import`.                                                       |
+| APS Catalog (deprecated by Plesk anyway) | No replacement; APS apps must be re-installed via Tundra templates or manually.    |
 
 ---
 
@@ -825,19 +825,19 @@ Plesk historically shipped PostgreSQL 12 or 13 by default. Tundra uses 18. Migra
 
 `tundra-import plesk-verify` runs the following checks after restore but before cutover:
 
-| Check | Pass criterion |
-|-------|----------------|
-| Document root file count | Matches source ±0 (trivial files like `.htaccess.bak` excluded) |
-| Document root total bytes | Matches source ±2 KB (minor metadata variance) |
-| File checksum sample | 50 random files, SHA-256 match between source and target |
-| Database row counts | Per-table counts match source ±0 |
-| Database checksum sample | `SELECT MD5(GROUP_CONCAT(...))` over key tables matches |
-| Mailbox message count | Per-mailbox count matches source |
-| Mailbox total bytes | Matches source ±10 KB (Maildir metadata variance allowed) |
-| HTTP probe | Preview URL returns 200 (or expected status); HTML body contains site-specific marker |
-| Database connectivity from app | Application's `.env` credentials connect successfully |
-| SSL preview cert | Valid, includes preview hostname |
-| Cron task list | Count and command list match source |
+| Check                          | Pass criterion                                                                        |
+|--------------------------------|---------------------------------------------------------------------------------------|
+| Document root file count       | Matches source ±0 (trivial files like `.htaccess.bak` excluded)                       |
+| Document root total bytes      | Matches source ±2 KB (minor metadata variance)                                        |
+| File checksum sample           | 50 random files, SHA-256 match between source and target                              |
+| Database row counts            | Per-table counts match source ±0                                                      |
+| Database checksum sample       | `SELECT MD5(GROUP_CONCAT(...))` over key tables matches                               |
+| Mailbox message count          | Per-mailbox count matches source                                                      |
+| Mailbox total bytes            | Matches source ±10 KB (Maildir metadata variance allowed)                             |
+| HTTP probe                     | Preview URL returns 200 (or expected status); HTML body contains site-specific marker |
+| Database connectivity from app | Application's `.env` credentials connect successfully                                 |
+| SSL preview cert               | Valid, includes preview hostname                                                      |
+| Cron task list                 | Count and command list match source                                                   |
 
 ### 9.2 Acceptance Test Suite (Operator-Driven)
 
@@ -1137,9 +1137,9 @@ These queries are stable across Plesk Obsidian 18.0.x — they have not changed 
 
 ## 15. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial complete migration plan covering Plesk Obsidian 18.0.75–18.0.77 → Tundra |
+| Version | Date     | Author         | Changes                                                                          |
+|---------|----------|----------------|----------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial complete migration plan covering Plesk Obsidian 18.0.75–18.0.77 → Tundra |
 
 **Companion Documents:**
 

@@ -603,9 +603,9 @@ Engineering acceptance:
 
 ## 15. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial complete acceptance checklist. Install (single-server, control-plane), server enrollment, first site, first deploy, backups, mail, plugins, upgrade, quarterly review, disaster recovery test, security review, sign-off template. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                    |
+|---------|----------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial complete acceptance checklist. Install (single-server, control-plane), server enrollment, first site, first deploy, backups, mail, plugins, upgrade, quarterly review, disaster recovery test, security review, sign-off template. |
 
 **Companion Documents:**
 

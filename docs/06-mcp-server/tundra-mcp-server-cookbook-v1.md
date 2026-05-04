@@ -40,11 +40,11 @@ A couple of conventions used throughout:
 
 ### 2.1 Where the config lives
 
-| OS | Path |
-|----|------|
-| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
-| Linux | `~/.config/Claude/claude_desktop_config.json` |
-| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+| OS      | Path                                                              |
+|---------|-------------------------------------------------------------------|
+| macOS   | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Linux   | `~/.config/Claude/claude_desktop_config.json`                     |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json`                     |
 
 Quit Claude Desktop fully before editing; it caches the config at launch.
 
@@ -711,6 +711,6 @@ The model uses `resources/list` to find the relevant URIs and `resources/read` t
 
 ## 14. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial integration cookbook. Worked configurations for Claude Desktop, Claude Code, Cursor, Zed, cloud agents over HTTP. End-to-end conversations: deploy via Claude, incident response, routine ops (morning health check, pre-merge env, audit review). Troubleshooting recipes, patterns by use case. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                                                                                   |
+|---------|----------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial integration cookbook. Worked configurations for Claude Desktop, Claude Code, Cursor, Zed, cloud agents over HTTP. End-to-end conversations: deploy via Claude, incident response, routine ops (morning health check, pre-merge env, audit review). Troubleshooting recipes, patterns by use case. |

@@ -31,11 +31,11 @@ The plugin system has four explicit goals:
 
 ### 1.2 The Hybrid Model
 
-| Plugin Tier | Execution | Trust Level | Source | Use Cases |
-|-------------|-----------|-------------|--------|-----------|
-| **Core plugins** | Native Rust, statically linked into `tundrad` and `tundra-agent` | Full trust | First-party (Tundra repo) | Plesk migration, official runtime providers, official backup targets |
-| **Bundled plugins** | Native Rust, dynamically loaded `.so`/`.dylib` | Full trust | First-party but not in default install | Optional integrations: Cloudflare DNS, Mailgun smarthost, S3-compatible providers |
-| **Third-party plugins** | WebAssembly Component Model (WASIp2), executed by Wasmtime | Sandboxed | Anyone | Custom one-click templates, exotic monitoring exporters, niche regional integrations |
+| Plugin Tier             | Execution                                                        | Trust Level | Source                                 | Use Cases                                                                            |
+|-------------------------|------------------------------------------------------------------|-------------|----------------------------------------|--------------------------------------------------------------------------------------|
+| **Core plugins**        | Native Rust, statically linked into `tundrad` and `tundra-agent` | Full trust  | First-party (Tundra repo)              | Plesk migration, official runtime providers, official backup targets                 |
+| **Bundled plugins**     | Native Rust, dynamically loaded `.so`/`.dylib`                   | Full trust  | First-party but not in default install | Optional integrations: Cloudflare DNS, Mailgun smarthost, S3-compatible providers    |
+| **Third-party plugins** | WebAssembly Component Model (WASIp2), executed by Wasmtime       | Sandboxed   | Anyone                                 | Custom one-click templates, exotic monitoring exporters, niche regional integrations |
 
 Every plugin tier implements the **same WIT-defined interfaces**. A plugin can move between tiers without rewriting its logic — third-party WASM today, official native plugin tomorrow. This is intentional: it lets the community prototype freely while keeping a clear path to first-party adoption.
 
@@ -108,31 +108,31 @@ WASM plugins never speak directly to the panel database, the host filesystem, or
 
 ### 2.3 What a Plugin Can and Cannot Do
 
-| Capability | Core/Bundled (native) | Third-Party (WASM) |
-|------------|----------------------|----------------------|
-| Read panel database | Yes (direct SQLx access) | No (mediated; declared queries only) |
-| Write panel database | Yes | No (mediated; declared mutations only) |
-| Read host filesystem | Yes | Only declared paths (capability-gated) |
-| Write host filesystem | Yes | Only declared paths |
-| Open arbitrary network connections | Yes | Only declared hosts (capability-gated) |
-| Spawn host processes | Yes | No |
-| Use the master key directly | Yes | Never — host signs/decrypts on plugin's behalf, plugin sees ciphertext only |
-| Receive panel events | Yes | Yes (subscriptions declared) |
-| Emit panel events | Yes | Yes (event types declared) |
-| Define new HTTP endpoints | Yes | Yes (path namespace gated) |
-| Define new CLI subcommands | Yes | Yes |
-| Define new UI pages | Yes (React) | Yes (declarative spec only — no arbitrary JS in panel) |
-| Run scheduled tasks | Yes | Yes (jobs run inside Wasmtime, time-limited) |
-| Define new agent providers | Yes | No (agent-side WASM is roadmap, not v1) |
+| Capability                         | Core/Bundled (native)    | Third-Party (WASM)                                                          |
+|------------------------------------|--------------------------|-----------------------------------------------------------------------------|
+| Read panel database                | Yes (direct SQLx access) | No (mediated; declared queries only)                                        |
+| Write panel database               | Yes                      | No (mediated; declared mutations only)                                      |
+| Read host filesystem               | Yes                      | Only declared paths (capability-gated)                                      |
+| Write host filesystem              | Yes                      | Only declared paths                                                         |
+| Open arbitrary network connections | Yes                      | Only declared hosts (capability-gated)                                      |
+| Spawn host processes               | Yes                      | No                                                                          |
+| Use the master key directly        | Yes                      | Never — host signs/decrypts on plugin's behalf, plugin sees ciphertext only |
+| Receive panel events               | Yes                      | Yes (subscriptions declared)                                                |
+| Emit panel events                  | Yes                      | Yes (event types declared)                                                  |
+| Define new HTTP endpoints          | Yes                      | Yes (path namespace gated)                                                  |
+| Define new CLI subcommands         | Yes                      | Yes                                                                         |
+| Define new UI pages                | Yes (React)              | Yes (declarative spec only — no arbitrary JS in panel)                      |
+| Run scheduled tasks                | Yes                      | Yes (jobs run inside Wasmtime, time-limited)                                |
+| Define new agent providers         | Yes                      | No (agent-side WASM is roadmap, not v1)                                     |
 
 The "no agent-side WASM in v1" constraint is deliberate: provider plugins manipulate systemd, package managers, file ownership, and firewall state. The blast radius of a misbehaving agent-side plugin is far greater than a control-plane plugin. Core providers stay native until the WASM provider boundary is well-tested.
 
 ### 2.4 Where Plugins Live
 
-| Tier | Location | Loaded When |
-|------|----------|-------------|
-| Core | Compiled into `tundrad` binary (Cargo workspace member) | Always (unless feature-gated off at build time) |
-| Bundled | `/usr/lib/tundra/plugins/<name>.so` | Listed in `/etc/tundra/plugins.toml` |
+| Tier        | Location                                                    | Loaded When                                                           |
+|-------------|-------------------------------------------------------------|-----------------------------------------------------------------------|
+| Core        | Compiled into `tundrad` binary (Cargo workspace member)     | Always (unless feature-gated off at build time)                       |
+| Bundled     | `/usr/lib/tundra/plugins/<name>.so`                         | Listed in `/etc/tundra/plugins.toml`                                  |
 | Third-party | `/var/lib/tundra/plugins/<plugin-id>/<version>/plugin.wasm` | Listed in `/etc/tundra/plugins.toml`; capabilities granted explicitly |
 
 The loader is the same code path for all three tiers; only the linkage differs (static, dynamic, WASM instantiation).
@@ -373,12 +373,12 @@ The same pattern applies to backup targets, app templates, monitoring exporters,
                               [absent]
 ```
 
-| State | Meaning |
-|-------|---------|
-| `absent` | Plugin not on disk |
-| `installed` | Bundle on disk, manifest validated, signature verified, but no permissions granted |
-| `granted` | Operator has reviewed manifest's requested capabilities and granted them |
-| `enabled` | Plugin is loaded into runtime, contributions are active, lifecycle.enable() succeeded |
+| State       | Meaning                                                                               |
+|-------------|---------------------------------------------------------------------------------------|
+| `absent`    | Plugin not on disk                                                                    |
+| `installed` | Bundle on disk, manifest validated, signature verified, but no permissions granted    |
+| `granted`   | Operator has reviewed manifest's requested capabilities and granted them              |
+| `enabled`   | Plugin is loaded into runtime, contributions are active, lifecycle.enable() succeeded |
 
 ### 4.2 Lifecycle Operations
 
@@ -563,12 +563,12 @@ async fn cloudflare_plugin_lists_zones() {
 
 Plugin authors choose a guest language. Tundra publishes templates for each:
 
-| Language | Tooling | Template Repo |
-|----------|---------|---------------|
-| Rust | `cargo-component` | `tundra-plugin-template-rust` |
-| Go (TinyGo) | `wasm-tools component new` | `tundra-plugin-template-go` |
-| Python | `componentize-py` | `tundra-plugin-template-python` |
-| JavaScript / TypeScript | `jco componentize` | `tundra-plugin-template-js` |
+| Language                | Tooling                    | Template Repo                   |
+|-------------------------|----------------------------|---------------------------------|
+| Rust                    | `cargo-component`          | `tundra-plugin-template-rust`   |
+| Go (TinyGo)             | `wasm-tools component new` | `tundra-plugin-template-go`     |
+| Python                  | `componentize-py`          | `tundra-plugin-template-python` |
+| JavaScript / TypeScript | `jco componentize`         | `tundra-plugin-template-js`     |
 
 Rust is the recommended language because the WIT bindings are most ergonomic and the resulting `.wasm` binaries are smallest. Other languages are supported equally at the contract level — they trade binary size for author familiarity.
 
@@ -650,17 +650,17 @@ The signature is verified at install time. Without a valid signature, install re
 
 Wasmtime is configured with strict defaults:
 
-| Setting | Value |
-|---------|-------|
-| `epoch_interruption` | enabled (preempts long-running plugin code) |
-| `consume_fuel` | enabled, default 100M instructions per call |
-| `memory_max_size` | 256 MB per instance (configurable per-plugin in manifest) |
-| `wasm_threads` | disabled |
-| `wasm_simd` | enabled (perf wins are worth it) |
-| `wasm_multi_memory` | disabled |
-| `wasm_bulk_memory` | enabled |
-| `cranelift_opt_level` | `Speed` (release builds) |
-| `parallel_compilation` | enabled |
+| Setting                | Value                                                     |
+|------------------------|-----------------------------------------------------------|
+| `epoch_interruption`   | enabled (preempts long-running plugin code)               |
+| `consume_fuel`         | enabled, default 100M instructions per call               |
+| `memory_max_size`      | 256 MB per instance (configurable per-plugin in manifest) |
+| `wasm_threads`         | disabled                                                  |
+| `wasm_simd`            | enabled (perf wins are worth it)                          |
+| `wasm_multi_memory`    | disabled                                                  |
+| `wasm_bulk_memory`     | enabled                                                   |
+| `cranelift_opt_level`  | `Speed` (release builds)                                  |
+| `parallel_compilation` | enabled                                                   |
 
 Each plugin instantiation has its own `Store`. Stores are not shared between calls — every host invocation of a plugin export creates a fresh execution context, with the plugin's KV state preserved in the host between calls.
 
@@ -683,12 +683,12 @@ The host sets these on every Wasmtime `Store` it creates for the plugin. A plugi
 
 Every plugin call is timed and outcome-tagged. The host maintains a rolling 24-hour window:
 
-| Metric | Threshold for "unhealthy" |
-|--------|---------------------------|
-| Error rate | > 5% over 1h |
-| p99 latency | > 10× median over 1h |
-| Trap rate (WASM) | > 1% over 1h |
-| Memory peak | > 80% of allocated for >5 calls in 1h |
+| Metric           | Threshold for "unhealthy"             |
+|------------------|---------------------------------------|
+| Error rate       | > 5% over 1h                          |
+| p99 latency      | > 10× median over 1h                  |
+| Trap rate (WASM) | > 1% over 1h                          |
+| Memory peak      | > 80% of allocated for >5 calls in 1h |
 
 An unhealthy plugin gets a warning in the operator's dashboard. After 6 hours of unhealthy state, the plugin is auto-disabled with an alert. The operator can re-enable manually after investigation.
 
@@ -969,15 +969,15 @@ The plugin system is designed against three primary threats:
 
 ### 10.2 Mitigations
 
-| Threat | Mitigation |
-|--------|------------|
-| Supply-chain | Signature verification at install; capability re-grant required on every update (operator must re-acknowledge if a new version requests new capabilities) |
-| Supply-chain | Reproducible builds verified against published checksums; SBOM published with each release |
-| Confused-deputy | All host APIs validate caller identity; no API "promotes" the plugin's authority |
-| Confused-deputy | Database queries are pre-declared; no dynamic SQL generation possible from plugin |
-| Resource exhaustion | Per-plugin fuel, memory, time limits enforced by Wasmtime |
-| Resource exhaustion | Per-plugin rate limits on HTTP, DB queries, jobs |
-| Resource exhaustion | Auto-disable on sustained unhealthy state |
+| Threat              | Mitigation                                                                                                                                                |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Supply-chain        | Signature verification at install; capability re-grant required on every update (operator must re-acknowledge if a new version requests new capabilities) |
+| Supply-chain        | Reproducible builds verified against published checksums; SBOM published with each release                                                                |
+| Confused-deputy     | All host APIs validate caller identity; no API "promotes" the plugin's authority                                                                          |
+| Confused-deputy     | Database queries are pre-declared; no dynamic SQL generation possible from plugin                                                                         |
+| Resource exhaustion | Per-plugin fuel, memory, time limits enforced by Wasmtime                                                                                                 |
+| Resource exhaustion | Per-plugin rate limits on HTTP, DB queries, jobs                                                                                                          |
+| Resource exhaustion | Auto-disable on sustained unhealthy state                                                                                                                 |
 
 ### 10.3 What WASM Plugins Cannot Do (Even With Bugs)
 
@@ -1290,13 +1290,13 @@ Shipped:
 
 ### 12.2 Post-v1.0 Roadmap
 
-| Milestone | Item |
-|-----------|------|
-| v1.1 | Go (TinyGo) and Python (componentize-py) plugin templates |
-| v1.2 | Plugin developer portal at plugins.tundra.dev with submission workflow |
-| v1.3 | Plugin marketplace UI in panel (browse, search, install) |
-| v2.0 | Agent-side WASM plugins (the `forge-agent` provider boundary opens to WASM) |
-| v2.1 | Multi-tenant signing key delegation for organization-managed registries |
+| Milestone | Item                                                                        |
+|-----------|-----------------------------------------------------------------------------|
+| v1.1      | Go (TinyGo) and Python (componentize-py) plugin templates                   |
+| v1.2      | Plugin developer portal at plugins.tundra.dev with submission workflow      |
+| v1.3      | Plugin marketplace UI in panel (browse, search, install)                    |
+| v2.0      | Agent-side WASM plugins (the `forge-agent` provider boundary opens to WASM) |
+| v2.1      | Multi-tenant signing key delegation for organization-managed registries     |
 
 ### 12.3 Stability Guarantees
 
@@ -1308,14 +1308,14 @@ The native Rust SDK follows the same semver discipline.
 
 ## 13. Performance Targets
 
-| Metric | Target |
-|--------|--------|
-| Plugin cold load (WASM, ~5 MB) | < 200 ms |
-| Plugin warm call (WASM) | < 5 ms overhead vs. native |
-| Plugin warm call (native) | < 100 µs overhead |
-| Memory overhead per WASM plugin instance | < 8 MB at idle |
-| Concurrent WASM plugin instances per `tundrad` | 50 (target for v1.0) |
-| Plugin manifest validation | < 50 ms |
+| Metric                                         | Target                     |
+|------------------------------------------------|----------------------------|
+| Plugin cold load (WASM, ~5 MB)                 | < 200 ms                   |
+| Plugin warm call (WASM)                        | < 5 ms overhead vs. native |
+| Plugin warm call (native)                      | < 100 µs overhead          |
+| Memory overhead per WASM plugin instance       | < 8 MB at idle             |
+| Concurrent WASM plugin instances per `tundrad` | 50 (target for v1.0)       |
+| Plugin manifest validation                     | < 50 ms                    |
 
 These are achievable based on Wasmtime's published benchmarks and the Bytecode Alliance's production deployments.
 
@@ -1376,9 +1376,9 @@ These are intentionally listed so the implementation phase has explicit decision
 
 ## 16. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial complete plugin architecture specification. Hybrid native/WASM model. Plesk migration designated as reference core plugin. v1 registry without marketplace; marketplace deferred to v2. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                         |
+|---------|----------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial complete plugin architecture specification. Hybrid native/WASM model. Plesk migration designated as reference core plugin. v1 registry without marketplace; marketplace deferred to v2. |
 
 **Companion Documents:**
 

@@ -226,12 +226,12 @@ The control surface for AI access is two-layered: the **token scope** sets a cei
 
 Tokens are minted by the operator with explicit scope. MCP scopes are distinct from the general Tundra API token scopes; an MCP token cannot authenticate against `/api/v1/*`, and a generic API token cannot authenticate against `/mcp` or stdio.
 
-| Scope | Grants |
-|-------|--------|
-| `mcp:read` | Read-only: list resources, read logs, view metrics, browse audit log |
+| Scope            | Grants                                                                                                                                              |
+|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mcp:read`       | Read-only: list resources, read logs, view metrics, browse audit log                                                                                |
 | `mcp:write:safe` | Read + safe writes: restart a service, clear a cache, retry a failed job. **No site/server/database creation, no deletion, no credential changes.** |
-| `mcp:write` | Read + safe writes + mutations: create sites, deploy code, modify environment variables, trigger backups |
-| `mcp:admin` | All of the above plus operator-level mutations: invite operators, change permissions, modify global configuration |
+| `mcp:write`      | Read + safe writes + mutations: create sites, deploy code, modify environment variables, trigger backups                                            |
+| `mcp:admin`      | All of the above plus operator-level mutations: invite operators, change permissions, modify global configuration                                   |
 
 Tokens are mintable only by an operator with the `Owner` or `Admin` role, and the token's scope cannot exceed the issuing operator's role's permissions. (An `Admin` cannot mint an `mcp:admin` token because some `mcp:admin` operations require `Owner` role at the panel.)
 
@@ -255,12 +255,12 @@ effective_tools(token, session) =
   )
 ```
 
-| Token scope | Session `read` | Session `write` |
-|-------------|----------------|-----------------|
-| `mcp:read` | read tools | read tools |
-| `mcp:write:safe` | read tools | read + safe-write tools |
-| `mcp:write` | read tools | read + safe-write + write tools |
-| `mcp:admin` | read tools | all tools |
+| Token scope      | Session `read` | Session `write`                 |
+|------------------|----------------|---------------------------------|
+| `mcp:read`       | read tools     | read tools                      |
+| `mcp:write:safe` | read tools     | read + safe-write tools         |
+| `mcp:write`      | read tools     | read + safe-write + write tools |
+| `mcp:admin`      | read tools     | all tools                       |
 
 A read-mode session always surfaces only read tools, regardless of token scope.
 
@@ -944,14 +944,14 @@ The MCP server inherits the controls in `tundra-security-audit-v1.md` and adds a
 
 Adding to the STRIDE analysis from `tundra-security-audit-v1.md` §4:
 
-| Threat | Vector | Control |
-|---|---|---|
-| **S** — agent claims a clientInfo it isn't | Hostile MCP client lies in `initialize` | `clientInfo.name` is recorded but **not trusted for authorization**. Token scope and session mode determine capability; clientInfo is for audit display only. |
-| **T** — replay of a captured tool call | Network attacker replays a POST | TLS 1.3; `Mcp-Session-Id` is bound to the session row and the source IP for HTTP; replay across sessions fails. |
-| **R** — operator denies issuing a destructive call | Compromised agent claims operator approved | Confirmation tokens are server-issued, single-use, bound to the previewed parameters; the audit log records both preview and confirm. |
-| **I** — secret leaks in tool output | Agent reads a value via `get_site` | `get_site` returns env var **keys** only, never values. Other read tools follow the same rule. |
-| **D** — agent runs the rate limiter dry | Buggy or hostile agent | Per-session rate limit (default 60 RPM); 429 response includes `Retry-After`; sustained breach revokes the session. |
-| **E** — read-only agent gets write access | Bug in the scope resolver | Single resolver function; integration tests assert the matrix in §5.3 for every tool; in-process call still hits panel `Authz::require`. |
+| Threat                                             | Vector                                     | Control                                                                                                                                                       |
+|----------------------------------------------------|--------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **S** — agent claims a clientInfo it isn't         | Hostile MCP client lies in `initialize`    | `clientInfo.name` is recorded but **not trusted for authorization**. Token scope and session mode determine capability; clientInfo is for audit display only. |
+| **T** — replay of a captured tool call             | Network attacker replays a POST            | TLS 1.3; `Mcp-Session-Id` is bound to the session row and the source IP for HTTP; replay across sessions fails.                                               |
+| **R** — operator denies issuing a destructive call | Compromised agent claims operator approved | Confirmation tokens are server-issued, single-use, bound to the previewed parameters; the audit log records both preview and confirm.                         |
+| **I** — secret leaks in tool output                | Agent reads a value via `get_site`         | `get_site` returns env var **keys** only, never values. Other read tools follow the same rule.                                                                |
+| **D** — agent runs the rate limiter dry            | Buggy or hostile agent                     | Per-session rate limit (default 60 RPM); 429 response includes `Retry-After`; sustained breach revokes the session.                                           |
+| **E** — read-only agent gets write access          | Bug in the scope resolver                  | Single resolver function; integration tests assert the matrix in §5.3 for every tool; in-process call still hits panel `Authz::require`.                      |
 
 ### 13.4 Operator responsibilities
 
@@ -966,15 +966,15 @@ Documented in the operator companion (`tundra-mcp-server-operator-v1.md`), but t
 
 ## 14. Performance Targets
 
-| Metric | Target |
-|--------|--------|
-| `initialize` round-trip | < 50 ms |
-| `tools/list` round-trip | < 30 ms (response is cached per (token, mode) pair) |
-| Read-tool p95 latency | < 100 ms (forwards to the same panel API the operator hits) |
-| Write-tool p95 latency | < 250 ms (excluding asynchronous work — deploys remain async) |
-| SSE first-byte for streaming tools | < 200 ms |
-| Concurrent sessions per `tundrad` instance | 1000 |
-| Steady-state RSS overhead with 100 idle sessions | < 50 MiB |
+| Metric                                           | Target                                                        |
+|--------------------------------------------------|---------------------------------------------------------------|
+| `initialize` round-trip                          | < 50 ms                                                       |
+| `tools/list` round-trip                          | < 30 ms (response is cached per (token, mode) pair)           |
+| Read-tool p95 latency                            | < 100 ms (forwards to the same panel API the operator hits)   |
+| Write-tool p95 latency                           | < 250 ms (excluding asynchronous work — deploys remain async) |
+| SSE first-byte for streaming tools               | < 200 ms                                                      |
+| Concurrent sessions per `tundrad` instance       | 1000                                                          |
+| Steady-state RSS overhead with 100 idle sessions | < 50 MiB                                                      |
 
 Validated by the load tests in `tundra-test-plan-v1.md` §9.2.
 
@@ -1099,22 +1099,22 @@ Hooks into the test plan (`tundra-test-plan-v1.md`):
 
 ## 19. Roadmap
 
-| Item | Target |
-|---|---|
-| OAuth 2.1 device flow | v1.1 |
-| Per-tool granular scopes (e.g. `mcp:write:deploys`) | v1.2 |
-| Outbound MCP client (Tundra as an MCP client to other servers) | v2.0 |
-| Plugin-contributed tools (tools registered by other Tundra plugins) | v1.3 |
-| Tool input/output schema versioning with migration helpers | v1.3 |
-| Replay protection nonces beyond the session-id binding | v1.2 |
+| Item                                                                | Target |
+|---------------------------------------------------------------------|--------|
+| OAuth 2.1 device flow                                               | v1.1   |
+| Per-tool granular scopes (e.g. `mcp:write:deploys`)                 | v1.2   |
+| Outbound MCP client (Tundra as an MCP client to other servers)      | v2.0   |
+| Plugin-contributed tools (tools registered by other Tundra plugins) | v1.3   |
+| Tool input/output schema versioning with migration helpers          | v1.3   |
+| Replay protection nonces beyond the session-id binding              | v1.2   |
 
 ---
 
 ## 20. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial dedicated specification. Extracted from `tundra-additional-core-plugins-v1.md` §4 and expanded with full transport behaviour, complete tool catalog with JSON Schemas, scope/session matrix, plugin-owned schema, audit pipeline, MCP-specific threat model, performance targets, CLI/UI/config surfaces, test surface, roadmap. The additional-plugins document now references this one as the source of truth. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                                                                                                                                                                                                  |
+|---------|----------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial dedicated specification. Extracted from `tundra-additional-core-plugins-v1.md` §4 and expanded with full transport behaviour, complete tool catalog with JSON Schemas, scope/session matrix, plugin-owned schema, audit pipeline, MCP-specific threat model, performance targets, CLI/UI/config surfaces, test surface, roadmap. The additional-plugins document now references this one as the source of truth. |
 
 **Companion Documents:**
 

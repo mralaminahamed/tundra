@@ -718,25 +718,25 @@ The Operator Edition will be updated when v1.5 ships.
 
 A short reference for what should run when:
 
-| Task | When | Tool |
-|------|------|------|
-| `pg_dump` self-backup | daily 02:30 | `tundra-self-backup.timer` |
-| Postgres VACUUM ANALYZE on hot tables | nightly 03:00 | `tundra-maintenance.timer` |
-| Detach + archive old `metrics_samples` partitions | nightly 03:00 | `tundra-maintenance.timer` |
-| Renew TLS for the panel hostname | as needed | Caddy (automatic) |
-| Renew agent certs | 30 days before expiry | `tundrad` (automatic) |
-| Renew Tundra release-signing trust store | manual on Tundra major | operator |
-| Verify the latest self-backup | weekly (recommend) | `tundra-self-backup verify` |
-| Drill a full restore in staging | quarterly (recommend) | manual |
-| Review audit log for anomalies | weekly (recommend) | manual; see Security Audit Engineering Edition |
+| Task                                              | When                   | Tool                                           |
+|---------------------------------------------------|------------------------|------------------------------------------------|
+| `pg_dump` self-backup                             | daily 02:30            | `tundra-self-backup.timer`                     |
+| Postgres VACUUM ANALYZE on hot tables             | nightly 03:00          | `tundra-maintenance.timer`                     |
+| Detach + archive old `metrics_samples` partitions | nightly 03:00          | `tundra-maintenance.timer`                     |
+| Renew TLS for the panel hostname                  | as needed              | Caddy (automatic)                              |
+| Renew agent certs                                 | 30 days before expiry  | `tundrad` (automatic)                          |
+| Renew Tundra release-signing trust store          | manual on Tundra major | operator                                       |
+| Verify the latest self-backup                     | weekly (recommend)     | `tundra-self-backup verify`                    |
+| Drill a full restore in staging                   | quarterly (recommend)  | manual                                         |
+| Review audit log for anomalies                    | weekly (recommend)     | manual; see Security Audit Engineering Edition |
 
 ---
 
 ## 11. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial engineering-edition deployment runbook. Full systemd unit, manual install, master-key rotation, agent cert recovery, troubleshooting trees, manual restore. HA roadmap notes for v1.5. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                        |
+|---------|----------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial engineering-edition deployment runbook. Full systemd unit, manual install, master-key rotation, agent cert recovery, troubleshooting trees, manual restore. HA roadmap notes for v1.5. |
 
 **Companion Documents:**
 

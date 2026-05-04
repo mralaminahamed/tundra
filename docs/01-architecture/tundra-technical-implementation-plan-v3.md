@@ -84,12 +84,12 @@ The result: this document stays readable end-to-end in one sitting, while the de
 
 Tundra consists of four primary components, each a separate Rust binary:
 
-| Component | Binary | Role |
-|-----------|--------|------|
-| Control Plane API | `tundrad` | The central HTTP/gRPC API, web UI backend, database authority. Single instance per cluster. |
-| Node Agent | `tundra-agent` | Runs on every managed server. Executes provisioning, deployment, and monitoring tasks. |
-| CLI | `tundra` | Operator-facing command-line tool. Interacts with the API. |
-| Web UI | `tundra-ui` | Single-page React application served as static assets by `tundrad`. |
+| Component         | Binary         | Role                                                                                        |
+|-------------------|----------------|---------------------------------------------------------------------------------------------|
+| Control Plane API | `tundrad`      | The central HTTP/gRPC API, web UI backend, database authority. Single instance per cluster. |
+| Node Agent        | `tundra-agent` | Runs on every managed server. Executes provisioning, deployment, and monitoring tasks.      |
+| CLI               | `tundra`       | Operator-facing command-line tool. Interacts with the API.                                  |
+| Web UI            | `tundra-ui`    | Single-page React application served as static assets by `tundrad`.                         |
 
 ### 2.2 Deployment Modes
 
@@ -142,25 +142,25 @@ The same binaries are used in both modes; the mode is determined by configuratio
 
 ### 2.3 Communication Layers
 
-| Edge | Protocol | Auth | Purpose |
-|------|----------|------|---------|
-| Browser ↔ `tundrad` | HTTPS (HTTP/2) | Session cookie + CSRF | Web UI |
-| CLI ↔ `tundrad` | HTTPS (HTTP/2) | API token (Bearer) | Automation, scripting |
-| External integrations ↔ `tundrad` | HTTPS REST + Webhooks | API token, HMAC-signed webhooks | Git push, CI/CD, monitoring |
-| `tundrad` ↔ `tundra-agent` (single-host) | Unix domain socket + bincode | OS-level (root only) | Internal RPC |
-| `tundrad` ↔ `tundra-agent` (multi-host) | gRPC over mTLS | X.509 client certificate | Remote provisioning, deploy, telemetry |
-| `tundra-agent` ↔ system | systemd D-Bus, `nftables`, `iproute2`, file system | root | Service management |
+| Edge                                     | Protocol                                           | Auth                            | Purpose                                |
+|------------------------------------------|----------------------------------------------------|---------------------------------|----------------------------------------|
+| Browser ↔ `tundrad`                      | HTTPS (HTTP/2)                                     | Session cookie + CSRF           | Web UI                                 |
+| CLI ↔ `tundrad`                          | HTTPS (HTTP/2)                                     | API token (Bearer)              | Automation, scripting                  |
+| External integrations ↔ `tundrad`        | HTTPS REST + Webhooks                              | API token, HMAC-signed webhooks | Git push, CI/CD, monitoring            |
+| `tundrad` ↔ `tundra-agent` (single-host) | Unix domain socket + bincode                       | OS-level (root only)            | Internal RPC                           |
+| `tundrad` ↔ `tundra-agent` (multi-host)  | gRPC over mTLS                                     | X.509 client certificate        | Remote provisioning, deploy, telemetry |
+| `tundra-agent` ↔ system                  | systemd D-Bus, `nftables`, `iproute2`, file system | root                            | Service management                     |
 
 Full surface specification: `tundra-api-specification-v1.md` covers the REST + gRPC + WebSocket contracts, including authentication header semantics, idempotency, pagination, error envelope, and rate limits.
 
 ### 2.4 Data Storage
 
-| Store | Technology | Purpose |
-|-------|------------|---------|
-| Primary database | PostgreSQL 18 | All panel state — operators, servers, sites, applications, certificates, audit logs (73 tables; see schema spec) |
-| Cache & rate limiting | Valkey 8 (Redis-compatible) | Session storage, deploy queue, real-time event pub/sub |
-| Object storage (optional) | Local filesystem or S3-compatible (MinIO, R2, Spaces) | Backup destination, deployment artifacts |
-| Time-series (optional) | VictoriaMetrics or Prometheus | Per-node and per-app metrics |
+| Store                     | Technology                                            | Purpose                                                                                                          |
+|---------------------------|-------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| Primary database          | PostgreSQL 18                                         | All panel state — operators, servers, sites, applications, certificates, audit logs (73 tables; see schema spec) |
+| Cache & rate limiting     | Valkey 8 (Redis-compatible)                           | Session storage, deploy queue, real-time event pub/sub                                                           |
+| Object storage (optional) | Local filesystem or S3-compatible (MinIO, R2, Spaces) | Backup destination, deployment artifacts                                                                         |
+| Time-series (optional)    | VictoriaMetrics or Prometheus                         | Per-node and per-app metrics                                                                                     |
 
 PostgreSQL 18 is mandatory; SQLite is intentionally not supported as a panel store because the multi-server use case requires concurrent write durability and replication.
 
@@ -172,39 +172,39 @@ The full schema — table-by-table DDL, indexes, partitioning strategy for `metr
 
 ### 3.1 Core Stack
 
-| Layer | Technology | Version (May 2026) | Justification |
-|-------|------------|---------------------|---------------|
-| Systems language | Rust | 1.95.0 (stable) | Memory safety, performance, single static binary |
-| Async runtime | Tokio | 1.x | De facto standard, mature ecosystem |
-| HTTP framework | Axum | 0.8.x | Tokio-native, type-safe routing, Tower middleware |
-| gRPC | Tonic | 0.13.x | Idiomatic gRPC for inter-component RPC |
-| Serialization | serde, bincode, prost | latest | JSON for HTTP, bincode for internal RPC, protobuf for gRPC |
-| Database access | SQLx | 0.8.x | Compile-time-checked queries against PostgreSQL |
-| Migrations | sqlx-cli | 0.8.x | Versioned, up-only SQL migrations |
-| Async tasks | Tokio + custom queue | n/a | Background jobs, deploy queue, scheduled tasks |
-| Configuration | figment | latest | Layered config from TOML, env vars, secrets |
-| Logging | tracing + tracing-subscriber | latest | Structured, contextual logs with OTLP export |
-| TLS | rustls | latest | Memory-safe TLS without OpenSSL dependency |
-| Process supervision | systemd (host) + Tokio (in-proc) | n/a | OS-native; no reinvented wheels |
-| Plugin sandbox | Wasmtime | latest stable | WASM isolation with fuel/memory/epoch limits |
+| Layer               | Technology                       | Version (May 2026) | Justification                                              |
+|---------------------|----------------------------------|--------------------|------------------------------------------------------------|
+| Systems language    | Rust                             | 1.95.0 (stable)    | Memory safety, performance, single static binary           |
+| Async runtime       | Tokio                            | 1.x                | De facto standard, mature ecosystem                        |
+| HTTP framework      | Axum                             | 0.8.x              | Tokio-native, type-safe routing, Tower middleware          |
+| gRPC                | Tonic                            | 0.13.x             | Idiomatic gRPC for inter-component RPC                     |
+| Serialization       | serde, bincode, prost            | latest             | JSON for HTTP, bincode for internal RPC, protobuf for gRPC |
+| Database access     | SQLx                             | 0.8.x              | Compile-time-checked queries against PostgreSQL            |
+| Migrations          | sqlx-cli                         | 0.8.x              | Versioned, up-only SQL migrations                          |
+| Async tasks         | Tokio + custom queue             | n/a                | Background jobs, deploy queue, scheduled tasks             |
+| Configuration       | figment                          | latest             | Layered config from TOML, env vars, secrets                |
+| Logging             | tracing + tracing-subscriber     | latest             | Structured, contextual logs with OTLP export               |
+| TLS                 | rustls                           | latest             | Memory-safe TLS without OpenSSL dependency                 |
+| Process supervision | systemd (host) + Tokio (in-proc) | n/a                | OS-native; no reinvented wheels                            |
+| Plugin sandbox      | Wasmtime                         | latest stable      | WASM isolation with fuel/memory/epoch limits               |
 
 ### 3.2 Frontend Stack
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| Framework | React | 19.x |
-| Build tooling | Vite | 8.x |
-| Language | TypeScript | 5.7+ (strict mode) |
-| Routing | TanStack Router | 1.x |
-| Data fetching | TanStack Query | 5.x |
-| State (UI) | Zustand | 5.x |
-| Styling | TailwindCSS | 4.x |
-| Component library | shadcn/ui (Radix primitives) | latest |
-| Icons | Lucide React | latest |
-| Forms (simple) | React Hook Form + Zod | latest |
-| Forms (wizards) | Formik + Yup | latest |
-| Charts | Recharts | latest |
-| Real-time | Native WebSocket (forwarded by `tundrad`) | n/a |
+| Layer             | Technology                                | Version            |
+|-------------------|-------------------------------------------|--------------------|
+| Framework         | React                                     | 19.x               |
+| Build tooling     | Vite                                      | 8.x                |
+| Language          | TypeScript                                | 5.7+ (strict mode) |
+| Routing           | TanStack Router                           | 1.x                |
+| Data fetching     | TanStack Query                            | 5.x                |
+| State (UI)        | Zustand                                   | 5.x                |
+| Styling           | TailwindCSS                               | 4.x                |
+| Component library | shadcn/ui (Radix primitives)              | latest             |
+| Icons             | Lucide React                              | latest             |
+| Forms (simple)    | React Hook Form + Zod                     | latest             |
+| Forms (wizards)   | Formik + Yup                              | latest             |
+| Charts            | Recharts                                  | latest             |
+| Real-time         | Native WebSocket (forwarded by `tundrad`) | n/a                |
 
 Full UI specification — design tokens, component patterns, route map, accessibility baseline (WCAG 2.2 AA), wizard flows: **`tundra-frontend-ui-spec-v1.md`**.
 
@@ -212,51 +212,51 @@ Full UI specification — design tokens, component patterns, route map, accessib
 
 These are versions Tundra installs and offers to applications. Multiple versions can coexist; each application selects its runtime.
 
-| Runtime | Versions Offered | Source |
-|---------|------------------|--------|
-| PHP | 8.1, 8.2, 8.3, 8.4 (default) | Ondřej Surý's PPA / Sury Debian repo |
-| Node.js | 20 LTS, 22 LTS, 24 LTS (default) | NodeSource repo |
-| Python | 3.10, 3.11, 3.12, 3.13 (default) | Deadsnakes PPA / source |
-| Go | 1.22, 1.23, 1.24 (default) | Official Go releases |
-| Rust | stable (rustup-managed) | rustup |
-| Ruby | 3.2, 3.3, 3.4 (default) | rbenv / ruby-build |
-| .NET | 8 LTS, 9 (default) | Microsoft repo |
+| Runtime | Versions Offered                 | Source                               |
+|---------|----------------------------------|--------------------------------------|
+| PHP     | 8.1, 8.2, 8.3, 8.4 (default)     | Ondřej Surý's PPA / Sury Debian repo |
+| Node.js | 20 LTS, 22 LTS, 24 LTS (default) | NodeSource repo                      |
+| Python  | 3.10, 3.11, 3.12, 3.13 (default) | Deadsnakes PPA / source              |
+| Go      | 1.22, 1.23, 1.24 (default)       | Official Go releases                 |
+| Rust    | stable (rustup-managed)          | rustup                               |
+| Ruby    | 3.2, 3.3, 3.4 (default)          | rbenv / ruby-build                   |
+| .NET    | 8 LTS, 9 (default)               | Microsoft repo                       |
 
 ### 3.4 Managed Services
 
-| Service | Engine | Versions |
-|---------|--------|----------|
-| Web server (primary) | Nginx | 1.27+ |
-| Web server (alternative) | Caddy | 2.8+ |
-| Reverse proxy / edge | Nginx with Brotli + HTTP/3 | latest |
-| PHP execution | PHP-FPM (per-app pool) | matches PHP version |
-| Database — relational | PostgreSQL | 16, 17, 18 (default) |
-| Database — relational | MySQL | 8.4 LTS |
-| Database — relational | MariaDB | 11.4 LTS |
-| Cache / KV | Valkey | 8.x (Redis 7 fork, BSD-licensed) |
-| Search | MeiliSearch / Typesense | latest stable |
-| Mail — SMTP | Postfix | distribution version |
-| Mail — IMAP/POP3 | Dovecot | distribution version |
-| Mail — Anti-spam | Rspamd | latest |
-| Mail — DKIM/DMARC | OpenDKIM + Rspamd | latest |
-| DNS — authoritative | PowerDNS Authoritative | 4.9+ |
-| DNS — recursor (optional) | PowerDNS Recursor or Unbound | latest |
-| SSL — ACME client | Internal Rust ACME client (`instant-acme`) | latest |
-| Firewall | nftables | distribution version |
-| Backup | Restic | 0.17+ |
-| Container runtime (optional) | Docker Engine + Compose v2 | latest stable |
-| Process manager (apps) | systemd (template units) | host version |
+| Service                      | Engine                                     | Versions                         |
+|------------------------------|--------------------------------------------|----------------------------------|
+| Web server (primary)         | Nginx                                      | 1.27+                            |
+| Web server (alternative)     | Caddy                                      | 2.8+                             |
+| Reverse proxy / edge         | Nginx with Brotli + HTTP/3                 | latest                           |
+| PHP execution                | PHP-FPM (per-app pool)                     | matches PHP version              |
+| Database — relational        | PostgreSQL                                 | 16, 17, 18 (default)             |
+| Database — relational        | MySQL                                      | 8.4 LTS                          |
+| Database — relational        | MariaDB                                    | 11.4 LTS                         |
+| Cache / KV                   | Valkey                                     | 8.x (Redis 7 fork, BSD-licensed) |
+| Search                       | MeiliSearch / Typesense                    | latest stable                    |
+| Mail — SMTP                  | Postfix                                    | distribution version             |
+| Mail — IMAP/POP3             | Dovecot                                    | distribution version             |
+| Mail — Anti-spam             | Rspamd                                     | latest                           |
+| Mail — DKIM/DMARC            | OpenDKIM + Rspamd                          | latest                           |
+| DNS — authoritative          | PowerDNS Authoritative                     | 4.9+                             |
+| DNS — recursor (optional)    | PowerDNS Recursor or Unbound               | latest                           |
+| SSL — ACME client            | Internal Rust ACME client (`instant-acme`) | latest                           |
+| Firewall                     | nftables                                   | distribution version             |
+| Backup                       | Restic                                     | 0.17+                            |
+| Container runtime (optional) | Docker Engine + Compose v2                 | latest stable                    |
+| Process manager (apps)       | systemd (template units)                   | host version                     |
 
 ### 3.5 Operating System Support
 
-| OS | Status | Notes |
-|----|--------|-------|
-| Ubuntu 24.04 LTS | Tier 1 (primary) | Reference platform; all features tested |
-| Ubuntu 22.04 LTS | Tier 1 | Supported through 2027 |
-| Debian 12 (Bookworm) | Tier 1 | Server-default friendly |
-| Debian 13 (Trixie) | Tier 1 (after release) | |
-| AlmaLinux 9 / Rocky 9 | Tier 2 | Supported but not reference |
-| Other distros | Unsupported | Not in v1 scope |
+| OS                    | Status                 | Notes                                   |
+|-----------------------|------------------------|-----------------------------------------|
+| Ubuntu 24.04 LTS      | Tier 1 (primary)       | Reference platform; all features tested |
+| Ubuntu 22.04 LTS      | Tier 1                 | Supported through 2027                  |
+| Debian 12 (Bookworm)  | Tier 1                 | Server-default friendly                 |
+| Debian 13 (Trixie)    | Tier 1 (after release) |                                         |
+| AlmaLinux 9 / Rocky 9 | Tier 2                 | Supported but not reference             |
+| Other distros         | Unsupported            | Not in v1 scope                         |
 
 ---
 
@@ -286,19 +286,19 @@ Host and deploy web applications of any supported stack.
 
 **Application types (v1.0).**
 
-| Type | Runtime | Deployment Pattern |
-|------|---------|--------------------|
-| Static site | None | Upload / Git push / build artifact |
-| PHP / WordPress | PHP-FPM | Document-root + PHP-FPM pool |
-| Laravel | PHP-FPM + queue + scheduler | Atomic releases, supervised queue worker, cron |
-| Symfony / generic PHP framework | PHP-FPM | Atomic releases |
-| Node.js | systemd unit | Atomic releases, port-bound, reverse-proxied |
-| Next.js (custom server) | systemd unit | Build step + `node server.js` |
-| Python (Django, FastAPI, Flask) | systemd unit (gunicorn/uvicorn) | venv + atomic releases |
-| Go | systemd unit | Build step → static binary → reverse-proxied |
-| Rust | systemd unit | Build step → static binary → reverse-proxied |
-| Ruby on Rails | systemd unit (Puma) | bundler + atomic releases |
-| Docker / Compose | Docker | `docker compose up -d --build` orchestrated by agent |
+| Type                            | Runtime                         | Deployment Pattern                                   |
+|---------------------------------|---------------------------------|------------------------------------------------------|
+| Static site                     | None                            | Upload / Git push / build artifact                   |
+| PHP / WordPress                 | PHP-FPM                         | Document-root + PHP-FPM pool                         |
+| Laravel                         | PHP-FPM + queue + scheduler     | Atomic releases, supervised queue worker, cron       |
+| Symfony / generic PHP framework | PHP-FPM                         | Atomic releases                                      |
+| Node.js                         | systemd unit                    | Atomic releases, port-bound, reverse-proxied         |
+| Next.js (custom server)         | systemd unit                    | Build step + `node server.js`                        |
+| Python (Django, FastAPI, Flask) | systemd unit (gunicorn/uvicorn) | venv + atomic releases                               |
+| Go                              | systemd unit                    | Build step → static binary → reverse-proxied         |
+| Rust                            | systemd unit                    | Build step → static binary → reverse-proxied         |
+| Ruby on Rails                   | systemd unit (Puma)             | bundler + atomic releases                            |
+| Docker / Compose                | Docker                          | `docker compose up -d --build` orchestrated by agent |
 
 **Capabilities.** One-click application creation from templates (§4.10); custom application creation with full control over build and run commands; **atomic deployments** — each deploy is a new directory under `releases/`, and `current` is a symlink swap, so rollback is `O(1)`; Git-based deploys with webhook triggers from GitHub, GitLab, Bitbucket, Gitea (or any Git provider); SSH-key-based deploy keys per repository; build pipeline with configurable `pre-build`, `build`, `post-build`, `pre-deploy`, `post-deploy` hooks; environment variable management (encrypted at rest with AES-256-GCM; per-environment scopes); health check (HTTP probe + exit-code probe) post-deploy with automatic rollback on failure; zero-downtime reload for PHP-FPM and reverse-proxied services; per-app PHP-FPM pool with isolated user, file descriptor limits, memory limit, opcache settings; per-app systemd unit for non-PHP runtimes; log streaming (stdout/stderr) over WebSocket; resource quotas per application (CPU shares via cgroups v2, memory limits, disk quota).
 
@@ -354,26 +354,26 @@ Bootstrap common applications with sensible defaults.
 
 **Built-in templates (v1.0).**
 
-| Template | Stack | Notes |
-|----------|-------|-------|
-| WordPress | PHP 8.4 + MySQL 8.4 | wp-cli-driven install, salt-key generation, default security plugins optional |
-| WordPress Multisite | PHP 8.4 + MySQL 8.4 | Subdirectory or subdomain mode |
-| WooCommerce-ready WordPress | PHP 8.4 + MySQL 8.4 + Valkey | Object cache configured, HPOS-enabled by default |
-| Laravel (skeleton) | PHP 8.4 + PostgreSQL 18 + Valkey | Composer install, key generate, migrate, queue worker, scheduler |
-| Statamic | PHP 8.4 | |
-| Symfony skeleton | PHP 8.4 + PostgreSQL 18 | |
-| Next.js | Node.js 24 + PostgreSQL 18 | Build step `npm run build`, run `npm start` |
-| Nuxt 3 | Node.js 24 | Static export or SSR |
-| Astro | Node.js 24 | Static export by default |
-| SvelteKit | Node.js 24 | Adapter-node deployment |
-| Strapi | Node.js 24 + PostgreSQL 18 | |
-| Directus | Node.js 24 + PostgreSQL 18 | |
-| Ghost | Node.js 24 + MySQL 8.4 | |
-| Django | Python 3.13 + PostgreSQL 18 | gunicorn + uvicorn workers |
-| FastAPI | Python 3.13 + PostgreSQL 18 | uvicorn |
-| Rails | Ruby 3.4 + PostgreSQL 18 + Valkey | Puma + Sidekiq |
-| Phoenix | Elixir + PostgreSQL 18 | Future scope; not v1.0 |
-| Static (Hugo / Zola / Jekyll) | None | Build step at deploy |
+| Template                      | Stack                             | Notes                                                                         |
+|-------------------------------|-----------------------------------|-------------------------------------------------------------------------------|
+| WordPress                     | PHP 8.4 + MySQL 8.4               | wp-cli-driven install, salt-key generation, default security plugins optional |
+| WordPress Multisite           | PHP 8.4 + MySQL 8.4               | Subdirectory or subdomain mode                                                |
+| WooCommerce-ready WordPress   | PHP 8.4 + MySQL 8.4 + Valkey      | Object cache configured, HPOS-enabled by default                              |
+| Laravel (skeleton)            | PHP 8.4 + PostgreSQL 18 + Valkey  | Composer install, key generate, migrate, queue worker, scheduler              |
+| Statamic                      | PHP 8.4                           |                                                                               |
+| Symfony skeleton              | PHP 8.4 + PostgreSQL 18           |                                                                               |
+| Next.js                       | Node.js 24 + PostgreSQL 18        | Build step `npm run build`, run `npm start`                                   |
+| Nuxt 3                        | Node.js 24                        | Static export or SSR                                                          |
+| Astro                         | Node.js 24                        | Static export by default                                                      |
+| SvelteKit                     | Node.js 24                        | Adapter-node deployment                                                       |
+| Strapi                        | Node.js 24 + PostgreSQL 18        |                                                                               |
+| Directus                      | Node.js 24 + PostgreSQL 18        |                                                                               |
+| Ghost                         | Node.js 24 + MySQL 8.4            |                                                                               |
+| Django                        | Python 3.13 + PostgreSQL 18       | gunicorn + uvicorn workers                                                    |
+| FastAPI                       | Python 3.13 + PostgreSQL 18       | uvicorn                                                                       |
+| Rails                         | Ruby 3.4 + PostgreSQL 18 + Valkey | Puma + Sidekiq                                                                |
+| Phoenix                       | Elixir + PostgreSQL 18            | Future scope; not v1.0                                                        |
+| Static (Hugo / Zola / Jekyll) | None                              | Build step at deploy                                                          |
 
 Templates are versioned YAML manifests — adding a new template does not require a panel rebuild.
 
@@ -571,17 +571,17 @@ The architectural commitments:
 
 ## 10. Performance Targets
 
-| Metric | Target | Notes |
-|--------|--------|-------|
-| `tundrad` cold start | < 300 ms | From systemd `start` to `READY` notification |
-| `tundrad` baseline RSS | < 100 MB | Idle, single-server mode, no plugins |
-| `tundrad` baseline RSS | < 200 MB | Idle, control plane managing 50 nodes |
-| Panel API p95 latency (uncached) | < 80 ms | On 2 vCPU / 4 GB host with 50 sites |
-| Panel API p95 latency (cached) | < 20 ms | |
-| Deploy queue dispatch latency | < 500 ms | From `POST /sites/:id/deployments` to agent receiving `DeploySite` |
-| Live log first-byte latency | < 250 ms | From log emission on agent to delivery via WebSocket |
-| Agent metrics ingestion | 1000 servers @ 10s heartbeat | Sustained, RSS growth < 5% / 24h |
-| Site provisioning end-to-end | < 90 s | Including TLS issuance via HTTP-01 |
+| Metric                           | Target                       | Notes                                                              |
+|----------------------------------|------------------------------|--------------------------------------------------------------------|
+| `tundrad` cold start             | < 300 ms                     | From systemd `start` to `READY` notification                       |
+| `tundrad` baseline RSS           | < 100 MB                     | Idle, single-server mode, no plugins                               |
+| `tundrad` baseline RSS           | < 200 MB                     | Idle, control plane managing 50 nodes                              |
+| Panel API p95 latency (uncached) | < 80 ms                      | On 2 vCPU / 4 GB host with 50 sites                                |
+| Panel API p95 latency (cached)   | < 20 ms                      |                                                                    |
+| Deploy queue dispatch latency    | < 500 ms                     | From `POST /sites/:id/deployments` to agent receiving `DeploySite` |
+| Live log first-byte latency      | < 250 ms                     | From log emission on agent to delivery via WebSocket               |
+| Agent metrics ingestion          | 1000 servers @ 10s heartbeat | Sustained, RSS growth < 5% / 24h                                   |
+| Site provisioning end-to-end     | < 90 s                       | Including TLS issuance via HTTP-01                                 |
 
 Validated continuously by the load and performance suites in `tundra-test-plan-v1.md` §9 (criterion micro-benches per-PR; k6 load tests weekly; 24-hour memory-leak sweep monthly).
 
@@ -591,18 +591,18 @@ Validated continuously by the load and performance suites in `tundra-test-plan-v
 
 ### 11.1 Phase Breakdown
 
-| Phase | Duration | Scope |
-|-------|----------|-------|
-| **Phase 0 — Specifications** | 4 weeks | ✅ Complete (May 2026). Architecture plan v3, database schema, API specification, deployment runbooks, security audit, test plan, frontend UI spec, plugin architecture, brand guidelines. |
-| **Phase 1 — Foundation** | 4 weeks | Workspace setup, CI gate definitions per `tundra-test-plan-v1.md` §7, panel DB schema, auth, RBAC, audit log, base Axum API skeleton, base React UI |
-| **Phase 2 — Single-host MVP** | 8 weeks | `tundra-agent` base, server provisioning, site creation (PHP/Laravel), Nginx + PHP-FPM rendering, Let's Encrypt issuance, deploy from Git, environment vars |
-| **Phase 3 — Databases & Backups** | 4 weeks | PostgreSQL/MySQL/MariaDB/Valkey provisioning, database & user management, query console, Restic-based backups, restore |
-| **Phase 4 — Email & DNS** | 6 weeks | Postfix/Dovecot/Rspamd provisioning, mailbox management, webmail install, PowerDNS integration, zone editor, DNSSEC |
-| **Phase 5 — Multi-runtime** | 5 weeks | Node.js, Python, Go, Rust, Ruby application types; systemd template units; reverse proxy; blue/green for non-PHP |
-| **Phase 6 — Multi-server** | 6 weeks | mTLS gRPC channel, control-plane mode, agent provisioning over SSH, server health, cross-server deploys |
-| **Phase 7 — Templates & Plugins** | 5 weeks | One-click templates (WordPress, Laravel, Next.js, Django, …), Docker provider, scheduled tasks, daemons, monitoring + alerting; Wasm plugin host MVP |
-| **Phase 8 — Hardening & Beta** | 4 weeks | Security audit (external), fuzz testing, load testing, documentation polish, installer polish, beta release |
-| **Phase 9 — General Availability** | 3 weeks | Bug fixes from beta, v1.0 release, post-launch support |
+| Phase                              | Duration | Scope                                                                                                                                                                                     |
+|------------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Phase 0 — Specifications**       | 4 weeks  | ✅ Complete (May 2026). Architecture plan v3, database schema, API specification, deployment runbooks, security audit, test plan, frontend UI spec, plugin architecture, brand guidelines. |
+| **Phase 1 — Foundation**           | 4 weeks  | Workspace setup, CI gate definitions per `tundra-test-plan-v1.md` §7, panel DB schema, auth, RBAC, audit log, base Axum API skeleton, base React UI                                       |
+| **Phase 2 — Single-host MVP**      | 8 weeks  | `tundra-agent` base, server provisioning, site creation (PHP/Laravel), Nginx + PHP-FPM rendering, Let's Encrypt issuance, deploy from Git, environment vars                               |
+| **Phase 3 — Databases & Backups**  | 4 weeks  | PostgreSQL/MySQL/MariaDB/Valkey provisioning, database & user management, query console, Restic-based backups, restore                                                                    |
+| **Phase 4 — Email & DNS**          | 6 weeks  | Postfix/Dovecot/Rspamd provisioning, mailbox management, webmail install, PowerDNS integration, zone editor, DNSSEC                                                                       |
+| **Phase 5 — Multi-runtime**        | 5 weeks  | Node.js, Python, Go, Rust, Ruby application types; systemd template units; reverse proxy; blue/green for non-PHP                                                                          |
+| **Phase 6 — Multi-server**         | 6 weeks  | mTLS gRPC channel, control-plane mode, agent provisioning over SSH, server health, cross-server deploys                                                                                   |
+| **Phase 7 — Templates & Plugins**  | 5 weeks  | One-click templates (WordPress, Laravel, Next.js, Django, …), Docker provider, scheduled tasks, daemons, monitoring + alerting; Wasm plugin host MVP                                      |
+| **Phase 8 — Hardening & Beta**     | 4 weeks  | Security audit (external), fuzz testing, load testing, documentation polish, installer polish, beta release                                                                               |
+| **Phase 9 — General Availability** | 3 weeks  | Bug fixes from beta, v1.0 release, post-launch support                                                                                                                                    |
 
 **Total: ~45 weeks (~10.5 months) from start of Phase 1.** With one assisting developer, ~6 months.
 
@@ -610,17 +610,17 @@ The Phase 0 specification effort (this plan plus the eight companions plus the f
 
 ### 11.2 Milestones
 
-| Milestone | Target | Definition of Done |
-|-----------|--------|---------------------|
-| M0 — Hello-Tundra | End of Phase 1 | Operator can log in, see dashboard, manually add a server placeholder |
-| M1 — First Site Live | End of Phase 2 | A real Laravel site deployed via Git push, with TLS, on a fresh Vultr VPS, in under 5 minutes from `tundra server add` to publicly accessible HTTPS site |
-| M2 — Database Self-Sufficiency | End of Phase 3 | Create PG18 + MySQL 8.4, run a Laravel migration through the panel, take and restore a backup |
-| M3 — Mail & DNS Live | End of Phase 4 | Send and receive email on a Tundra-hosted domain with passing SPF, DKIM, DMARC; full DNS zone editing via UI |
-| M4 — All Runtimes Online | End of Phase 5 | Node.js, Python, Go, Rust apps each deployable via the panel |
-| M5 — Multi-Server | End of Phase 6 | A control plane managing 3 nodes; deploy targeting a specific node works |
-| M6 — Plugins & Templates | End of Phase 7 | One-click WordPress, Laravel, Next.js, Django, Rails — all working end-to-end. At least one Wasm plugin loaded and exercised. |
-| M7 — Beta | End of Phase 8 | Self-installable from a single command on a fresh Ubuntu 24.04 server; the operator acceptance checklist passes end-to-end on a fresh install |
-| M8 — v1.0 GA | End of Phase 9 | Public release |
+| Milestone                      | Target         | Definition of Done                                                                                                                                       |
+|--------------------------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| M0 — Hello-Tundra              | End of Phase 1 | Operator can log in, see dashboard, manually add a server placeholder                                                                                    |
+| M1 — First Site Live           | End of Phase 2 | A real Laravel site deployed via Git push, with TLS, on a fresh Vultr VPS, in under 5 minutes from `tundra server add` to publicly accessible HTTPS site |
+| M2 — Database Self-Sufficiency | End of Phase 3 | Create PG18 + MySQL 8.4, run a Laravel migration through the panel, take and restore a backup                                                            |
+| M3 — Mail & DNS Live           | End of Phase 4 | Send and receive email on a Tundra-hosted domain with passing SPF, DKIM, DMARC; full DNS zone editing via UI                                             |
+| M4 — All Runtimes Online       | End of Phase 5 | Node.js, Python, Go, Rust apps each deployable via the panel                                                                                             |
+| M5 — Multi-Server              | End of Phase 6 | A control plane managing 3 nodes; deploy targeting a specific node works                                                                                 |
+| M6 — Plugins & Templates       | End of Phase 7 | One-click WordPress, Laravel, Next.js, Django, Rails — all working end-to-end. At least one Wasm plugin loaded and exercised.                            |
+| M7 — Beta                      | End of Phase 8 | Self-installable from a single command on a fresh Ubuntu 24.04 server; the operator acceptance checklist passes end-to-end on a fresh install            |
+| M8 — v1.0 GA                   | End of Phase 9 | Public release                                                                                                                                           |
 
 ### 11.3 Repository Layout
 
@@ -677,13 +677,13 @@ tundra/
 
 There is no licensing fee. The cost is the underlying infrastructure:
 
-| Deployment Size | Recommended Spec | Approximate Monthly Cost (Vultr / Hetzner) |
-|-----------------|-------------------|---------------------------------------------|
-| Single-server, 1–3 sites | 1 vCPU / 2 GB / 50 GB | USD 6 – 8 |
-| Single-server, up to 10 sites | 2 vCPU / 4 GB / 80 GB | USD 12 – 18 |
-| Single-server, heavy workload | 4 vCPU / 8 GB / 160 GB | USD 24 – 40 |
-| Control plane only | 2 vCPU / 4 GB / 80 GB | USD 12 – 18 |
-| Managed app node | depends on apps | varies |
+| Deployment Size               | Recommended Spec       | Approximate Monthly Cost (Vultr / Hetzner) |
+|-------------------------------|------------------------|--------------------------------------------|
+| Single-server, 1–3 sites      | 1 vCPU / 2 GB / 50 GB  | USD 6 – 8                                  |
+| Single-server, up to 10 sites | 2 vCPU / 4 GB / 80 GB  | USD 12 – 18                                |
+| Single-server, heavy workload | 4 vCPU / 8 GB / 160 GB | USD 24 – 40                                |
+| Control plane only            | 2 vCPU / 4 GB / 80 GB  | USD 12 – 18                                |
+| Managed app node              | depends on apps        | varies                                     |
 
 For comparison: a typical Plesk Web Pro license is around USD 15 / month *on top of* the underlying VPS. cPanel pricing is similar or higher. Tundra eliminates that recurring fee entirely.
 
@@ -695,44 +695,44 @@ Not applicable — Tundra is a personal/internal tool. Time is the only cost.
 
 ## 13. Open Risks & Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Mail deliverability — IP reputation on cheap VPS | High | High | Smarthost integration (Mailgun/SES/Postmark) is a first-class feature; documented as recommended for production |
-| ACME rate limits when bulk-creating sites | Medium | Medium | Use Let's Encrypt staging in tests; ZeroSSL fallback; certificate caching |
-| Major version upgrade pain (e.g., PHP 8.4 → 8.5) | Medium | Medium | Multi-version coexistence by design; per-app version selection; documented upgrade paths |
-| Compromise of master key | Low | Critical | TPM sealing where available (v2 roadmap); offline backup mandatory; audit and alerting on key file access; recovery procedure in `tundra-deployment-runbook-v1.md` §4 |
-| `tundra-agent` crash leaves services running | Low | Low | systemd manages services directly; agent crash does not stop sites; agent restarts on its own systemd unit |
-| Drift between agent and control plane in network partition | Medium | Low | Reconciliation is idempotent; agent retries with exponential backoff; full reconcile on reconnect |
-| Long-running deploys block the queue | Medium | Low | Per-application deploy lock; concurrent deploys across applications; configurable timeout |
-| Database backup window during peak traffic | Low | Medium | Logical backups use replicas where configured; off-peak scheduling; throughput throttling for `pg_dump` |
-| Single-developer maintenance burden | High | Medium | Heavy use of stable, well-supported upstream tools; small dependency surface; comprehensive test suite per `tundra-test-plan-v1.md`; spec-first discipline reduces bus factor |
-| Wasmtime CVE in plugin sandbox | Low | High | Pin to vetted release; track via `cargo-deny`; defence in depth — `tundrad` runs unprivileged; documented in `tundra-security-audit-v1.md` §4.4 |
-| Spec-implementation drift over time | Medium | Medium | Contract tests in CI verify implementation against `tundra-api-specification-v1.md` (OpenAPI replay) and against migration files (schema) |
+| Risk                                                       | Likelihood | Impact   | Mitigation                                                                                                                                                                    |
+|------------------------------------------------------------|------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Mail deliverability — IP reputation on cheap VPS           | High       | High     | Smarthost integration (Mailgun/SES/Postmark) is a first-class feature; documented as recommended for production                                                               |
+| ACME rate limits when bulk-creating sites                  | Medium     | Medium   | Use Let's Encrypt staging in tests; ZeroSSL fallback; certificate caching                                                                                                     |
+| Major version upgrade pain (e.g., PHP 8.4 → 8.5)           | Medium     | Medium   | Multi-version coexistence by design; per-app version selection; documented upgrade paths                                                                                      |
+| Compromise of master key                                   | Low        | Critical | TPM sealing where available (v2 roadmap); offline backup mandatory; audit and alerting on key file access; recovery procedure in `tundra-deployment-runbook-v1.md` §4         |
+| `tundra-agent` crash leaves services running               | Low        | Low      | systemd manages services directly; agent crash does not stop sites; agent restarts on its own systemd unit                                                                    |
+| Drift between agent and control plane in network partition | Medium     | Low      | Reconciliation is idempotent; agent retries with exponential backoff; full reconcile on reconnect                                                                             |
+| Long-running deploys block the queue                       | Medium     | Low      | Per-application deploy lock; concurrent deploys across applications; configurable timeout                                                                                     |
+| Database backup window during peak traffic                 | Low        | Medium   | Logical backups use replicas where configured; off-peak scheduling; throughput throttling for `pg_dump`                                                                       |
+| Single-developer maintenance burden                        | High       | Medium   | Heavy use of stable, well-supported upstream tools; small dependency surface; comprehensive test suite per `tundra-test-plan-v1.md`; spec-first discipline reduces bus factor |
+| Wasmtime CVE in plugin sandbox                             | Low        | High     | Pin to vetted release; track via `cargo-deny`; defence in depth — `tundrad` runs unprivileged; documented in `tundra-security-audit-v1.md` §4.4                               |
+| Spec-implementation drift over time                        | Medium     | Medium   | Contract tests in CI verify implementation against `tundra-api-specification-v1.md` (OpenAPI replay) and against migration files (schema)                                     |
 
 ---
 
 ## 14. Comparison Matrix
 
-| Capability | Tundra v1.0 | Plesk Obsidian | cPanel | Cloudron | CyberPanel | Ploi.io |
-|------------|-------------|----------------|--------|----------|------------|---------|
-| Self-hosted | ✓ | ✓ | ✓ | ✓ | ✓ | partial |
-| Open availability | personal / OSS-leaning | commercial | commercial | freemium | OSS | commercial |
-| Latest PHP within days of release | ✓ | delayed | delayed | delayed | mixed | ✓ |
-| Per-app PHP version | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Native Node.js apps | ✓ | partial | partial | ✓ | partial | ✓ |
-| Native Python apps | ✓ | partial | partial | ✓ | partial | ✓ |
-| Native Go / Rust apps | ✓ | ✗ | ✗ | partial | ✗ | partial |
-| PostgreSQL 18 | ✓ | partial | ✗ | ✓ | ✗ | ✓ |
-| Atomic deploys + rollback | ✓ | ✗ | ✗ | partial | ✗ | ✓ |
-| Git-based deploys | ✓ | partial | partial | partial | partial | ✓ |
-| Built-in mail server | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
-| Built-in DNS | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
-| Backup with restic-grade dedup | ✓ | partial | partial | ✓ | partial | partial |
-| Multi-server control plane | ✓ | partial | ✗ | ✗ | ✗ | ✓ |
-| Wasm plugin sandbox | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| Single static binary install | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| Memory safety (Rust) | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| Spec-first documentation | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Capability                        | Tundra v1.0            | Plesk Obsidian | cPanel     | Cloudron | CyberPanel | Ploi.io    |
+|-----------------------------------|------------------------|----------------|------------|----------|------------|------------|
+| Self-hosted                       | ✓                      | ✓              | ✓          | ✓        | ✓          | partial    |
+| Open availability                 | personal / OSS-leaning | commercial     | commercial | freemium | OSS        | commercial |
+| Latest PHP within days of release | ✓                      | delayed        | delayed    | delayed  | mixed      | ✓          |
+| Per-app PHP version               | ✓                      | ✓              | ✓          | ✓        | ✓          | ✓          |
+| Native Node.js apps               | ✓                      | partial        | partial    | ✓        | partial    | ✓          |
+| Native Python apps                | ✓                      | partial        | partial    | ✓        | partial    | ✓          |
+| Native Go / Rust apps             | ✓                      | ✗              | ✗          | partial  | ✗          | partial    |
+| PostgreSQL 18                     | ✓                      | partial        | ✗          | ✓        | ✗          | ✓          |
+| Atomic deploys + rollback         | ✓                      | ✗              | ✗          | partial  | ✗          | ✓          |
+| Git-based deploys                 | ✓                      | partial        | partial    | partial  | partial    | ✓          |
+| Built-in mail server              | ✓                      | ✓              | ✓          | ✓        | ✓          | ✗          |
+| Built-in DNS                      | ✓                      | ✓              | ✓          | ✓        | ✓          | ✗          |
+| Backup with restic-grade dedup    | ✓                      | partial        | partial    | ✓        | partial    | partial    |
+| Multi-server control plane        | ✓                      | partial        | ✗          | ✗        | ✗          | ✓          |
+| Wasm plugin sandbox               | ✓                      | ✗              | ✗          | ✗        | ✗          | ✗          |
+| Single static binary install      | ✓                      | ✗              | ✗          | ✗        | ✗          | ✗          |
+| Memory safety (Rust)              | ✓                      | ✗              | ✗          | ✗        | ✗          | ✗          |
+| Spec-first documentation          | ✓                      | ✗              | ✗          | ✗        | ✗          | ✗          |
 
 Tundra's distinguishing positions are: **memory safety, native multi-runtime support, modern deployment ergonomics, sandboxed third-party extensibility, and the latest upstream tooling with no licensing layer — all anchored in a spec-first documentation discipline.**
 
@@ -744,47 +744,47 @@ The Tundra documentation set as of v3 of this plan:
 
 ### 15.1 Architecture & Specifications
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| `tundra-technical-implementation-plan-v3.md` *(this document)* | Both | Architectural anchor; entry point for new readers |
-| `tundra-database-schema-v1.md` | Engineering | Canonical PostgreSQL 18 schema |
-| `tundra-api-specification-v1.md` | Engineering | REST + gRPC + WebSocket surface |
-| `tundra-frontend-ui-spec-v1.md` | Engineering | Panel UI design tokens, components, route map |
-| `tundra-plugin-architecture-plan-v1.md` | Engineering | Wasm sandbox, capability system, WIT contracts |
-| `tundra-additional-core-plugins-v1.md` | Engineering | Namecheap, GitHub, MCP-server core plugins |
+| Document                                                       | Audience    | Purpose                                           |
+|----------------------------------------------------------------|-------------|---------------------------------------------------|
+| `tundra-technical-implementation-plan-v3.md` *(this document)* | Both        | Architectural anchor; entry point for new readers |
+| `tundra-database-schema-v1.md`                                 | Engineering | Canonical PostgreSQL 18 schema                    |
+| `tundra-api-specification-v1.md`                               | Engineering | REST + gRPC + WebSocket surface                   |
+| `tundra-frontend-ui-spec-v1.md`                                | Engineering | Panel UI design tokens, components, route map     |
+| `tundra-plugin-architecture-plan-v1.md`                        | Engineering | Wasm sandbox, capability system, WIT contracts    |
+| `tundra-additional-core-plugins-v1.md`                         | Engineering | Namecheap, GitHub, MCP-server core plugins        |
 
 ### 15.2 Operations
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| `tundra-deployment-runbook-v1.md` | Engineering | Manual install, master-key rotation, troubleshooting trees |
-| `tundra-deployment-overview-v1.md` | Operator | One-line install, routine ops, restore |
+| Document                           | Audience    | Purpose                                                    |
+|------------------------------------|-------------|------------------------------------------------------------|
+| `tundra-deployment-runbook-v1.md`  | Engineering | Manual install, master-key rotation, troubleshooting trees |
+| `tundra-deployment-overview-v1.md` | Operator    | One-line install, routine ops, restore                     |
 
 ### 15.3 Security
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| `tundra-security-audit-v1.md` | Engineering | STRIDE threat model, controls catalog, attack trees |
-| `tundra-security-overview-v1.md` | Operator | Plain-language security model, IoCs, incident response |
+| Document                         | Audience    | Purpose                                                |
+|----------------------------------|-------------|--------------------------------------------------------|
+| `tundra-security-audit-v1.md`    | Engineering | STRIDE threat model, controls catalog, attack trees    |
+| `tundra-security-overview-v1.md` | Operator    | Plain-language security model, IoCs, incident response |
 
 ### 15.4 Quality & Acceptance
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| `tundra-test-plan-v1.md` | Engineering | Test pyramid, harnesses, CI gates |
-| `tundra-acceptance-checklist-v1.md` | Operator | UAT, post-install/post-upgrade smoke, quarterly drill |
+| Document                            | Audience    | Purpose                                               |
+|-------------------------------------|-------------|-------------------------------------------------------|
+| `tundra-test-plan-v1.md`            | Engineering | Test pyramid, harnesses, CI gates                     |
+| `tundra-acceptance-checklist-v1.md` | Operator    | UAT, post-install/post-upgrade smoke, quarterly drill |
 
 ### 15.5 Migration
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
+| Document                            | Audience    | Purpose                                                       |
+|-------------------------------------|-------------|---------------------------------------------------------------|
 | `tundra-plesk-migration-plan-v1.md` | Engineering | Plesk-source migration plugin, six-state machine, mail bridge |
 
 ### 15.6 Brand
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| `tundra-brand-guidelines-v1.md` + `tundra-brand-assets-v1.zip` | Both | Marks, lockups, typography, colour, OG cards |
+| Document                                                       | Audience | Purpose                                      |
+|----------------------------------------------------------------|----------|----------------------------------------------|
+| `tundra-brand-guidelines-v1.md` + `tundra-brand-assets-v1.zip` | Both     | Marks, lockups, typography, colour, OG cards |
 
 ### 15.7 Reading Order Recommendations
 
@@ -922,29 +922,29 @@ The hardened systemd unit for `tundrad` itself — including the Wasmtime except
 
 ## 18. Appendix C — Glossary
 
-| Term | Meaning |
-|------|---------|
-| Control Plane | The host running `tundrad`. In single-server mode, this is also the application host. |
-| Node / Managed Server | A host running `tundra-agent` and hosting applications. |
-| Site | A logical hosting unit: a domain + application + TLS + reverse-proxy config. |
-| Application | The deployable code that runs behind a Site. |
-| Release | A specific deployed version of an application (timestamped directory). |
-| Deployment | The act of producing a new Release; a row in `deployments`. |
-| Reconciliation | The agent-side process of bringing observed state in line with the desired state declared by `tundrad`. |
-| Provider (agent) | A pluggable module inside `tundra-agent` that knows how to manage one specific service (Nginx, Postfix, etc.). |
-| Plugin | A Wasm-sandboxed third-party extension loaded by `tundrad`. Distinct from agent providers. |
-| Master Key | The 32-byte AES-256 key (with a BLAKE3 trailer for integrity) used to derive AEAD data keys for encrypted columns. |
-| Self-backup | Tundra's backup of itself (operator database, master key, internal CA). Must live off-host. |
+| Term                  | Meaning                                                                                                            |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------|
+| Control Plane         | The host running `tundrad`. In single-server mode, this is also the application host.                              |
+| Node / Managed Server | A host running `tundra-agent` and hosting applications.                                                            |
+| Site                  | A logical hosting unit: a domain + application + TLS + reverse-proxy config.                                       |
+| Application           | The deployable code that runs behind a Site.                                                                       |
+| Release               | A specific deployed version of an application (timestamped directory).                                             |
+| Deployment            | The act of producing a new Release; a row in `deployments`.                                                        |
+| Reconciliation        | The agent-side process of bringing observed state in line with the desired state declared by `tundrad`.            |
+| Provider (agent)      | A pluggable module inside `tundra-agent` that knows how to manage one specific service (Nginx, Postfix, etc.).     |
+| Plugin                | A Wasm-sandboxed third-party extension loaded by `tundrad`. Distinct from agent providers.                         |
+| Master Key            | The 32-byte AES-256 key (with a BLAKE3 trailer for integrity) used to derive AEAD data keys for encrypted columns. |
+| Self-backup           | Tundra's backup of itself (operator database, master key, internal CA). Must live off-host.                        |
 
 ---
 
 ## 19. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial complete specification under interim project name |
-| v2.0 | May 2026 | Al Amin Ahamed | Rebranded to **Tundra**. Renamed all components, config paths, environment variables, system users, systemd units, and crate prefixes throughout. No architectural changes. |
-| v3.0 | May 2026 | Al Amin Ahamed | Reframed as the architectural anchor. Compressed the schema/API/security/deployment/test sections into anchor sections that delegate to the eight new technical companions (`tundra-database-schema-v1.md`, `tundra-api-specification-v1.md`, `tundra-deployment-runbook-v1.md`, `tundra-deployment-overview-v1.md`, `tundra-security-audit-v1.md`, `tundra-security-overview-v1.md`, `tundra-test-plan-v1.md`, `tundra-acceptance-checklist-v1.md`). Added §1.5 ("What changed in v3"), §15 ("Documentation suite map" with reading-order recommendations for engineers, operators, security reviewers). Added §4.15 (Plugins) as a first-class functional module. Added Wasmtime to the core stack. Updated Vite to 8.x; added Formik/Yup for wizards. Refreshed roadmap to acknowledge Phase 0 (specification) is complete. Refreshed risks table to include Wasmtime CVE and spec-implementation drift. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|---------|----------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial complete specification under interim project name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| v2.0    | May 2026 | Al Amin Ahamed | Rebranded to **Tundra**. Renamed all components, config paths, environment variables, system users, systemd units, and crate prefixes throughout. No architectural changes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| v3.0    | May 2026 | Al Amin Ahamed | Reframed as the architectural anchor. Compressed the schema/API/security/deployment/test sections into anchor sections that delegate to the eight new technical companions (`tundra-database-schema-v1.md`, `tundra-api-specification-v1.md`, `tundra-deployment-runbook-v1.md`, `tundra-deployment-overview-v1.md`, `tundra-security-audit-v1.md`, `tundra-security-overview-v1.md`, `tundra-test-plan-v1.md`, `tundra-acceptance-checklist-v1.md`). Added §1.5 ("What changed in v3"), §15 ("Documentation suite map" with reading-order recommendations for engineers, operators, security reviewers). Added §4.15 (Plugins) as a first-class functional module. Added Wasmtime to the core stack. Updated Vite to 8.x; added Formik/Yup for wizards. Refreshed roadmap to acknowledge Phase 0 (specification) is complete. Refreshed risks table to include Wasmtime CVE and spec-implementation drift. |
 
 **Companion Documents (current suite):**
 

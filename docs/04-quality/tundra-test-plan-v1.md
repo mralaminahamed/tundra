@@ -34,16 +34,16 @@ The goals of Tundra's testing strategy, in priority order:
 
 ### 1.2 The Pyramid
 
-| Tier | Tool | What it tests | Volume | Per-PR? |
-|------|------|--------------|--------|---------|
-| Unit | `cargo test` (Rust), Vitest (frontend) | Pure logic — formatters, parsers, single functions | Many | Yes |
-| Integration | `cargo test` + testcontainers (Rust), Vitest + MSW (frontend) | Components with real dependencies (DB, Valkey, mocked HTTP) | Moderate | Yes |
-| Contract | `dredd` against OpenAPI | API request/response shapes | One per endpoint | Yes |
-| E2E | Playwright | Real frontend → real backend on a stood-up cluster | Few; covers critical paths | Yes (with sharding) |
-| Accessibility | Playwright + axe-core | Per-route WCAG 2.1 AA compliance | One per route | Yes |
-| Performance | criterion (Rust), k6 (HTTP) | Latency and throughput regressions | Moderate | Nightly; not per-PR |
-| Security | cargo-audit, cargo-deny, semgrep, OSV-scanner | Known vulnerabilities, license violations | Per-PR + daily |
-| Visual regression | Playwright + screenshots | Pixel-stable layout for key pages | Optional, on demand | No |
+| Tier              | Tool                                                          | What it tests                                               | Volume                     | Per-PR?             |
+|-------------------|---------------------------------------------------------------|-------------------------------------------------------------|----------------------------|---------------------|
+| Unit              | `cargo test` (Rust), Vitest (frontend)                        | Pure logic — formatters, parsers, single functions          | Many                       | Yes                 |
+| Integration       | `cargo test` + testcontainers (Rust), Vitest + MSW (frontend) | Components with real dependencies (DB, Valkey, mocked HTTP) | Moderate                   | Yes                 |
+| Contract          | `dredd` against OpenAPI                                       | API request/response shapes                                 | One per endpoint           | Yes                 |
+| E2E               | Playwright                                                    | Real frontend → real backend on a stood-up cluster          | Few; covers critical paths | Yes (with sharding) |
+| Accessibility     | Playwright + axe-core                                         | Per-route WCAG 2.1 AA compliance                            | One per route              | Yes                 |
+| Performance       | criterion (Rust), k6 (HTTP)                                   | Latency and throughput regressions                          | Moderate                   | Nightly; not per-PR |
+| Security          | cargo-audit, cargo-deny, semgrep, OSV-scanner                 | Known vulnerabilities, license violations                   | Per-PR + daily             |
+| Visual regression | Playwright + screenshots                                      | Pixel-stable layout for key pages                           | Optional, on demand        | No                  |
 
 ---
 
@@ -286,16 +286,16 @@ async fn plugin_respects_capability_grants() {
 
 ### 2.9 Coverage Targets
 
-| Code area | Floor |
-|-----------|-------|
-| Pure utilities (formatters, validators, parsers) | 95% |
-| Service layer (business logic) | 85% |
-| HTTP handlers | 80% |
-| Database access | 70% (most coverage comes from integration tests, not unit) |
-| Agent action dispatchers | 90% |
-| Plugin host APIs | 90% |
-| Cryptographic code | 100% |
-| Rate limiting / quota | 95% |
+| Code area                                        | Floor                                                      |
+|--------------------------------------------------|------------------------------------------------------------|
+| Pure utilities (formatters, validators, parsers) | 95%                                                        |
+| Service layer (business logic)                   | 85%                                                        |
+| HTTP handlers                                    | 80%                                                        |
+| Database access                                  | 70% (most coverage comes from integration tests, not unit) |
+| Agent action dispatchers                         | 90%                                                        |
+| Plugin host APIs                                 | 90%                                                        |
+| Cryptographic code                               | 100%                                                       |
+| Rate limiting / quota                            | 95%                                                        |
 
 CI fails if coverage drops below the floor on any module. We use `cargo-llvm-cov` for measurement.
 
@@ -468,13 +468,13 @@ There is no exceptions list; violations get fixed.
 
 ### 3.4 Frontend Coverage Targets
 
-| Layer | Floor |
-|-------|-------|
-| Pure utilities | 95% |
-| Custom hooks | 85% |
-| Components with logic | 75% |
-| Routes (E2E smoke) | 100% (every route loads without error) |
-| Critical flows (login, deploy, restore, migrate) | 100% E2E |
+| Layer                                            | Floor                                  |
+|--------------------------------------------------|----------------------------------------|
+| Pure utilities                                   | 95%                                    |
+| Custom hooks                                     | 85%                                    |
+| Components with logic                            | 75%                                    |
+| Routes (E2E smoke)                               | 100% (every route loads without error) |
+| Critical flows (login, deploy, restore, migrate) | 100% E2E                               |
 
 ---
 
@@ -559,16 +559,16 @@ We have k6 scripts for: site-list, deployment-trigger, log-stream throughput, We
 
 ### 6.1 Static Analysis
 
-| Tool | What it checks | When |
-|------|---------------|------|
-| `cargo clippy --all-features -- -D warnings` | Rust lints, common bug patterns | Every PR |
-| `cargo fmt -- --check` | Formatting | Every PR |
-| `cargo deny check` | License violations, advisory hits, banned dependencies | Every PR |
-| `cargo audit` | RustSec advisory matches | Daily + every PR |
-| `OSV-scanner` | Cross-ecosystem vuln scanning | Daily |
-| `semgrep --config=p/rust` | Pattern-based static analysis | Every PR |
-| `eslint` (frontend) | JS/TS lints | Every PR |
-| `tsc --noEmit` (frontend) | Type-check | Every PR |
+| Tool                                         | What it checks                                         | When             |
+|----------------------------------------------|--------------------------------------------------------|------------------|
+| `cargo clippy --all-features -- -D warnings` | Rust lints, common bug patterns                        | Every PR         |
+| `cargo fmt -- --check`                       | Formatting                                             | Every PR         |
+| `cargo deny check`                           | License violations, advisory hits, banned dependencies | Every PR         |
+| `cargo audit`                                | RustSec advisory matches                               | Daily + every PR |
+| `OSV-scanner`                                | Cross-ecosystem vuln scanning                          | Daily            |
+| `semgrep --config=p/rust`                    | Pattern-based static analysis                          | Every PR         |
+| `eslint` (frontend)                          | JS/TS lints                                            | Every PR         |
+| `tsc --noEmit` (frontend)                    | Type-check                                             | Every PR         |
 
 Any failure blocks the merge.
 
@@ -753,9 +753,9 @@ The test-add procedure for a new feature, in order:
 
 ## 11. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial complete test plan and QA strategy. Pyramid, tooling matrix, reference Rust tests (unit, integration, property, mocks, agent, plugin), reference frontend tests (Vitest + RTL + MSW), Playwright E2E, accessibility, contract tests, performance baselines, security gates, CI pipeline. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                                                                          |
+|---------|----------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial complete test plan and QA strategy. Pyramid, tooling matrix, reference Rust tests (unit, integration, property, mocks, agent, plugin), reference frontend tests (Vitest + RTL + MSW), Playwright E2E, accessibility, contract tests, performance baselines, security gates, CI pipeline. |
 
 **Companion Documents:**
 

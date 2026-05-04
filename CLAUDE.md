@@ -58,12 +58,12 @@ sqlx migrate add <name>        # create new migration file in migrations/
 
 ### Component topology
 
-| Binary | Crate | Role |
-|--------|-------|------|
-| `tundrad` | `tundrad-bin` | Control plane — HTTP API, gRPC server, DB authority, job dispatcher, event bus |
-| `tundra-agent` | `tundra-agent-bin` | Per-node agent — provisioning, telemetry, log shipping |
-| `tundra` | `tundra-cli` | Operator CLI |
-| (SPA) | `panel/` | React 19 UI served by `tundrad` at `/_app/` |
+| Binary         | Crate              | Role                                                                           |
+|----------------|--------------------|--------------------------------------------------------------------------------|
+| `tundrad`      | `tundrad-bin`      | Control plane — HTTP API, gRPC server, DB authority, job dispatcher, event bus |
+| `tundra-agent` | `tundra-agent-bin` | Per-node agent — provisioning, telemetry, log shipping                         |
+| `tundra`       | `tundra-cli`       | Operator CLI                                                                   |
+| (SPA)          | `panel/`           | React 19 UI served by `tundrad` at `/_app/`                                    |
 
 Single-host mode: `tundrad` ↔ `tundra-agent` over Unix domain socket.
 Multi-host mode: mTLS gRPC over port 7447 (`proto/tundra/v1/agent.proto`).
@@ -159,35 +159,35 @@ From `docs/03-security/tundra-security-audit-v1.md`:
 
 Use these skills for the corresponding tasks when working in this repository:
 
-| When | Skill |
-|------|-------|
-| Before implementing a new feature or build phase | `/superpowers:writing-plans` |
-| Executing a written implementation plan | `/superpowers:executing-plans` |
-| Implementing any feature (spec mandates TDD) | `/superpowers:test-driven-development` |
-| Any bug, test failure, or unexpected behavior | `/superpowers:systematic-debugging` |
-| Before claiming work done or opening a PR | `/superpowers:verification-before-completion` |
-| 2+ independent tasks that can parallelize | `/superpowers:dispatching-parallel-agents` |
-| After completing a major implementation chunk | `/superpowers:requesting-code-review` |
-| Finishing a phase and deciding how to integrate | `/superpowers:finishing-a-development-branch` |
-| Reviewing changed code for reuse and quality | `/simplify` |
-| Reviewing code for security issues | `/security-review` |
+| When                                             | Skill                                         |
+|--------------------------------------------------|-----------------------------------------------|
+| Before implementing a new feature or build phase | `/superpowers:writing-plans`                  |
+| Executing a written implementation plan          | `/superpowers:executing-plans`                |
+| Implementing any feature (spec mandates TDD)     | `/superpowers:test-driven-development`        |
+| Any bug, test failure, or unexpected behavior    | `/superpowers:systematic-debugging`           |
+| Before claiming work done or opening a PR        | `/superpowers:verification-before-completion` |
+| 2+ independent tasks that can parallelize        | `/superpowers:dispatching-parallel-agents`    |
+| After completing a major implementation chunk    | `/superpowers:requesting-code-review`         |
+| Finishing a phase and deciding how to integrate  | `/superpowers:finishing-a-development-branch` |
+| Reviewing changed code for reuse and quality     | `/simplify`                                   |
+| Reviewing code for security issues               | `/security-review`                            |
 
 ---
 
 ## Phase Status
 
-| Phase | Status | Notes |
-|-------|--------|-------|
-| P0 — Bootstrap | ✅ Done | `cargo check`, `pnpm typecheck`, all lints pass |
-| P1 — Foundation | ✅ Done | Crypto, migrations, domain, repo, auth, API skeleton, config, telemetry, panel shell |
-| P2 — Single-host MVP | ✅ Done | proto+gRPC, PKI/mTLS, agent crates, server enrolment, sites+deployments, job queue, Valkey events, panel UI, Playwright e2e |
-| P3 — Databases & Backups | ✅ Done | DB engine providers (PG/MySQL/MariaDB/Valkey), database schema+REST+panel, restic backup module, preview-then-confirm restore, self-backup+restore tools, e2e specs |
-| P4 — Email & DNS | ✅ Done | PowerDNS/Unbound/Postfix/Dovecot/Rspamd/Roundcube providers, domain+DNS schema+REST+panel, mail schema+DKIM+REST+panel, diagnostics, e2e specs |
-| P5 — Multi-runtime | ✅ Done | Node/Python/Go/Rust/Ruby/.NET providers, systemd Appendix B templates, blue/green deploy, daemons+cron schema+REST+panel, site wizard enhancements, starter templates, e2e specs |
-| P6 — Multi-server | ✅ Done | SSH installer wizard, server_metrics_state, cross-server site move (7-stage pipeline), per-agent rate limiting + circuit breaker, maintenance windows, multi-server fleet panel, e2e specs |
-| P7 — Templates & Plugins | ✅ Done | Wasmtime plugin host (tundra-plugin-sdk + WIT), MCP server plugin (stdio+HTTP, scope/session model), Namecheap + GitHub plugins, 13 YAML templates + gallery, metrics_samples partitioning, alert rule evaluator, alerts panel, e2e specs |
-| P8 — Production hardening | ✅ Done | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, billing, acceptance CLI (`tundra acceptance run`), getting-started + security docs, beta tag |
-| P9 — General Availability | ✅ Done | Beta feedback triage, contract tests, SLSA provenance + release workflow, docs index + UPGRADING, red-team §9 walk, v1.0.0 GA tag |
+| Phase                     | Status | Notes                                                                                                                                                                                                                                     |
+|---------------------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| P0 — Bootstrap            | ✅ Done | `cargo check`, `pnpm typecheck`, all lints pass                                                                                                                                                                                           |
+| P1 — Foundation           | ✅ Done | Crypto, migrations, domain, repo, auth, API skeleton, config, telemetry, panel shell                                                                                                                                                      |
+| P2 — Single-host MVP      | ✅ Done | proto+gRPC, PKI/mTLS, agent crates, server enrolment, sites+deployments, job queue, Valkey events, panel UI, Playwright e2e                                                                                                               |
+| P3 — Databases & Backups  | ✅ Done | DB engine providers (PG/MySQL/MariaDB/Valkey), database schema+REST+panel, restic backup module, preview-then-confirm restore, self-backup+restore tools, e2e specs                                                                       |
+| P4 — Email & DNS          | ✅ Done | PowerDNS/Unbound/Postfix/Dovecot/Rspamd/Roundcube providers, domain+DNS schema+REST+panel, mail schema+DKIM+REST+panel, diagnostics, e2e specs                                                                                            |
+| P5 — Multi-runtime        | ✅ Done | Node/Python/Go/Rust/Ruby/.NET providers, systemd Appendix B templates, blue/green deploy, daemons+cron schema+REST+panel, site wizard enhancements, starter templates, e2e specs                                                          |
+| P6 — Multi-server         | ✅ Done | SSH installer wizard, server_metrics_state, cross-server site move (7-stage pipeline), per-agent rate limiting + circuit breaker, maintenance windows, multi-server fleet panel, e2e specs                                                |
+| P7 — Templates & Plugins  | ✅ Done | Wasmtime plugin host (tundra-plugin-sdk + WIT), MCP server plugin (stdio+HTTP, scope/session model), Namecheap + GitHub plugins, 13 YAML templates + gallery, metrics_samples partitioning, alert rule evaluator, alerts panel, e2e specs |
+| P8 — Production hardening | ✅ Done | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, billing, acceptance CLI (`tundra acceptance run`), getting-started + security docs, beta tag                                                                                              |
+| P9 — General Availability | ✅ Done | Beta feedback triage, contract tests, SLSA provenance + release workflow, docs index + UPGRADING, red-team §9 walk, v1.0.0 GA tag                                                                                                         |
 
 Full phase breakdown: `docs/01-architecture/tundra-technical-implementation-plan-v3.md` §11.1.
 Build prompts for each phase: `docs/08-build-prompts/tundra-claude-code-prompts-v1.md`.

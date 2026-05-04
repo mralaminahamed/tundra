@@ -279,9 +279,9 @@ If you read nothing else in this document, do these:
 
 ## 10. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial operator-facing security audit. Plain-language summary of Tundra's security model, operator responsibilities, indicators of compromise, incident response procedures, vulnerability reporting. Pointers to Engineering Edition for technical depth. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                                     |
+|---------|----------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial operator-facing security audit. Plain-language summary of Tundra's security model, operator responsibilities, indicators of compromise, incident response procedures, vulnerability reporting. Pointers to Engineering Edition for technical depth. |
 
 **Companion Documents:**
 

@@ -498,6 +498,6 @@ A: Not directly today. v1.3 of the plugin is planned to support tools registered
 
 ## 15. Document Control
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| v1.0 | May 2026 | Al Amin Ahamed | Initial operator-facing guide. Mental model (plugin / token / session), scope choice guidance, minting workflow (panel + CLI), handing tokens to AI hosts, the settings page, daily/weekly/monthly habits, things that surprise operators, incident procedures, team patterns, FAQ. |
+| Version | Date     | Author         | Changes                                                                                                                                                                                                                                                                             |
+|---------|----------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| v1.0    | May 2026 | Al Amin Ahamed | Initial operator-facing guide. Mental model (plugin / token / session), scope choice guidance, minting workflow (panel + CLI), handing tokens to AI hosts, the settings page, daily/weekly/monthly habits, things that surprise operators, incident procedures, team patterns, FAQ. |
