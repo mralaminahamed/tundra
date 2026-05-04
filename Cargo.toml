@@ -35,6 +35,7 @@ members = [
     "crates/tundrad-plugin-discord",
     "crates/tundrad-plugin-cloudflare",
     "crates/tundrad-plugin-mailgun",
+    "crates/tundrad-plugin-wordpress",
 ]
 resolver = "2"
 
@@ -121,6 +122,7 @@ tundrad-plugin-slack = { path = "crates/tundrad-plugin-slack" }
 tundrad-plugin-discord = { path = "crates/tundrad-plugin-discord" }
 tundrad-plugin-cloudflare = { path = "crates/tundrad-plugin-cloudflare" }
 tundrad-plugin-mailgun = { path = "crates/tundrad-plugin-mailgun" }
+tundrad-plugin-wordpress = { path = "crates/tundrad-plugin-wordpress" }
 
 # TOML parsing (manifest files)
 toml = "1.1.2+spec-1.1.0"

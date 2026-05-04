@@ -5489,6 +5489,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tundrad-plugin-wordpress"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tundra-plugin-sdk",
+]
+
+[[package]]
 name = "tundrad-repo"
 version = "0.1.0"
 dependencies = [
