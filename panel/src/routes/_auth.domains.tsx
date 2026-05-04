@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { SkeletonPage } from '@/components/ui/skeleton'
 import type { ListResponse, Domain } from '@/lib/api-types'
 
 export const Route = createFileRoute('/_auth/domains')({
@@ -45,7 +46,7 @@ function DomainsPage() {
         </Link>
       </div>
 
-      {isLoading && <p className="text-tundra-ink-400">Loading…</p>}
+      {isLoading && <SkeletonPage />}
       {isError && <p className="text-tundra-rust">Failed to load domains.</p>}
 
       {data && (

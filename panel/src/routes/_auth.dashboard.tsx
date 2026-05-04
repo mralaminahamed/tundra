@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
 import type { ListResponse, Server, ServerMetricsState, Site, Domain } from '@/lib/api-types'
+import { Skeleton, SkeletonTable } from '@/components/ui/skeleton'
 
 export const Route = createFileRoute('/_auth/dashboard')({
   component: DashboardPage,
@@ -51,15 +53,14 @@ function pct(used: number, total: number) {
   return total > 0 ? Math.round((used / total) * 100) : 0
 }
 
-function ResourceBar({ value, warn = 75, crit = 90, label }: { value: number; warn?: number; crit?: number; label: string }) {
+function MiniBar({ value, warn = 75, crit = 90 }: { value: number; warn?: number; crit?: number }) {
   const color = value >= crit ? 'bg-tundra-rust' : value >= warn ? 'bg-yellow-400' : 'bg-tundra-lichen'
   return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className="w-8 shrink-0 text-tundra-ink-400">{label}</span>
-      <div className="h-1.5 flex-1 rounded-full bg-tundra-ink-100 overflow-hidden">
+    <div className="flex items-center gap-1.5 text-xs">
+      <div className="h-1.5 w-16 rounded-full bg-tundra-ink-100 overflow-hidden">
         <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${String(Math.min(value, 100))}%` }} />
       </div>
-      <span className="w-8 shrink-0 tabular-nums text-right text-tundra-ink-500">{value}%</span>
+      <span className="w-7 tabular-nums text-right text-tundra-ink-500">{String(value)}%</span>
     </div>
   )
 }
@@ -67,34 +68,32 @@ function ResourceBar({ value, warn = 75, crit = 90, label }: { value: number; wa
 function StatusDot({ status }: { status: Server['status'] }) {
   const map: Record<string, string> = {
     active: 'bg-tundra-lichen',
-    provisioning: 'bg-tundra-aurora',
+    provisioning: 'bg-tundra-aurora animate-pulse',
     degraded: 'bg-yellow-400',
-    offline: 'bg-tundra-rust',
+    offline: 'bg-tundra-ink-400',
     disabled: 'bg-tundra-ink-300',
   }
-  return <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${map[status] ?? 'bg-tundra-ink-300'}`} />
+  return <span className={`inline-block h-2 w-2 rounded-full ${map[status] ?? 'bg-tundra-ink-300'}`} />
 }
 
 function StatCard({ label, value, sub, to, accent }: {
-  label: string; value: string | number; sub?: string; to: string
-  accent?: 'lichen' | 'rust' | 'aurora'
+  label: string; value: number; sub: string; to: string; accent?: 'lichen' | 'rust' | 'aurora'
 }) {
-  const bar = { lichen: 'bg-tundra-lichen', rust: 'bg-tundra-rust', aurora: 'bg-tundra-aurora' }
+  const accentCls = { lichen: 'text-tundra-lichen', rust: 'text-tundra-rust', aurora: 'text-tundra-aurora' }
   return (
-    <Link to={to} className="group relative overflow-hidden rounded-xl border border-tundra-ink-200 bg-white p-5 transition-shadow hover:shadow-md">
-      {accent && <span className={`absolute left-0 top-0 h-0.5 w-full ${bar[accent]}`} />}
-      <div className="text-2xl font-bold text-tundra-ink tabular-nums">{value}</div>
-      <div className="mt-0.5 text-sm font-medium text-tundra-ink-600">{label}</div>
-      {sub && <div className="mt-1 text-xs text-tundra-ink-400">{sub}</div>}
+    <Link to={to} className="flex flex-col gap-1 rounded-xl border border-tundra-ink-200 bg-white px-5 py-4 hover:shadow-sm transition-shadow">
+      <span className="text-xs font-medium uppercase tracking-wider text-tundra-ink-400">{label}</span>
+      <span className={`text-3xl font-bold tabular-nums ${accent ? accentCls[accent] : 'text-tundra-ink'}`}>{String(value)}</span>
+      <span className="text-xs text-tundra-ink-400">{sub}</span>
     </Link>
   )
 }
 
 function SectionCard({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-tundra-ink-200 bg-white overflow-hidden">
+    <section className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white">
       <div className="flex items-center justify-between border-b border-tundra-ink-100 px-5 py-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-400">{title}</h2>
+        <h2 className="text-sm font-semibold text-tundra-ink-700">{title}</h2>
         {action}
       </div>
       {children}
@@ -111,37 +110,37 @@ function EmptyState({ message, cta, to }: { message: string; cta?: string; to?: 
   )
 }
 
-// ─── Action label map ─────────────────────────────────────────────────────────
-
 function auditLabel(action: string): string {
   const map: Record<string, string> = {
     'operator.login': 'Signed in',
     'operator.logout': 'Signed out',
     'operator.totp_enabled': 'Enabled TOTP',
-    'operator.totp_disabled': 'Disabled TOTP',
     'operator.passkey_registered': 'Registered passkey',
-    'operator.passkey_deleted': 'Deleted passkey',
     'site.created': 'Created site',
     'site.deleted': 'Deleted site',
     'server.created': 'Added server',
     'server.deleted': 'Deleted server',
-    'backup.job_started': 'Backup started',
     'backup.job_completed': 'Backup completed',
     'backup.job_failed': 'Backup failed',
     'deployment.triggered': 'Deployment triggered',
     'alert_rule.created': 'Alert rule created',
-    'alert_rule.deleted': 'Alert rule deleted',
   }
-  return map[action] ?? action.replace(/\./g, ' ').replace(/_/g, ' ')
+  return map[action] ?? action.replace(/[._]/g, ' ')
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function DashboardPage() {
   const operator = useAuthStore((s) => s.operator)
+  const queryClient = useQueryClient()
+  const [refreshing, setRefreshing] = useState(false)
 
-  const { data: serversData } = useQuery({ queryKey: ['servers'], queryFn: () => api<ListResponse<Server>>('/servers') })
-  const { data: metricsData } = useQuery({ queryKey: ['server-metrics-state'], queryFn: () => api<{ data: ServerMetricsState[] }>('/servers/metrics-state') })
+  const { data: serversData, isLoading: serversLoading } = useQuery({ queryKey: ['servers'], queryFn: () => api<ListResponse<Server>>('/servers') })
+  const { data: metricsData, isLoading: metricsLoading } = useQuery({
+    queryKey: ['server-metrics-state'],
+    queryFn: () => api<{ data: ServerMetricsState[] }>('/servers/metrics-state'),
+    refetchInterval: 30_000,
+  })
   const { data: sitesData } = useQuery({ queryKey: ['sites'], queryFn: () => api<ListResponse<Site>>('/sites') })
   const { data: domainsData } = useQuery({ queryKey: ['domains'], queryFn: () => api<ListResponse<Domain>>('/domains') })
   const { data: deliveriesData } = useQuery({ queryKey: ['alert-deliveries'], queryFn: () => api<{ data: AlertDelivery[] }>('/alert-deliveries?limit=20') })
@@ -162,12 +161,10 @@ function DashboardPage() {
   const metricsMap = Object.fromEntries(metrics.map((m) => [m.server_id, m])) as Record<string, ServerMetricsState | undefined>
 
   // Fleet aggregates
-  const metricsArr = metrics
-  const avgCpu = metricsArr.length > 0 ? Math.round(metricsArr.reduce((s, m) => s + m.cpu_used_pct, 0) / metricsArr.length) : null
-  const avgRam = metricsArr.length > 0 ? Math.round(metricsArr.reduce((s, m) => s + pct(m.ram_used_mb, m.ram_total_mb), 0) / metricsArr.length) : null
-  const avgDisk = metricsArr.length > 0 ? Math.round(metricsArr.reduce((s, m) => s + pct(m.disk_used_gb, m.disk_total_gb), 0) / metricsArr.length) : null
+  const avgCpu = metrics.length > 0 ? Math.round(metrics.reduce((s, m) => s + m.cpu_used_pct, 0) / metrics.length) : null
+  const avgRam = metrics.length > 0 ? Math.round(metrics.reduce((s, m) => s + pct(m.ram_used_mb, m.ram_total_mb), 0) / metrics.length) : null
+  const avgDisk = metrics.length > 0 ? Math.round(metrics.reduce((s, m) => s + pct(m.disk_used_gb, m.disk_total_gb), 0) / metrics.length) : null
 
-  // Domains expiring within 30 days
   const nowMs = Date.now()
   const expiringDomains = domains.filter((d) => {
     if (!d.registration_expires_at) return false
@@ -178,35 +175,52 @@ function DashboardPage() {
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
+  async function handleRefresh() {
+    setRefreshing(true)
+    await queryClient.invalidateQueries({ queryKey: ['server-metrics-state'] })
+    await queryClient.refetchQueries({ queryKey: ['server-metrics-state'] })
+    setRefreshing(false)
+  }
+
   return (
-    <div className="max-w-6xl space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-tundra-ink">
-          {greeting}, {operator?.full_name.split(' ')[0]}.
-        </h1>
-        <p className="mt-1 text-sm text-tundra-ink-400">
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-tundra-ink">
+            {greeting}, {operator?.full_name.split(' ')[0]}.
+          </h1>
+          <p className="mt-0.5 text-sm text-tundra-ink-400">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
+        <button
+          onClick={() => { void handleRefresh() }}
+          disabled={refreshing || metricsLoading}
+          className="flex items-center gap-1.5 rounded border border-tundra-ink-200 px-3 py-1.5 text-sm text-tundra-ink-500 hover:bg-tundra-ink-50 disabled:opacity-50 transition-colors"
+        >
+          <svg className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Refresh
+        </button>
       </div>
 
-      {/* Active alerts banner */}
+      {/* Banners */}
       {activeAlerts.length > 0 && (
         <Link to="/alerts" className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm transition-colors hover:bg-red-100">
           <div className="flex items-center gap-2 font-medium text-red-700">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
-            {activeAlerts.length} active alert{activeAlerts.length > 1 ? 's' : ''} firing
+            {String(activeAlerts.length)} active alert{activeAlerts.length > 1 ? 's' : ''} firing
           </div>
           <span className="text-red-500 text-xs">View →</span>
         </Link>
       )}
-
-      {/* Domain expiry warning */}
       {expiringDomains.length > 0 && (
         <Link to="/domains" className="flex items-center justify-between rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm transition-colors hover:bg-yellow-100">
           <div className="flex items-center gap-2 font-medium text-yellow-700">
             <span className="inline-block h-2 w-2 rounded-full bg-yellow-500" />
-            {expiringDomains.length} domain{expiringDomains.length > 1 ? 's' : ''} expiring within 30 days
+            {String(expiringDomains.length)} domain{expiringDomains.length > 1 ? 's' : ''} expiring within 30 days
           </div>
           <span className="text-yellow-600 text-xs">Manage →</span>
         </Link>
@@ -214,93 +228,163 @@ function DashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Servers" value={servers.length}
-          sub={degradedServers > 0 ? `${String(degradedServers)} degraded` : `${String(servers.filter(s => s.status === 'active').length)} active`}
-          to="/servers" accent={degradedServers > 0 ? 'rust' : 'lichen'} />
-        <StatCard label="Sites" value={sites.length} sub={`${String(activeSites)} active`}
-          to="/sites" accent="lichen" />
-        <StatCard label="Domains" value={domains.length}
-          sub={expiringDomains.length > 0 ? `${String(expiringDomains.length)} expiring soon` : 'all managed'}
-          to="/domains" accent={expiringDomains.length > 0 ? 'rust' : 'aurora'} />
-        <StatCard label="Alert rules" value={rules.length}
-          sub={activeAlerts.length > 0 ? `${String(activeAlerts.length)} firing` : 'all clear'}
-          to="/alerts" accent={activeAlerts.length > 0 ? 'rust' : undefined} />
+        {serversLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-tundra-ink-200 bg-white px-5 py-4 space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-8 w-12" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          ))
+        ) : (
+          <>
+            <StatCard label="Servers" value={servers.length}
+              sub={degradedServers > 0 ? `${String(degradedServers)} degraded` : `${String(servers.filter(s => s.status === 'active').length)} active`}
+              to="/servers" accent={degradedServers > 0 ? 'rust' : 'lichen'} />
+            <StatCard label="Sites" value={sites.length} sub={`${String(activeSites)} active`} to="/sites" accent="lichen" />
+            <StatCard label="Domains" value={domains.length}
+              sub={expiringDomains.length > 0 ? `${String(expiringDomains.length)} expiring soon` : 'all managed'}
+              to="/domains" accent={expiringDomains.length > 0 ? 'rust' : 'aurora'} />
+            <StatCard label="Alert rules" value={rules.length}
+              sub={activeAlerts.length > 0 ? `${String(activeAlerts.length)} firing` : 'all clear'}
+              to="/alerts" accent={activeAlerts.length > 0 ? 'rust' : undefined} />
+          </>
+        )}
       </div>
 
-      {/* Fleet aggregate health bar */}
-      {metricsArr.length > 0 && (
-        <div className="rounded-xl border border-tundra-ink-200 bg-white px-5 py-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-400">Fleet health — {metricsArr.length} server{metricsArr.length > 1 ? 's' : ''} reporting</h2>
-            <Link to="/servers" className="text-xs text-tundra-aurora hover:underline">Details →</Link>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {avgCpu != null && <ResourceBar value={avgCpu} label="CPU" />}
-            {avgRam != null && <ResourceBar value={avgRam} label="RAM" />}
-            {avgDisk != null && <ResourceBar value={avgDisk} label="Disk" />}
-          </div>
-          {/* Per-server dots */}
-          <div className="mt-3 flex flex-wrap gap-3">
-            {servers.map((s) => {
-              const sm = metricsMap[s.id]
-              return (
-                <Link key={s.id} to="/servers/$serverId" params={{ serverId: s.id }}
-                  className="flex items-center gap-1.5 text-xs text-tundra-ink-500 hover:text-tundra-ink">
-                  <StatusDot status={s.status} />
-                  <span>{s.name}</span>
-                  {sm && (
-                    <span className="text-tundra-ink-300">
-                      CPU {String(Math.round(sm.cpu_used_pct))}%
-                    </span>
-                  )}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Main 2-col grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Fleet */}
-        <SectionCard title="Fleet" action={<Link to="/servers" className="text-xs text-tundra-aurora hover:underline">View all</Link>}>
-          {servers.length === 0
-            ? <EmptyState message="No servers." cta="Add one →" to="/servers/new" />
-            : (
-              <div className="divide-y divide-tundra-ink-100">
-                {servers.slice(0, 5).map((s) => {
-                  const m = metricsMap[s.id]
-                  return (
-                    <Link key={s.id} to="/servers/$serverId" params={{ serverId: s.id }}
-                      className="flex items-center gap-3 px-5 py-3 hover:bg-tundra-ink-50 transition-colors">
-                      <StatusDot status={s.status} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="truncate text-sm font-medium text-tundra-ink">{s.name}</span>
-                          <span className="shrink-0 text-xs text-tundra-ink-400">{relTime(s.agent_last_seen_at)}</span>
-                        </div>
-                        <div className="mt-0.5 text-xs text-tundra-ink-400">{s.hostname} · {s.region ?? 'no region'}</div>
-                      </div>
-                      {m && (
-                        <div className="hidden shrink-0 flex-col gap-1 sm:flex w-20">
-                          <ResourceBar value={Math.round(m.cpu_used_pct)} label="C" />
-                          <ResourceBar value={pct(m.ram_used_mb, m.ram_total_mb)} label="R" />
-                        </div>
-                      )}
-                    </Link>
-                  )
-                })}
+      {/* ─── Full-width server table ─────────────────────────────────── */}
+      <section className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white">
+        <div className="flex items-center justify-between border-b border-tundra-ink-100 px-5 py-3">
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-semibold text-tundra-ink-700">Servers</h2>
+            {metrics.length > 0 && (
+              <div className="flex items-center gap-4 text-xs text-tundra-ink-500">
+                {avgCpu != null && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-medium">Avg CPU</span>
+                    <MiniBar value={avgCpu} />
+                  </span>
+                )}
+                {avgRam != null && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-medium">Avg RAM</span>
+                    <MiniBar value={avgRam} />
+                  </span>
+                )}
+                {avgDisk != null && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-medium">Avg Disk</span>
+                    <MiniBar value={avgDisk} />
+                  </span>
+                )}
               </div>
             )}
-        </SectionCard>
+          </div>
+          <div className="flex items-center gap-3">
+            {metrics.length > 0 && (
+              <span className="text-xs text-tundra-ink-400">
+                {String(metrics.length)} reporting
+              </span>
+            )}
+            <Link to="/servers/new" className="rounded bg-tundra-lichen px-3 py-1 text-xs text-white hover:bg-tundra-lichen-600">
+              + Add server
+            </Link>
+            <Link to="/servers" className="text-xs text-tundra-aurora hover:underline">View all</Link>
+          </div>
+        </div>
 
+        {serversLoading ? (
+          <SkeletonTable rows={4} cols={7} />
+        ) : servers.length === 0 ? (
+          <EmptyState message="No servers enrolled yet." cta="Add your first server →" to="/servers/new" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-tundra-ink-50 text-xs">
+                <tr>
+                  <th className="px-5 py-3 text-left font-medium text-tundra-ink-500">Name</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500">Status</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500">OS / Region</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500">Agent</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500">CPU</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500">RAM</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500">Disk</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500">Sites</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500">Last seen</th>
+                  <th className="px-4 py-3 text-left font-medium text-tundra-ink-500"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-tundra-ink-100">
+                {servers.map((s) => {
+                  const m = metricsMap[s.id]
+                  const cpuPct = m ? Math.round(m.cpu_used_pct) : null
+                  const ramPct = m ? pct(m.ram_used_mb, m.ram_total_mb) : null
+                  const diskPct = m ? pct(m.disk_used_gb, m.disk_total_gb) : null
+                  return (
+                    <tr key={s.id} className="hover:bg-tundra-ink-50 transition-colors">
+                      <td className="px-5 py-3">
+                        <Link to="/servers/$serverId" params={{ serverId: s.id }}
+                          className="font-medium text-tundra-aurora hover:underline">
+                          {s.name}
+                        </Link>
+                        <div className="text-xs text-tundra-ink-400 mt-0.5">{s.hostname}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="flex items-center gap-1.5">
+                          <StatusDot status={s.status} />
+                          <span className="text-xs capitalize text-tundra-ink-600">{s.status}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-tundra-ink-500">
+                        <div>{s.os}</div>
+                        {s.region && <div className="text-tundra-ink-400">{s.region}</div>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {s.agent_version ? (
+                          <span className="rounded bg-tundra-ink-100 px-1.5 py-0.5 text-xs font-mono">{s.agent_version}</span>
+                        ) : (
+                          <span className="text-xs text-tundra-ink-400">not enrolled</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {cpuPct != null ? <MiniBar value={cpuPct} /> : <span className="text-xs text-tundra-ink-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {ramPct != null ? <MiniBar value={ramPct} /> : <span className="text-xs text-tundra-ink-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {diskPct != null ? <MiniBar value={diskPct} /> : <span className="text-xs text-tundra-ink-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-tundra-ink-500">
+                        {m ? String(m.site_count) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-tundra-ink-400">
+                        {relTime(s.agent_last_seen_at)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Link to="/servers/$serverId" params={{ serverId: s.id }}
+                          className="text-xs text-tundra-ink-400 hover:text-tundra-aurora">
+                          Details →
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* ─── 3-col grid: sites, alerts, audit ───────────────────────── */}
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Sites */}
         <SectionCard title="Sites" action={<Link to="/sites" className="text-xs text-tundra-aurora hover:underline">View all</Link>}>
           {sites.length === 0
             ? <EmptyState message="No sites." cta="Create one →" to="/sites/new" />
             : (
               <div className="divide-y divide-tundra-ink-100">
-                {sites.slice(0, 5).map((site) => {
+                {sites.slice(0, 6).map((site) => {
                   const srv = servers.find((s) => s.id === site.server_id)
                   return (
                     <Link key={site.id} to="/sites/$siteId" params={{ siteId: site.id }}
@@ -308,7 +392,7 @@ function DashboardPage() {
                       <div className="min-w-0">
                         <div className="truncate text-sm font-medium text-tundra-ink">{site.primary_domain}</div>
                         <div className="mt-0.5 text-xs text-tundra-ink-400">
-                          {site.name}{srv ? ` · ${srv.name}` : ''}
+                          {srv?.name ?? site.name}
                         </div>
                       </div>
                       <span className={`ml-3 shrink-0 rounded px-2 py-0.5 text-xs font-medium ${
@@ -322,12 +406,12 @@ function DashboardPage() {
         </SectionCard>
 
         {/* Active alerts */}
-        <SectionCard title="Active alerts" action={<Link to="/alerts" className="text-xs text-tundra-aurora hover:underline">Manage rules</Link>}>
+        <SectionCard title="Active alerts" action={<Link to="/alerts" className="text-xs text-tundra-aurora hover:underline">Manage</Link>}>
           {activeAlerts.length === 0
             ? <EmptyState message="All clear — no active alerts." />
             : (
               <div className="divide-y divide-tundra-ink-100">
-                {activeAlerts.slice(0, 5).map((d) => {
+                {activeAlerts.slice(0, 6).map((d) => {
                   const rule = rules.find((r) => r.id === d.rule_id)
                   const color = rule?.severity === 'critical' ? 'text-tundra-rust' : rule?.severity === 'warning' ? 'text-yellow-600' : 'text-tundra-aurora'
                   return (
@@ -335,7 +419,7 @@ function DashboardPage() {
                       <div>
                         <span className={`text-sm font-medium ${color}`}>{rule?.name ?? d.rule_id}</span>
                         <div className="mt-0.5 text-xs text-tundra-ink-400">
-                          fired {relTime(d.fired_at)} · value {d.current_value.toFixed(1)} / threshold {d.threshold.toFixed(1)}
+                          {relTime(d.fired_at)} · {d.current_value.toFixed(1)} / {d.threshold.toFixed(1)}
                         </div>
                       </div>
                       <span className="ml-3 shrink-0 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
@@ -356,7 +440,7 @@ function DashboardPage() {
               <div className="divide-y divide-tundra-ink-100">
                 {auditEntries.slice(0, 6).map((e) => (
                   <div key={e.id} className="flex items-start gap-3 px-5 py-3">
-                    <span className="mt-0.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-tundra-ink-300 mt-2" />
+                    <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-tundra-ink-300" />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm text-tundra-ink">{auditLabel(e.action)}</div>
                       <div className="mt-0.5 text-xs text-tundra-ink-400">
@@ -368,7 +452,10 @@ function DashboardPage() {
               </div>
             )}
         </SectionCard>
+      </div>
 
+      {/* ─── Bottom row: domains + quick actions ────────────────────── */}
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Domains */}
         <SectionCard title="Domains" action={<Link to="/domains" className="text-xs text-tundra-aurora hover:underline">View all</Link>}>
           {domains.length === 0
@@ -389,7 +476,7 @@ function DashboardPage() {
                       <div className="ml-3 shrink-0 text-right">
                         {daysLeft != null ? (
                           <span className={`text-xs font-medium ${expiringSoon ? 'text-tundra-rust' : 'text-tundra-ink-400'}`}>
-                            {expiringSoon ? `expires in ${String(daysLeft)}d` : `${String(daysLeft)}d left`}
+                            {String(daysLeft)}d left
                           </span>
                         ) : (
                           <span className="rounded bg-tundra-lichen-100 px-2 py-0.5 text-xs text-tundra-lichen-800">
@@ -409,7 +496,7 @@ function DashboardPage() {
           <div className="grid grid-cols-2 gap-px bg-tundra-ink-100">
             {[
               { label: 'Add server', sub: 'Enrol a new node', to: '/servers/new' },
-              { label: 'Create site', sub: 'Deploy a web application', to: '/sites/new' },
+              { label: 'Create site', sub: 'Deploy a web app', to: '/sites/new' },
               { label: 'Add domain', sub: 'Register or import', to: '/domains' },
               { label: 'Browse templates', sub: '13 stacks available', to: '/templates' },
               { label: 'Manage plugins', sub: 'Namecheap, GitHub, MCP', to: '/plugins' },

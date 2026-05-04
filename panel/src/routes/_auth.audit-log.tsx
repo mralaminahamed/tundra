@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { api } from '@/lib/api'
+import { SkeletonPage } from '@/components/ui/skeleton'
 
 export const Route = createFileRoute('/_auth/audit-log')({
   component: AuditLogPage,
@@ -91,7 +92,7 @@ function AuditLogPage() {
         ))}
       </div>
 
-      {isLoading && <p className="text-sm text-tundra-ink-400">Loading…</p>}
+      {isLoading && <SkeletonPage />}
       {isError && <p className="text-sm text-tundra-rust">Failed to load audit log.</p>}
 
       {entries.length > 0 && (

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
+import { SkeletonTable } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/_auth/alerts')({
@@ -123,7 +124,7 @@ function AlertsPage() {
 
       <div>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-tundra-ink-400">Alert rules</h2>
-        {rulesLoading && <p className="text-sm text-tundra-ink-400">Loading…</p>}
+        {rulesLoading && <SkeletonTable rows={3} cols={5} />}
         {rules.length === 0 && !rulesLoading && (
           <p className="py-8 text-center text-sm text-tundra-ink-400">No alert rules yet.</p>
         )}

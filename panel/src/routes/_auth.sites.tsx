@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { api } from '@/lib/api'
+import { SkeletonPage } from '@/components/ui/skeleton'
 import type { ListResponse, Site, Server } from '@/lib/api-types'
 
 export const Route = createFileRoute('/_auth/sites')({
@@ -103,7 +104,7 @@ function SitesPage() {
         </div>
       )}
 
-      {isLoading && <p className="text-sm text-tundra-ink-400">Loading…</p>}
+      {isLoading && <SkeletonPage />}
       {isError && <p className="text-sm text-tundra-rust">Failed to load sites.</p>}
 
       {data && (

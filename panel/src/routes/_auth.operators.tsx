@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
+import { SkeletonPage } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/stores/auth'
 
 export const Route = createFileRoute('/_auth/operators')({
@@ -79,7 +80,7 @@ function OperatorsPage() {
         </button>
       </div>
 
-      {isLoading && <p className="text-sm text-tundra-ink-400">Loading…</p>}
+      {isLoading && <SkeletonPage />}
       {isError && <p className="text-sm text-tundra-rust">Failed to load operators.</p>}
 
       {operators.length > 0 && (
