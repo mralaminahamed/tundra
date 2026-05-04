@@ -186,6 +186,36 @@ impl<'a> ServerRepo<'a> {
         }
     }
 
+    pub async fn update_metadata(
+        &self,
+        id: Uuid,
+        name: Option<&str>,
+        region: Option<Option<&str>>,
+        notes: Option<Option<&str>>,
+    ) -> Result<(), RepoError> {
+        let n = sqlx::query(
+            "UPDATE servers SET \
+               name   = COALESCE($2, name), \
+               region = CASE WHEN $3 THEN $4 ELSE region END, \
+               notes  = CASE WHEN $5 THEN $6 ELSE notes  END \
+             WHERE id = $1 AND deleted_at IS NULL",
+        )
+        .bind(id)
+        .bind(name)
+        .bind(region.is_some())
+        .bind(region.flatten())
+        .bind(notes.is_some())
+        .bind(notes.flatten())
+        .execute(self.pool)
+        .await?
+        .rows_affected();
+        if n == 0 {
+            Err(RepoError::NotFound)
+        } else {
+            Ok(())
+        }
+    }
+
     /// Update the maintenance window columns.  Pass `None` to clear a field.
     pub async fn update_maintenance(
         &self,

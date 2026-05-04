@@ -3,6 +3,7 @@ pub mod error;
 pub mod extractors;
 pub mod middleware;
 pub mod routes;
+pub mod serde_util;
 pub mod ssh_installer;
 pub mod templates;
 

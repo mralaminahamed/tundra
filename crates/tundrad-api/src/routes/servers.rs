@@ -451,8 +451,16 @@ pub async fn metrics_state(
 
 // ── PATCH /api/v1/servers/:server_id ─────────────────────────────────────
 
+/// All fields are optional — send only what needs to change.
 #[derive(Deserialize)]
 pub struct UpdateServerRequest {
+    pub name: Option<String>,
+    /// Send `null` explicitly to clear the region.
+    #[serde(default, deserialize_with = "crate::serde_util::option_option")]
+    pub region: Option<Option<String>>,
+    /// Send `null` explicitly to clear notes.
+    #[serde(default, deserialize_with = "crate::serde_util::option_option")]
+    pub notes: Option<Option<String>>,
     pub maintenance_starts_at: Option<String>,
     pub maintenance_ends_at: Option<String>,
 }
@@ -472,45 +480,77 @@ pub async fn update_server(
         .require(&op.role, Action::Update, Resource::Server)
         .map_err(ApiError::from)?;
 
-    // Parse ISO 8601 timestamps if provided.
-    let starts_at = body
-        .maintenance_starts_at
-        .as_deref()
-        .map(|s| {
-            time::OffsetDateTime::parse(s, &time::format_description::well_known::Rfc3339)
-                .map_err(|e| ApiError::bad_request(format!("maintenance_starts_at: {e}")))
-        })
-        .transpose()?;
+    let repo = tundrad_repo::ServerRepo::new(&pool);
 
-    let ends_at = body
-        .maintenance_ends_at
-        .as_deref()
-        .map(|s| {
-            time::OffsetDateTime::parse(s, &time::format_description::well_known::Rfc3339)
-                .map_err(|e| ApiError::bad_request(format!("maintenance_ends_at: {e}")))
-        })
-        .transpose()?;
-
-    tundrad_repo::ServerRepo::new(&pool)
-        .update_maintenance(server_id, starts_at, ends_at)
+    // Update metadata fields (name/region/notes) if any were supplied.
+    if body.name.is_some() || body.region.is_some() || body.notes.is_some() {
+        repo.update_metadata(
+            server_id,
+            body.name.as_deref(),
+            body.region.as_ref().map(|r| r.as_deref()),
+            body.notes.as_ref().map(|n| n.as_deref()),
+        )
         .await
         .map_err(ApiError::from)?;
 
-    tundrad_repo::AuditLogRepo::new(&pool)
-        .append(tundrad_domain::NewAuditEntry {
-            actor: tundrad_domain::AuditActor::Operator(session.operator_id),
-            action: "server.update_maintenance".to_owned(),
-            resource_type: Some("server".to_owned()),
-            resource_id: Some(server_id),
-            ip: None,
-            user_agent: None,
-            details: serde_json::json!({
-                "maintenance_starts_at": body.maintenance_starts_at,
-                "maintenance_ends_at":   body.maintenance_ends_at,
-            }),
-        })
-        .await
-        .map_err(ApiError::from)?;
+        tundrad_repo::AuditLogRepo::new(&pool)
+            .append(tundrad_domain::NewAuditEntry {
+                actor: tundrad_domain::AuditActor::Operator(session.operator_id),
+                action: "server.update".to_owned(),
+                resource_type: Some("server".to_owned()),
+                resource_id: Some(server_id),
+                ip: None,
+                user_agent: None,
+                details: serde_json::json!({
+                    "name":   body.name,
+                    "region": body.region,
+                    "notes":  body.notes,
+                }),
+            })
+            .await
+            .map_err(ApiError::from)?;
+    }
+
+    // Update maintenance window if those fields were supplied.
+    if body.maintenance_starts_at.is_some() || body.maintenance_ends_at.is_some() {
+        let starts_at = body
+            .maintenance_starts_at
+            .as_deref()
+            .map(|s| {
+                time::OffsetDateTime::parse(s, &time::format_description::well_known::Rfc3339)
+                    .map_err(|e| ApiError::bad_request(format!("maintenance_starts_at: {e}")))
+            })
+            .transpose()?;
+
+        let ends_at = body
+            .maintenance_ends_at
+            .as_deref()
+            .map(|s| {
+                time::OffsetDateTime::parse(s, &time::format_description::well_known::Rfc3339)
+                    .map_err(|e| ApiError::bad_request(format!("maintenance_ends_at: {e}")))
+            })
+            .transpose()?;
+
+        repo.update_maintenance(server_id, starts_at, ends_at)
+            .await
+            .map_err(ApiError::from)?;
+
+        tundrad_repo::AuditLogRepo::new(&pool)
+            .append(tundrad_domain::NewAuditEntry {
+                actor: tundrad_domain::AuditActor::Operator(session.operator_id),
+                action: "server.update_maintenance".to_owned(),
+                resource_type: Some("server".to_owned()),
+                resource_id: Some(server_id),
+                ip: None,
+                user_agent: None,
+                details: serde_json::json!({
+                    "maintenance_starts_at": body.maintenance_starts_at,
+                    "maintenance_ends_at":   body.maintenance_ends_at,
+                }),
+            })
+            .await
+            .map_err(ApiError::from)?;
+    }
 
     Ok(StatusCode::NO_CONTENT)
 }

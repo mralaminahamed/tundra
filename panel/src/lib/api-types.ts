@@ -3,13 +3,19 @@ export interface Server {
   name: string
   hostname: string
   region: string | null
+  public_ip: string | null
   os: string
+  os_version: string
+  arch: string
   status: 'provisioning' | 'active' | 'degraded' | 'offline' | 'disabled'
   agent_version: string | null
   agent_last_seen_at: string | null
+  agent_cert_fingerprint: string | null
+  notes: string | null
   maintenance_starts_at: string | null
   maintenance_ends_at: string | null
   created_at: string
+  updated_at: string
 }
 
 export interface ServerMetricsState {
