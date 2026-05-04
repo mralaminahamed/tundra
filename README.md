@@ -1,44 +1,91 @@
 # Tundra
 
-A self-hosted, Rust-based server-management platform. A modern alternative to Plesk and cPanel, built for full operator control, latest stable tooling, and native deployment of WordPress, Laravel, Node.js, Python, Go, and Rust applications.
+Self-hosted server management — a modern alternative to Plesk and cPanel.
+Single binary. No licensing fees. PostgreSQL + Valkey + Caddy.
 
 **Author:** Al Amin Ahamed — [GitHub @mralaminahamed](https://github.com/mralaminahamed) · [X @mralaminahamed](https://x.com/mralaminahamed)
 
----
+## Quick Install
+
+```bash
+curl -fsSL https://tundra.dev/install.sh | sudo bash
+```
+
+Runs on Ubuntu 24.04, Debian 12/13, RHEL 9/10.
+After install, visit the printed setup URL.
+
+## Features
+
+- **Multi-runtime sites** — PHP, Node.js, Python, Go, Rust, Ruby, .NET
+- **Blue/green deployments** with atomic symlink promotion
+- **Multi-server fleet** with SSH-based agent install and mTLS
+- **Plugin system** — Wasmtime sandbox for third-party plugins; native SDK for first-party
+- **MCP server** — connect Claude Desktop, Claude Code, Cursor, Zed via Model Context Protocol
+- **13 built-in templates** — WordPress, Laravel, Next.js, Django, Rails, and more
+- **Mail** — Postfix + Dovecot + Rspamd + DKIM, managed per domain
+- **Backups** — restic-backed, GPG-encrypted, preview-then-confirm restore
+- **Monitoring** — per-server + per-site metrics, alert rules, delivery channels
+
+## Architecture
+
+```
+tundrad (control plane)  →  tundra-agent (per managed server)
+       ↕ mTLS gRPC               ↕ systemd + fs
+   PostgreSQL 18              Site workloads
+   Valkey 8                   PHP-FPM / Node / Python...
+```
+
+See `docs/01-architecture/` for the full spec set.
+
+## Building
+
+```bash
+cargo build --release --workspace   # Rust binaries
+cd panel && pnpm build               # React panel
+```
+
+## Testing
+
+```bash
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+cd panel && pnpm test --run && pnpm typecheck
+```
+
+## Acceptance checks
+
+```bash
+tundra acceptance run --url https://panel.example.com --section all
+```
 
 ## Documentation
 
-| Document                                                                              | Purpose                                                     |
-|---------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [Architecture](docs/01-architecture/tundra-technical-implementation-plan-v3.md)       | Entry point — component topology, technology stack, roadmap |
-| [Database Schema](docs/01-architecture/tundra-database-schema-v1.md)                  | PostgreSQL 18 schema (73 tables, 14 modules)                |
-| [API Specification](docs/01-architecture/tundra-api-specification-v1.md)              | REST + gRPC + WebSocket surface                             |
-| [Frontend UI Spec](docs/01-architecture/tundra-frontend-ui-spec-v1.md)                | React 19 panel UI design tokens, components, route map      |
-| [Deployment Runbook](docs/02-operations/tundra-deployment-runbook-v1.md)              | Engineering-grade install, upgrade, recovery                |
-| [Deployment Overview](docs/02-operations/tundra-deployment-overview-v1.md)            | Operator-facing install and routine ops                     |
-| [Security Audit](docs/03-security/tundra-security-audit-v1.md)                        | STRIDE threat model, controls catalog                       |
-| [Security Overview](docs/03-security/tundra-security-overview-v1.md)                  | Operator-facing security model                              |
-| [Test Plan](docs/04-quality/tundra-test-plan-v1.md)                                   | Test pyramid, harnesses, CI gates                           |
-| [Acceptance Checklist](docs/04-quality/tundra-acceptance-checklist-v1.md)             | UAT and acceptance testing                                  |
-| [Plugin Architecture](docs/05-extensibility/tundra-plugin-architecture-plan-v1.md)    | Wasm sandbox, capability system, WIT contracts              |
-| [Additional Core Plugins](docs/05-extensibility/tundra-additional-core-plugins-v1.md) | Namecheap, GitHub, MCP Server plugins                       |
-| [Plesk Migration](docs/05-extensibility/tundra-plesk-migration-plan-v1.md)            | Plesk Obsidian migration plugin                             |
-| [MCP Server Spec](docs/06-mcp-server/tundra-mcp-server-spec-v1.md)                    | MCP server engineering reference                            |
-| [MCP Operator Guide](docs/06-mcp-server/tundra-mcp-server-operator-v1.md)             | MCP server operator guide                                   |
-| [MCP Cookbook](docs/06-mcp-server/tundra-mcp-server-cookbook-v1.md)                   | Claude Desktop, Cursor, Zed integration recipes             |
-| [Brand Guidelines](docs/07-brand/tundra-brand-guidelines-v1.md)                       | Marks, colour, typography                                   |
+| Document | Purpose |
+|----------|---------|
+| [Architecture](docs/01-architecture/tundra-technical-implementation-plan-v3.md) | Component topology, technology stack, roadmap |
+| [Database Schema](docs/01-architecture/tundra-database-schema-v1.md) | PostgreSQL 18 schema (73 tables, 14 modules) |
+| [API Specification](docs/01-architecture/tundra-api-specification-v1.md) | REST + gRPC + WebSocket surface |
+| [Deployment Runbook](docs/02-operations/tundra-deployment-runbook-v1.md) | Engineering-grade install, upgrade, recovery |
+| [Security Audit](docs/03-security/tundra-security-audit-v1.md) | STRIDE threat model, controls catalog |
+| [Test Plan](docs/04-quality/tundra-test-plan-v1.md) | Test pyramid, harnesses, CI gates |
+| [Plugin Architecture](docs/05-extensibility/tundra-plugin-architecture-plan-v1.md) | Wasm sandbox, capability system, WIT contracts |
+| [MCP Server Spec](docs/06-mcp-server/tundra-mcp-server-spec-v1.md) | MCP server engineering reference |
+| [Getting Started](docs/getting-started.md) | Install, first server, first site |
+| [Security Overview](docs/security.md) | Hardening checklist, trust model |
 
 ## Status
 
-| Phase                    | Status    | Notes                                                                                                |
-|--------------------------|-----------|------------------------------------------------------------------------------------------------------|
-| P0 — Bootstrap           | ✅ Done    | Workspace scaffold, toolchain, CI skeleton, `deny.toml`                                              |
-| P1 — Foundation          | ✅ Done    | Crypto, migrations, domain, repo, auth, API skeleton, panel shell                                    |
-| P2 — Single-host MVP     | ✅ Done    | gRPC/PKI/mTLS, agent crates, server enrolment, sites+deployments, job queue, Valkey events, panel UI |
-| P3 — Databases & Backups | ✅ Done    | DB engine providers, database REST+panel, restic backup module, self-backup+restore tools            |
-| P4 — Email & DNS         | ✅ Done    | PowerDNS/Unbound/Postfix/Dovecot/Rspamd providers, domain+DNS+mail REST+panel, DKIM crypto           |
-| P5 — Multi-runtime       | ✅ Done    | Node/Python/Go/Rust/Ruby/.NET providers, blue/green deploy, daemons, cron, site templates            |
-| P6 — Production hardening | ⬜ Planned | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, plugin host, billing                                 |
+| Phase | Status | Notes |
+|-------|--------|-------|
+| P0 — Bootstrap | Done | Workspace scaffold, toolchain, CI skeleton |
+| P1 — Foundation | Done | Crypto, migrations, domain, repo, auth, API skeleton, panel shell |
+| P2 — Single-host MVP | Done | gRPC/PKI/mTLS, agent crates, server enrolment, sites+deployments |
+| P3 — Databases & Backups | Done | DB engine providers, restic backup module, restore tools |
+| P4 — Email & DNS | Done | PowerDNS/Postfix/Dovecot/Rspamd providers, DKIM crypto |
+| P5 — Multi-runtime | Done | Node/Python/Go/Rust/Ruby/.NET providers, blue/green deploy, cron |
+| P6 — Multi-server | Done | SSH installer wizard, cross-server site move, fleet panel |
+| P7 — Templates & Plugins | Done | Wasmtime plugin host, MCP server, 13 templates, alert evaluator |
+| P8 — Production hardening | Done | Nginx/PHP-FPM provisioning, ACME, billing, acceptance CLI |
 
 ## License
 
