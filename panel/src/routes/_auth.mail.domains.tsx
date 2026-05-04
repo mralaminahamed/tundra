@@ -40,25 +40,22 @@ function MailDomainsPage() {
   return (
     <div>
       {/* Tab nav */}
-      <div className="mb-6 flex items-center gap-1 border-b border-tundra-ink-200 pb-0">
-        <Link
-          to="/mail/domains"
-          className="rounded-t px-4 py-2 text-sm font-medium border-b-2 border-tundra-lichen text-tundra-lichen"
-        >
-          Domains
-        </Link>
-        <Link
-          to="/mail/mailboxes"
-          className="rounded-t px-4 py-2 text-sm font-medium text-tundra-ink-500 hover:text-tundra-ink border-b-2 border-transparent"
-        >
-          Mailboxes
-        </Link>
-        <Link
-          to="/mail/queue"
-          className="rounded-t px-4 py-2 text-sm font-medium text-tundra-ink-500 hover:text-tundra-ink border-b-2 border-transparent"
-        >
-          Queue
-        </Link>
+      <div className="mb-6 flex items-center gap-1 border-b border-tundra-ink-200">
+        {[
+          { to: '/mail/domains', label: 'Domains' },
+          { to: '/mail/mailboxes', label: 'Mailboxes' },
+          { to: '/mail/queue', label: 'Queue' },
+        ].map((tab) => (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className="rounded-t px-4 py-2 text-sm font-medium border-b-2 -mb-px"
+            activeProps={{ className: 'border-tundra-lichen text-tundra-lichen' }}
+            inactiveProps={{ className: 'border-transparent text-tundra-ink-500 hover:text-tundra-ink' }}
+          >
+            {tab.label}
+          </Link>
+        ))}
       </div>
 
       <div className="mb-6 flex items-center justify-between">
