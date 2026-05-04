@@ -10,6 +10,7 @@ use axum::{
 };
 use routes::ws;
 use tower_http::trace::TraceLayer;
+use tundrad_plugin_mcp::server::http::handle_post as mcp_post;
 use tundrad_repo::PgPool;
 
 /// Build the complete Axum router. `state` is the `PgPool` injected into every handler.
@@ -279,6 +280,8 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/plugins/{id}/disable",
             post(routes::plugins::disable_plugin),
         )
+        // ── MCP (Model Context Protocol) ───────────────────────────────────
+        .route("/mcp", post(mcp_post))
         // ── Alert rules ────────────────────────────────────────────────────
         .route(
             "/api/v1/alert-rules",
