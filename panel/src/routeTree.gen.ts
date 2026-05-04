@@ -43,6 +43,7 @@ import { Route as AuthDomainsNewRouteImport } from './routes/_auth.domains.new'
 import { Route as AuthDomainsDomainIdRouteImport } from './routes/_auth.domains.$domainId'
 import { Route as AuthMailRouteImport } from './routes/_auth.mail'
 import { Route as AuthWordPressRouteImport } from './routes/_auth.wordpress'
+import { Route as AuthWordPressInstallIdRouteImport } from './routes/_auth.wordpress.$installId'
 import { Route as AuthMailDomainsRouteImport } from './routes/_auth.mail.domains'
 import { Route as AuthMailDomainsNewRouteImport } from './routes/_auth.mail.domains.new'
 import { Route as AuthMailDomainsDomainIdRouteImport } from './routes/_auth.mail.domains.$mailDomainId'
@@ -296,6 +297,12 @@ const AuthWordPressRoute = AuthWordPressRouteImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthWordPressInstallIdRoute = AuthWordPressInstallIdRouteImport.update({
+  id: '/_auth/wordpress/$installId',
+  path: '/$installId',
+  getParentRoute: () => AuthWordPressRoute,
+} as any)
+
 const AuthTemplatesRoute = AuthTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -371,7 +378,8 @@ export interface FileRoutesByFullPath {
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
-  '/wordpress': typeof AuthWordPressRoute
+  '/wordpress': typeof AuthWordPressRouteWithChildren
+  '/wordpress/$installId': typeof AuthWordPressInstallIdRoute
   '/templates': typeof AuthTemplatesRoute
   '/plugins': typeof AuthPluginsRoute
   '/alerts': typeof AuthAlertsRoute
@@ -419,7 +427,8 @@ export interface FileRoutesByTo {
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
-  '/wordpress': typeof AuthWordPressRoute
+  '/wordpress': typeof AuthWordPressRouteWithChildren
+  '/wordpress/$installId': typeof AuthWordPressInstallIdRoute
   '/templates': typeof AuthTemplatesRoute
   '/plugins': typeof AuthPluginsRoute
   '/alerts': typeof AuthAlertsRoute
@@ -469,7 +478,8 @@ export interface FileRoutesById {
   '/_auth/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/_auth/mail/queue': typeof AuthMailQueueRoute
   '/_auth/scheduled-tasks': typeof AuthScheduledTasksRoute
-  '/_auth/wordpress': typeof AuthWordPressRoute
+  '/_auth/wordpress': typeof AuthWordPressRouteWithChildren
+  '/_auth/wordpress/$installId': typeof AuthWordPressInstallIdRoute
   '/_auth/templates': typeof AuthTemplatesRoute
   '/_auth/plugins': typeof AuthPluginsRoute
   '/_auth/alerts': typeof AuthAlertsRoute
@@ -520,6 +530,7 @@ export interface FileRouteTypes {
     | '/mail/queue'
     | '/scheduled-tasks'
     | '/wordpress'
+    | '/wordpress/$installId'
     | '/templates'
     | '/plugins'
     | '/alerts'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/mail/queue'
     | '/scheduled-tasks'
     | '/wordpress'
+    | '/wordpress/$installId'
     | '/templates'
     | '/plugins'
     | '/alerts'
@@ -614,6 +626,7 @@ export interface FileRouteTypes {
     | '/_auth/mail/queue'
     | '/_auth/scheduled-tasks'
     | '/_auth/wordpress'
+    | '/_auth/wordpress/$installId'
     | '/_auth/templates'
     | '/_auth/plugins'
     | '/_auth/alerts'
@@ -911,6 +924,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthWordPressRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/wordpress/$installId': {
+      id: '/_auth/wordpress/$installId'
+      path: '/$installId'
+      fullPath: '/wordpress/$installId'
+      preLoaderRoute: typeof AuthWordPressInstallIdRouteImport
+      parentRoute: typeof AuthWordPressRoute
+    }
     '/_auth/templates': {
       id: '/_auth/templates'
       path: '/templates'
@@ -1102,6 +1122,18 @@ const AuthMailDomainsRouteChildren: AuthMailDomainsRouteChildren = {
 const AuthMailDomainsRouteWithChildren =
   AuthMailDomainsRoute._addFileChildren(AuthMailDomainsRouteChildren)
 
+interface AuthWordPressRouteChildren {
+  AuthWordPressInstallIdRoute: typeof AuthWordPressInstallIdRoute
+}
+
+const AuthWordPressRouteChildren: AuthWordPressRouteChildren = {
+  AuthWordPressInstallIdRoute: AuthWordPressInstallIdRoute,
+}
+
+const AuthWordPressRouteWithChildren = AuthWordPressRoute._addFileChildren(
+  AuthWordPressRouteChildren,
+)
+
 interface AuthMailRouteChildren {
   AuthMailDomainsRoute: typeof AuthMailDomainsRouteWithChildren
   AuthMailMailboxesRoute: typeof AuthMailMailboxesRoute
@@ -1130,7 +1162,7 @@ interface AuthRouteChildren {
   AuthBackupsRoute: typeof AuthBackupsRouteWithChildren
   AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
   AuthMailRoute: typeof AuthMailRouteWithChildren
-  AuthWordPressRoute: typeof AuthWordPressRoute
+  AuthWordPressRoute: typeof AuthWordPressRouteWithChildren
   AuthTemplatesRoute: typeof AuthTemplatesRoute
   AuthPluginsRoute: typeof AuthPluginsRoute
   AuthAlertsRoute: typeof AuthAlertsRoute
@@ -1150,7 +1182,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthBackupsRoute: AuthBackupsRouteWithChildren,
   AuthDomainsRoute: AuthDomainsRouteWithChildren,
   AuthMailRoute: AuthMailRouteWithChildren,
-  AuthWordPressRoute: AuthWordPressRoute,
+  AuthWordPressRoute: AuthWordPressRouteWithChildren,
   AuthTemplatesRoute: AuthTemplatesRoute,
   AuthPluginsRoute: AuthPluginsRoute,
   AuthAlertsRoute: AuthAlertsRoute,

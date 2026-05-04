@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
@@ -68,7 +68,7 @@ function InstallModal({
             </label>
             <select
               value={siteId}
-              onChange={(e) => setSiteId(e.target.value)}
+              onChange={(e) => { setSiteId(e.target.value); }}
               className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
             >
               <option value="">Select a site…</option>
@@ -87,7 +87,7 @@ function InstallModal({
               type="text"
               placeholder="My WordPress Site"
               value={siteTitle}
-              onChange={(e) => setSiteTitle(e.target.value)}
+              onChange={(e) => { setSiteTitle(e.target.value); }}
               className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
             />
           </div>
@@ -99,7 +99,7 @@ function InstallModal({
               type="email"
               placeholder="admin@example.com"
               value={adminEmail}
-              onChange={(e) => setAdminEmail(e.target.value)}
+              onChange={(e) => { setAdminEmail(e.target.value); }}
               className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
             />
           </div>
@@ -113,7 +113,7 @@ function InstallModal({
           </button>
           <button
             disabled={!siteId}
-            onClick={() => onInstall(siteId, siteTitle, adminEmail)}
+            onClick={() => { onInstall(siteId, siteTitle, adminEmail); }}
             className="rounded bg-stone-900 px-4 py-2 text-sm text-white hover:bg-stone-700 disabled:opacity-40"
           >
             Install WordPress
@@ -175,13 +175,13 @@ function WordPressPage() {
       {showModal && (
         <InstallModal
           sites={sites}
-          onClose={() => setShowModal(false)}
+          onClose={() => { setShowModal(false); }}
           onInstall={(siteId, siteTitle, adminEmail) =>
-            installMutation.mutate({
+            { installMutation.mutate({
               site_id: siteId,
               site_title: siteTitle,
               admin_email: adminEmail,
-            })
+            }); }
           }
         />
       )}
@@ -194,7 +194,7 @@ function WordPressPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => { setShowModal(true); }}
           className="rounded bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
         >
           + Install WordPress
@@ -211,7 +211,7 @@ function WordPressPage() {
         <div className="rounded-lg border border-dashed border-stone-300 p-12 text-center">
           <p className="text-stone-500">No WordPress installations yet.</p>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => { setShowModal(true); }}
             className="mt-3 text-sm text-stone-700 underline"
           >
             Install your first WordPress site →
@@ -251,12 +251,13 @@ function WordPressPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <a
-                        href={`/wordpress/${inst.id}`}
+                      <Link
+                        to="/wordpress/$installId"
+                        params={{ installId: inst.id }}
                         className="rounded border border-stone-200 px-2 py-1 text-xs hover:bg-stone-100"
                       >
                         Manage →
-                      </a>
+                      </Link>
                       <button
                         onClick={() => {
                           if (
