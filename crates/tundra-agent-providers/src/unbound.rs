@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use tundra_agent_reconciler::{Provider, ReconcileError, ReconcileOutcome};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ForwardZone { pub zone: String, pub forward_addrs: Vec<String> }
+pub struct ForwardZone {
+    pub zone: String,
+    pub forward_addrs: Vec<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnboundSpec {
@@ -13,7 +16,10 @@ pub struct UnboundSpec {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnboundState { pub is_running: bool, pub version: Option<String> }
+pub struct UnboundState {
+    pub is_running: bool,
+    pub version: Option<String>,
+}
 
 pub struct UnboundProvider;
 
@@ -22,7 +28,10 @@ impl Provider for UnboundProvider {
     type Spec = UnboundSpec;
     type State = UnboundState;
     async fn observe(&self) -> Result<UnboundState, ReconcileError> {
-        Ok(UnboundState { is_running: false, version: None })
+        Ok(UnboundState {
+            is_running: false,
+            version: None,
+        })
     }
     async fn reconcile(&self, desired: &UnboundSpec) -> Result<ReconcileOutcome, ReconcileError> {
         tracing::info!(listen = ?desired.listen_addresses, "unbound reconcile (stub)");
@@ -39,7 +48,14 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn reconcile_ok() {
-        let spec = UnboundSpec { listen_addresses: vec!["127.0.0.1".into()], forward_zones: vec![], access_control: vec![] };
-        assert_eq!(UnboundProvider.reconcile(&spec).await.unwrap(), ReconcileOutcome::Applied);
+        let spec = UnboundSpec {
+            listen_addresses: vec!["127.0.0.1".into()],
+            forward_zones: vec![],
+            access_control: vec![],
+        };
+        assert_eq!(
+            UnboundProvider.reconcile(&spec).await.unwrap(),
+            ReconcileOutcome::Applied
+        );
     }
 }

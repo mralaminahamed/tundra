@@ -14,7 +14,11 @@ pub struct PostfixSpec {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostfixState { pub is_running: bool, pub queue_depth: u32, pub version: Option<String> }
+pub struct PostfixState {
+    pub is_running: bool,
+    pub queue_depth: u32,
+    pub version: Option<String>,
+}
 
 pub struct PostfixProvider;
 
@@ -23,7 +27,11 @@ impl Provider for PostfixProvider {
     type Spec = PostfixSpec;
     type State = PostfixState;
     async fn observe(&self) -> Result<PostfixState, ReconcileError> {
-        Ok(PostfixState { is_running: false, queue_depth: 0, version: None })
+        Ok(PostfixState {
+            is_running: false,
+            queue_depth: 0,
+            version: None,
+        })
     }
     async fn reconcile(&self, desired: &PostfixSpec) -> Result<ReconcileOutcome, ReconcileError> {
         tracing::info!(hostname = %desired.hostname, domain = %desired.domain, "postfix reconcile (stub)");
@@ -37,13 +45,16 @@ impl Provider for PostfixProvider {
 
 impl PostfixProvider {
     pub async fn hold_message(&self, queue_id: &str) -> Result<(), ReconcileError> {
-        tracing::info!(queue_id, "postsuper hold (stub)"); Ok(())
+        tracing::info!(queue_id, "postsuper hold (stub)");
+        Ok(())
     }
     pub async fn release_message(&self, queue_id: &str) -> Result<(), ReconcileError> {
-        tracing::info!(queue_id, "postsuper release (stub)"); Ok(())
+        tracing::info!(queue_id, "postsuper release (stub)");
+        Ok(())
     }
     pub async fn delete_message(&self, queue_id: &str) -> Result<(), ReconcileError> {
-        tracing::info!(queue_id, "postsuper delete (stub)"); Ok(())
+        tracing::info!(queue_id, "postsuper delete (stub)");
+        Ok(())
     }
 }
 
@@ -52,7 +63,18 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn reconcile_ok() {
-        let spec = PostfixSpec { hostname: "mail.example.com".into(), domain: "example.com".into(), relay_host: None, smtp_tls_cert_file: None, smtp_tls_key_file: None, pgsql_dsn: "host=127.0.0.1 dbname=tundra".into(), mynetworks: vec![] };
-        assert_eq!(PostfixProvider.reconcile(&spec).await.unwrap(), ReconcileOutcome::Applied);
+        let spec = PostfixSpec {
+            hostname: "mail.example.com".into(),
+            domain: "example.com".into(),
+            relay_host: None,
+            smtp_tls_cert_file: None,
+            smtp_tls_key_file: None,
+            pgsql_dsn: "host=127.0.0.1 dbname=tundra".into(),
+            mynetworks: vec![],
+        };
+        assert_eq!(
+            PostfixProvider.reconcile(&spec).await.unwrap(),
+            ReconcileOutcome::Applied
+        );
     }
 }

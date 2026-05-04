@@ -43,43 +43,43 @@
 
 Every prompt below references these by filename. Claude Code should expect them in `docs/specs/` at the repo root.
 
-| # | Filename | Purpose |
-|---|----------|---------|
-| 1 | `tundra-technical-implementation-plan-v3.md` | Overall architecture; the entry point |
-| 2 | `tundra-database-schema-v1.md` | Canonical PostgreSQL 18 schema; 73 tables across 14 modules |
-| 3 | `tundra-api-specification-v1.md` | REST + gRPC + WebSocket surface |
-| 4 | `tundra-deployment-runbook-v1.md` | Engineering install, master-key rotation, troubleshooting trees |
-| 5 | `tundra-deployment-overview-v1.md` | Operator-facing install and routine ops |
-| 6 | `tundra-security-audit-v1.md` | STRIDE threat model, controls catalog, attack trees |
-| 7 | `tundra-security-overview-v1.md` | Operator-facing security model |
-| 8 | `tundra-test-plan-v1.md` | Test pyramid, harnesses, CI gates |
-| 9 | `tundra-acceptance-checklist-v1.md` | UAT, post-install/post-upgrade smoke, quarterly drill |
-| 10 | `tundra-plesk-migration-plan-v1.md` | Plesk-source migration plugin |
-| 11 | `tundra-plugin-architecture-plan-v1.md` | Wasm sandbox, capability system, WIT contracts |
-| 12 | `tundra-additional-core-plugins-v1.md` | Namecheap, GitHub plugins (MCP §4 deferred to dedicated docs) |
-| 13 | `tundra-frontend-ui-spec-v1.md` | Panel UI design tokens, components, route map |
-| 14 | `tundra-brand-guidelines-v1.md` | Marks, lockups, typography, colour, OG cards |
-| 15 | `tundra-mcp-server-spec-v1.md` | MCP server engineering reference |
-| 16 | `tundra-mcp-server-operator-v1.md` | MCP operator guide |
-| 17 | `tundra-mcp-server-cookbook-v1.md` | MCP integration cookbook |
+| #  | Filename                                     | Purpose                                                         |
+|----|----------------------------------------------|-----------------------------------------------------------------|
+| 1  | `tundra-technical-implementation-plan-v3.md` | Overall architecture; the entry point                           |
+| 2  | `tundra-database-schema-v1.md`               | Canonical PostgreSQL 18 schema; 73 tables across 14 modules     |
+| 3  | `tundra-api-specification-v1.md`             | REST + gRPC + WebSocket surface                                 |
+| 4  | `tundra-deployment-runbook-v1.md`            | Engineering install, master-key rotation, troubleshooting trees |
+| 5  | `tundra-deployment-overview-v1.md`           | Operator-facing install and routine ops                         |
+| 6  | `tundra-security-audit-v1.md`                | STRIDE threat model, controls catalog, attack trees             |
+| 7  | `tundra-security-overview-v1.md`             | Operator-facing security model                                  |
+| 8  | `tundra-test-plan-v1.md`                     | Test pyramid, harnesses, CI gates                               |
+| 9  | `tundra-acceptance-checklist-v1.md`          | UAT, post-install/post-upgrade smoke, quarterly drill           |
+| 10 | `tundra-plesk-migration-plan-v1.md`          | Plesk-source migration plugin                                   |
+| 11 | `tundra-plugin-architecture-plan-v1.md`      | Wasm sandbox, capability system, WIT contracts                  |
+| 12 | `tundra-additional-core-plugins-v1.md`       | Namecheap, GitHub plugins (MCP §4 deferred to dedicated docs)   |
+| 13 | `tundra-frontend-ui-spec-v1.md`              | Panel UI design tokens, components, route map                   |
+| 14 | `tundra-brand-guidelines-v1.md`              | Marks, lockups, typography, colour, OG cards                    |
+| 15 | `tundra-mcp-server-spec-v1.md`               | MCP server engineering reference                                |
+| 16 | `tundra-mcp-server-operator-v1.md`           | MCP operator guide                                              |
+| 17 | `tundra-mcp-server-cookbook-v1.md`           | MCP integration cookbook                                        |
 
 ---
 
 ## Phase Map
 
-| Prompt | Phase | Roadmap milestone | Approx. duration |
-|--------|-------|-------------------|------------------|
-| **P0** | Bootstrap | Pre-roadmap | 1 session |
-| **P1** | Foundation | M0 — Hello-Tundra | 4 weeks |
-| **P2** | Single-host MVP | M1 — First Site Live | 8 weeks |
-| **P3** | Databases & Backups | M2 — Database Self-Sufficiency | 4 weeks |
-| **P4** | Email & DNS | M3 — Mail & DNS Live | 6 weeks |
-| **P5** | Multi-runtime | M4 — All Runtimes Online | 5 weeks |
-| **P6** | Multi-server | M5 — Multi-Server | 6 weeks |
-| **P7** | Templates & Plugins (incl. MCP) | M6 — Plugins & Templates | 5 weeks |
-| **P8** | Hardening & Beta | M7 — Beta | 4 weeks |
-| **P9** | General Availability | M8 — v1.0 GA | 3 weeks |
-| **PV** | Verify (reusable) | After every phase | 1 session |
+| Prompt | Phase                           | Roadmap milestone              | Approx. duration |
+|--------|---------------------------------|--------------------------------|------------------|
+| **P0** | Bootstrap                       | Pre-roadmap                    | 1 session        |
+| **P1** | Foundation                      | M0 — Hello-Tundra              | 4 weeks          |
+| **P2** | Single-host MVP                 | M1 — First Site Live           | 8 weeks          |
+| **P3** | Databases & Backups             | M2 — Database Self-Sufficiency | 4 weeks          |
+| **P4** | Email & DNS                     | M3 — Mail & DNS Live           | 6 weeks          |
+| **P5** | Multi-runtime                   | M4 — All Runtimes Online       | 5 weeks          |
+| **P6** | Multi-server                    | M5 — Multi-Server              | 6 weeks          |
+| **P7** | Templates & Plugins (incl. MCP) | M6 — Plugins & Templates       | 5 weeks          |
+| **P8** | Hardening & Beta                | M7 — Beta                      | 4 weeks          |
+| **P9** | General Availability            | M8 — v1.0 GA                   | 3 weeks          |
+| **PV** | Verify (reusable)               | After every phase              | 1 session        |
 
 ---
 
@@ -538,7 +538,6 @@ Compose stack from `tundra-docker/e2e/docker-compose.yml` is the test environmen
 - [ ] Total time from `tundra server add` to publicly accessible HTTPS site under 5 minutes (the M1 definition of done)
 
 Phase summary, then run PV before P3.
-```
 
 ---
 
@@ -1406,12 +1405,12 @@ If anything fails: do not proceed. Report the failure verbatim, stop, wait for m
 
 For the phase under review, output a table of (spec section → implementation file → verification status) for every section the phase prompt cited. Example for P1:
 
-| Spec section | Implementation | Verified by |
-|---|---|---|
-| tundra-database-schema-v1.md §3.1.1 (operators) | migrations/20260502_create_operators.sql | `sqlx migrate run` clean; `\d operators` matches DDL |
-| tundra-security-audit-v1.md §6.1 (sign-in flows) | crates/tundrad-auth/src/signin.rs | tests/auth_password_flow.rs + tests/auth_passkey_flow.rs |
-| tundra-api-specification-v1.md §1.4 (error envelope) | crates/tundrad-api/src/error.rs | tests/error_envelope.rs asserts the exact JSON shape |
-| ...
+| Spec section                                         | Implementation                           | Verified by                                              |
+|------------------------------------------------------|------------------------------------------|----------------------------------------------------------|
+| tundra-database-schema-v1.md §3.1.1 (operators)      | migrations/20260502_create_operators.sql | `sqlx migrate run` clean; `\d operators` matches DDL     |
+| tundra-security-audit-v1.md §6.1 (sign-in flows)     | crates/tundrad-auth/src/signin.rs        | tests/auth_password_flow.rs + tests/auth_passkey_flow.rs |
+| tundra-api-specification-v1.md §1.4 (error envelope) | crates/tundrad-api/src/error.rs          | tests/error_envelope.rs asserts the exact JSON shape     |
+| ...                                                  |                                          |                                                          |
 
 Any row marked unverified or partial is a phase-incomplete signal. Do not advance until every row is verified.
 
@@ -1433,12 +1432,12 @@ cd panel && pnpm vitest run --coverage
 
 Compare against the targets from tundra-test-plan-v1.md §6:
 
-| Surface | Target line / branch | Actual | Pass? |
-|---|---|---|---|
-| tundra-crypto | 95 / 90 | … | … |
-| tundrad-auth | 95 / 95 | … | … |
-| tundrad-api handlers | 85 / 75 | … | … |
-| panel components | 80 / 70 | … | … |
+| Surface              | Target line / branch | Actual | Pass? |
+|----------------------|----------------------|--------|-------|
+| tundra-crypto        | 95 / 90              | …      | …     |
+| tundrad-auth         | 95 / 95              | …      | …     |
+| tundrad-api handlers | 85 / 75              | …      | …     |
+| panel components     | 80 / 70              | …      | …     |
 
 If any row fails: not a phase-blocker by itself, but flag for next-phase attention.
 
@@ -1488,7 +1487,6 @@ Output a verification report in this exact shape:
   <list, if any>
 
 If the verdict is "complete," I will run the next phase prompt. If "incomplete," I will address the listed items and re-run PV.
-```
 
 ---
 

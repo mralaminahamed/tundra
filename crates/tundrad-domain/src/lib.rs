@@ -7,8 +7,10 @@ pub mod mail;
 pub mod operator;
 pub mod scheduled_task;
 pub mod server;
+pub mod server_metrics;
 pub mod session;
 pub mod site;
+pub mod site_move;
 
 pub use audit_log::{AuditActor, AuditEntry, NewAuditEntry};
 pub use backup::{
@@ -28,5 +30,7 @@ pub use mail::{
 pub use operator::{NewOperator, Operator, OperatorRole};
 pub use scheduled_task::{NewScheduledTask, ScheduledTask};
 pub use server::{NewServer, Server, ServerStatus};
+pub use server_metrics::{ServerMetricsState, UpsertServerMetrics};
 pub use session::{NewSession, Session};
 pub use site::{Application, Deployment, DeploymentStatus, NewSite, Site, SiteStatus};
+pub use site_move::{MOVE_STAGES, NewSiteMove, SiteMove, SiteMoveStatus};
