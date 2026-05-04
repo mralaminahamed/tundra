@@ -27,10 +27,38 @@ pub fn router(pool: PgPool) -> Router {
         // ── Auth ───────────────────────────────────────────────────────────
         .route("/api/v1/auth/login", post(routes::auth::login))
         .route("/api/v1/auth/logout", post(routes::auth::logout))
+        .route("/api/v1/auth/totp/setup", get(routes::auth::totp_setup))
+        .route("/api/v1/auth/totp/enable", post(routes::auth::totp_enable))
+        .route("/api/v1/auth/totp", delete(routes::auth::totp_disable))
+        .route("/api/v1/auth/totp/verify", post(routes::auth::totp_verify))
+        .route(
+            "/api/v1/auth/passkey/challenge",
+            post(routes::auth::passkey_challenge),
+        )
+        .route(
+            "/api/v1/auth/passkey/verify",
+            post(routes::auth::passkey_verify),
+        )
         // ── Operators ──────────────────────────────────────────────────────
         .route("/api/v1/operators", get(routes::operators::list))
         .route("/api/v1/operators", post(routes::operators::invite))
         .route("/api/v1/operators/me", get(routes::operators::get_me))
+        .route(
+            "/api/v1/operators/me/passkeys/challenge",
+            post(routes::operators::passkey_register_challenge),
+        )
+        .route(
+            "/api/v1/operators/me/passkeys/register",
+            post(routes::operators::passkey_register),
+        )
+        .route(
+            "/api/v1/operators/me/passkeys",
+            get(routes::operators::passkeys_list),
+        )
+        .route(
+            "/api/v1/operators/me/passkeys/{id}",
+            delete(routes::operators::passkey_delete),
+        )
         .route("/api/v1/operators/{id}", delete(routes::operators::delete))
         // ── API tokens ─────────────────────────────────────────────────────
         .route(

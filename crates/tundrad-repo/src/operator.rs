@@ -148,6 +148,26 @@ impl<'a> OperatorRepo<'a> {
         row.map(|(v,)| v).ok_or(RepoError::NotFound)
     }
 
+    pub async fn set_recovery_codes(&self, id: Uuid, encrypted: &[u8]) -> Result<(), RepoError> {
+        sqlx::query("UPDATE operators SET recovery_codes_encrypted = $2 WHERE id = $1")
+            .bind(id)
+            .bind(encrypted)
+            .execute(self.pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn clear_totp_secret(&self, id: Uuid) -> Result<(), RepoError> {
+        sqlx::query(
+            "UPDATE operators SET totp_secret_encrypted = NULL, \
+             recovery_codes_encrypted = NULL WHERE id = $1",
+        )
+        .bind(id)
+        .execute(self.pool)
+        .await?;
+        Ok(())
+    }
+
     pub async fn soft_delete(&self, id: Uuid) -> Result<(), RepoError> {
         let n = sqlx::query(
             "UPDATE operators SET deleted_at = now() WHERE id = $1 AND deleted_at IS NULL",

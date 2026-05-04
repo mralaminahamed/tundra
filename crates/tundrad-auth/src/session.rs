@@ -73,7 +73,8 @@ impl<'a> SessionService<'a> {
             return Err(AuthError::InvalidCredentials);
         }
 
-        // 4. Create session.
+        // 4. Create session. Mark mfa_pending when the operator has TOTP enrolled so the
+        //    second factor must be verified before protected routes are accessible.
         let raw_token = generate_refresh_token();
         let expires_at = OffsetDateTime::now_utc() + time::Duration::days(SESSION_TTL_DAYS);
 
@@ -85,6 +86,7 @@ impl<'a> SessionService<'a> {
                 user_agent: user_agent.clone(),
                 ip: ip.clone(),
                 expires_at,
+                mfa_pending: operator.has_totp,
             })
             .await
             .map_err(AuthError::Repo)?;

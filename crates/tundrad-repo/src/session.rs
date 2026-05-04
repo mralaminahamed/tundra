@@ -18,6 +18,7 @@ struct SessionRow {
     last_full_auth_at: time::OffsetDateTime,
     expires_at: time::OffsetDateTime,
     revoked_at: Option<time::OffsetDateTime>,
+    mfa_pending: bool,
 }
 
 impl From<SessionRow> for Session {
@@ -32,12 +33,13 @@ impl From<SessionRow> for Session {
             last_full_auth_at: r.last_full_auth_at,
             expires_at: r.expires_at,
             revoked_at: r.revoked_at,
+            mfa_pending: r.mfa_pending,
         }
     }
 }
 
 const SELECT_COLS: &str = "id, operator_id, user_agent, ip::text as ip, created_at, last_seen_at, \
-     last_full_auth_at, expires_at, revoked_at";
+     last_full_auth_at, expires_at, revoked_at, mfa_pending";
 
 pub struct SessionRepo<'a> {
     pool: &'a PgPool,
@@ -52,8 +54,8 @@ impl<'a> SessionRepo<'a> {
         let token_hash = hash_token(&new.refresh_token);
         let sql = format!(
             "INSERT INTO sessions \
-               (operator_id, refresh_token_hash, user_agent, ip, expires_at) \
-             VALUES ($1, $2, $3, $4::inet, $5) \
+               (operator_id, refresh_token_hash, user_agent, ip, expires_at, mfa_pending) \
+             VALUES ($1, $2, $3, $4::inet, $5, $6) \
              RETURNING {SELECT_COLS}"
         );
         sqlx::query_as::<_, SessionRow>(&sql)
@@ -62,6 +64,7 @@ impl<'a> SessionRepo<'a> {
             .bind(new.user_agent)
             .bind(new.ip)
             .bind(new.expires_at)
+            .bind(new.mfa_pending)
             .fetch_one(self.pool)
             .await
             .map(Into::into)
@@ -135,5 +138,14 @@ impl<'a> SessionRepo<'a> {
         .await?
         .rows_affected();
         Ok(n)
+    }
+
+    /// Clear the mfa_pending flag once the second factor has been verified.
+    pub async fn set_mfa_verified(&self, id: Uuid) -> Result<(), RepoError> {
+        sqlx::query("UPDATE sessions SET mfa_pending = false WHERE id = $1")
+            .bind(id)
+            .execute(self.pool)
+            .await?;
+        Ok(())
     }
 }
