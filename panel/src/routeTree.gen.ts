@@ -47,6 +47,8 @@ import { Route as AuthMailDomainsDomainIdDiagnosticsRouteImport } from './routes
 import { Route as AuthMailMailboxesRouteImport } from './routes/_auth.mail.mailboxes'
 import { Route as AuthMailQueueRouteImport } from './routes/_auth.mail.queue'
 import { Route as AuthTemplatesRouteImport } from './routes/_auth.templates'
+import { Route as AuthPluginsRouteImport } from './routes/_auth.plugins'
+import { Route as AuthAlertsRouteImport } from './routes/_auth.alerts'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -276,6 +278,18 @@ const AuthTemplatesRoute = AuthTemplatesRouteImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthPluginsRoute = AuthPluginsRouteImport.update({
+  id: '/plugins',
+  path: '/plugins',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthAlertsRoute = AuthAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => AuthRoute,
+} as any)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
@@ -314,6 +328,8 @@ export interface FileRoutesByFullPath {
   '/mail/queue': typeof AuthMailQueueRoute
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
   '/templates': typeof AuthTemplatesRoute
+  '/plugins': typeof AuthPluginsRoute
+  '/alerts': typeof AuthAlertsRoute
 }
 
 export interface FileRoutesByTo {
@@ -354,6 +370,8 @@ export interface FileRoutesByTo {
   '/mail/queue': typeof AuthMailQueueRoute
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
   '/templates': typeof AuthTemplatesRoute
+  '/plugins': typeof AuthPluginsRoute
+  '/alerts': typeof AuthAlertsRoute
 }
 
 export interface FileRoutesById {
@@ -396,6 +414,8 @@ export interface FileRoutesById {
   '/_auth/mail/queue': typeof AuthMailQueueRoute
   '/_auth/scheduled-tasks': typeof AuthScheduledTasksRoute
   '/_auth/templates': typeof AuthTemplatesRoute
+  '/_auth/plugins': typeof AuthPluginsRoute
+  '/_auth/alerts': typeof AuthAlertsRoute
 }
 
 export interface FileRouteTypes {
@@ -437,6 +457,8 @@ export interface FileRouteTypes {
     | '/mail/queue'
     | '/scheduled-tasks'
     | '/templates'
+    | '/plugins'
+    | '/alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -475,6 +497,8 @@ export interface FileRouteTypes {
     | '/mail/queue'
     | '/scheduled-tasks'
     | '/templates'
+    | '/plugins'
+    | '/alerts'
   id:
     | '__root__'
     | '/'
@@ -515,6 +539,8 @@ export interface FileRouteTypes {
     | '/_auth/mail/queue'
     | '/_auth/scheduled-tasks'
     | '/_auth/templates'
+    | '/_auth/plugins'
+    | '/_auth/alerts'
   fileRoutesById: FileRoutesById
 }
 
@@ -792,6 +818,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthTemplatesRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/plugins': {
+      id: '/_auth/plugins'
+      path: '/plugins'
+      fullPath: '/plugins'
+      preLoaderRoute: typeof AuthPluginsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/alerts': {
+      id: '/_auth/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AuthAlertsRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
@@ -961,6 +1001,8 @@ interface AuthRouteChildren {
   AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
   AuthMailRoute: typeof AuthMailRouteWithChildren
   AuthTemplatesRoute: typeof AuthTemplatesRoute
+  AuthPluginsRoute: typeof AuthPluginsRoute
+  AuthAlertsRoute: typeof AuthAlertsRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -977,6 +1019,8 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDomainsRoute: AuthDomainsRouteWithChildren,
   AuthMailRoute: AuthMailRouteWithChildren,
   AuthTemplatesRoute: AuthTemplatesRoute,
+  AuthPluginsRoute: AuthPluginsRoute,
+  AuthAlertsRoute: AuthAlertsRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
