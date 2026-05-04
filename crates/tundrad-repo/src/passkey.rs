@@ -82,10 +82,10 @@ impl<'a> PasskeyRepo<'a> {
             .await
             .map(Into::into)
             .map_err(|e| {
-                if let sqlx::Error::Database(ref db) = e {
-                    if db.constraint() == Some("passkeys_credential_id_unique") {
-                        return RepoError::Conflict("credential_id already registered".to_owned());
-                    }
+                if let sqlx::Error::Database(ref db) = e
+                    && db.constraint() == Some("passkeys_credential_id_unique")
+                {
+                    return RepoError::Conflict("credential_id already registered".to_owned());
                 }
                 e.into()
             })

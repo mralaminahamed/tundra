@@ -301,6 +301,7 @@ impl<'a> BackupSnapshotRepo<'a> {
         .map(BackupSnapshot::from)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn create(
         &self,
         job_id: Uuid,

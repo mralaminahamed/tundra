@@ -88,9 +88,7 @@ async fn serve() -> anyhow::Result<()> {
         .connect(&cfg.database.url)
         .await?;
 
-    sqlx::migrate!("../../migrations")
-        .run(&pool)
-        .await?;
+    sqlx::migrate!("../../migrations").run(&pool).await?;
 
     let addr = format!("{}:{}", cfg.server.listen_addr, cfg.server.port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
@@ -106,9 +104,7 @@ async fn migrate() -> anyhow::Result<()> {
         .max_connections(2)
         .connect(&cfg.database.url)
         .await?;
-    sqlx::migrate!("../../migrations")
-        .run(&pool)
-        .await?;
+    sqlx::migrate!("../../migrations").run(&pool).await?;
     println!("migrations applied");
     Ok(())
 }

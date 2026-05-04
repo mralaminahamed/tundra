@@ -1,5 +1,5 @@
 use crate::{PgPool, RepoError};
-use tundrad_crypto::{EncryptedDkimPrivateKey, EncryptedField};
+use tundrad_crypto::EncryptedDkimPrivateKey;
 use tundrad_domain::mail::{
     Alias, DkimKey, MailDomain, MailQueueEntry, Mailbox, NewAlias, NewDkimKey, NewMailDomain,
     NewMailbox,

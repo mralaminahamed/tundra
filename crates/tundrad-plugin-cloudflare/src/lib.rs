@@ -52,11 +52,7 @@ impl Plugin for CloudflareDnsPlugin {
     async fn enable(&self, host: &dyn HostServices) -> Result<(), PluginError> {
         // Verify API token at enable time
         let _api_token = host.get_secret("cloudflare.api-token").await?;
-        host.log(
-            tracing::Level::INFO,
-            "Cloudflare DNS plugin enabled",
-            &[],
-        );
+        host.log(tracing::Level::INFO, "Cloudflare DNS plugin enabled", &[]);
         Ok(())
     }
 

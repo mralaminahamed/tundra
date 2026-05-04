@@ -62,6 +62,7 @@ pub fn encrypt_value<T: Serialize>(value: &T, family: &str) -> Result<Vec<u8>, C
 
     let mut nonce_bytes = [0u8; NONCE_LEN];
     rand::rng().try_fill_bytes(&mut nonce_bytes).expect("rng");
+    #[allow(deprecated)]
     let nonce = Nonce::from_slice(&nonce_bytes);
 
     // aes-gcm appends the 16-byte tag to the ciphertext
@@ -86,6 +87,7 @@ pub fn decrypt_value<T: DeserializeOwned>(bytes: &[u8], family: &str) -> Result<
     if bytes[0] != VERSION {
         return Err(CryptoError::InvalidCiphertext("unknown version byte"));
     }
+    #[allow(deprecated)]
     let nonce = Nonce::from_slice(&bytes[1..1 + NONCE_LEN]);
     let ct_with_tag = &bytes[1 + NONCE_LEN..];
 

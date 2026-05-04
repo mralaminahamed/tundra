@@ -53,11 +53,7 @@ impl Plugin for MailgunPlugin {
     async fn enable(&self, host: &dyn HostServices) -> Result<(), PluginError> {
         // Verify API key at enable time
         let _api_key = host.get_secret("mailgun.api-key").await?;
-        host.log(
-            tracing::Level::INFO,
-            "Mailgun plugin enabled",
-            &[],
-        );
+        host.log(tracing::Level::INFO, "Mailgun plugin enabled", &[]);
         Ok(())
     }
 
