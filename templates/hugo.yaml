@@ -1,0 +1,17 @@
+id: "hugo"
+name: "Hugo"
+description: "Hugo static site generator — one of the fastest tools for building websites. Written in Go, no runtime required."
+version: "1.0.0"
+runtime:
+  kind: "static"
+  version: ""
+source:
+  kind: "skeleton"
+build_command: "hugo --minify"
+start_command: null
+listen_port: null
+env: {}
+post_create:
+  - "hugo --minify"
+tags: ["static", "hugo", "go", "blog", "fast"]
+icon: "hugo"

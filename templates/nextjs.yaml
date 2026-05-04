@@ -1,0 +1,19 @@
+id: "nextjs"
+name: "Next.js"
+description: "Next.js 15 React framework with server-side rendering, static generation, and the App Router. Runs as a standalone Node.js server."
+version: "1.0.0"
+runtime:
+  kind: "nodejs"
+  version: "22"
+source:
+  kind: "skeleton"
+build_command: "npm run build"
+start_command: "node .next/standalone/server.js"
+listen_port: 3000
+env:
+  NODE_ENV: "production"
+post_create:
+  - "npm install"
+  - "npm run build"
+tags: ["nodejs", "react", "ssr", "nextjs"]
+icon: "nextjs"

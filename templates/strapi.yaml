@@ -1,0 +1,21 @@
+id: "strapi"
+name: "Strapi"
+description: "Strapi 5 open-source headless CMS. Build a flexible content API with a customizable admin panel and REST or GraphQL endpoints."
+version: "1.0.0"
+runtime:
+  kind: "nodejs"
+  version: "22"
+source:
+  kind: "skeleton"
+build_command: "npm run build"
+start_command: "npm run start"
+listen_port: 1337
+env:
+  NODE_ENV: "production"
+  HOST: "0.0.0.0"
+  PORT: "1337"
+post_create:
+  - "npm install"
+  - "npm run build"
+tags: ["nodejs", "strapi", "cms", "headless", "api"]
+icon: "strapi"
