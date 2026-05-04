@@ -4367,6 +4367,9 @@ dependencies = [
 [[package]]
 name = "tundra-cli"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+]
 
 [[package]]
 name = "tundra-plugin-sdk"
@@ -4437,6 +4440,7 @@ dependencies = [
  "tundrad-domain",
  "tundrad-events",
  "tundrad-pki",
+ "tundrad-plugin-mcp",
  "tundrad-repo",
  "uuid",
 ]
@@ -4588,6 +4592,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tundrad-plugin-github"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "hex",
+ "hmac",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tundra-plugin-sdk",
+ "uuid",
+]
+
+[[package]]
 name = "tundrad-plugin-host"
 version = "0.1.0"
 dependencies = [
@@ -4601,6 +4623,38 @@ dependencies = [
  "tundra-plugin-sdk",
  "uuid",
  "wasmtime",
+]
+
+[[package]]
+name = "tundrad-plugin-mcp"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tundra-plugin-sdk",
+ "uuid",
+]
+
+[[package]]
+name = "tundrad-plugin-namecheap"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tundra-plugin-sdk",
+ "tundrad-plugin-github",
+ "uuid",
 ]
 
 [[package]]

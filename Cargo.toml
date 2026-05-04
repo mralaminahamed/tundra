@@ -27,6 +27,9 @@ members = [
     "crates/tundrad-pki",
     "crates/tundrad-backup",
     "crates/tundrad-self-backup",
+    "crates/tundrad-plugin-mcp",
+    "crates/tundrad-plugin-namecheap",
+    "crates/tundrad-plugin-github",
 ]
 resolver = "2"
 
@@ -76,10 +79,14 @@ rustls-pemfile = "2"
 argon2 = "0.5"
 aes-gcm = "0.10"
 hkdf = "0.12"
+hmac = "0.12"
 sha2 = "0.10"
 blake3 = "1"
 rand = "0.8"
 zeroize = { version = "1", features = ["derive"] }
+
+# Hex encoding
+hex = "0.4"
 
 # UUID / time
 uuid = { version = "1", features = ["v4", "v7", "serde"] }
@@ -97,6 +104,13 @@ wasmtime = { version = "28", features = ["component-model"] }
 
 # Plugin SDK (workspace-internal)
 tundra-plugin-sdk = { path = "crates/tundra-plugin-sdk" }
+
+# MCP server (workspace-internal)
+tundrad-plugin-mcp = { path = "crates/tundrad-plugin-mcp" }
+
+# Plugin integrations (workspace-internal)
+tundrad-plugin-namecheap = { path = "crates/tundrad-plugin-namecheap" }
+tundrad-plugin-github = { path = "crates/tundrad-plugin-github" }
 
 # TOML parsing (manifest files)
 toml = "0.8"
