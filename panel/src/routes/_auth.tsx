@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import { TundraMark } from '@/components/TundraLogo'
 
@@ -12,85 +13,192 @@ export const Route = createFileRoute('/_auth')({
   component: AuthLayout,
 })
 
-const NAV_GROUPS = [
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
+function Icon({ path, size = 16 }: { path: string; size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      <path d={path} />
+    </svg>
+  )
+}
+
+const ICONS = {
+  dashboard: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+  servers: 'M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01',
+  sites: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9',
+  'db-servers': 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4',
+  databases: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4',
+  backups: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4',
+  domains: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  mail: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+  daemons: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+  'scheduled-tasks': 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+  templates: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z',
+  plugins: 'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z',
+  alerts: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+  operators: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+  'audit-log': 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+  settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+  security: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+  chevronLeft: 'M15 19l-7-7 7-7',
+  chevronRight: 'M9 5l7 7-7 7',
+  logout: 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1',
+} as const
+
+type IconKey = keyof typeof ICONS
+
+// ─── Nav definition ───────────────────────────────────────────────────────────
+
+const NAV_GROUPS: {
+  label: string
+  items: { to: string; label: string; icon: IconKey }[]
+}[] = [
   {
     label: 'Overview',
     items: [
-      { to: '/dashboard', label: 'Dashboard' },
-      { to: '/servers', label: 'Servers' },
-      { to: '/sites', label: 'Sites' },
+      { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+      { to: '/servers', label: 'Servers', icon: 'servers' },
+      { to: '/sites', label: 'Sites', icon: 'sites' },
     ],
   },
   {
     label: 'Data',
     items: [
-      { to: '/database-servers', label: 'DB Servers' },
-      { to: '/databases', label: 'Databases' },
-      { to: '/backups', label: 'Backups' },
+      { to: '/database-servers', label: 'DB Servers', icon: 'db-servers' },
+      { to: '/databases', label: 'Databases', icon: 'databases' },
+      { to: '/backups', label: 'Backups', icon: 'backups' },
     ],
   },
   {
     label: 'Services',
     items: [
-      { to: '/domains', label: 'Domains' },
-      { to: '/mail', label: 'Mail' },
-      { to: '/daemons', label: 'Daemons' },
-      { to: '/scheduled-tasks', label: 'Scheduled Tasks' },
+      { to: '/domains', label: 'Domains', icon: 'domains' },
+      { to: '/mail', label: 'Mail', icon: 'mail' },
+      { to: '/daemons', label: 'Daemons', icon: 'daemons' },
+      { to: '/scheduled-tasks', label: 'Scheduled Tasks', icon: 'scheduled-tasks' },
     ],
   },
   {
     label: 'Platform',
     items: [
-      { to: '/templates', label: 'Templates' },
-      { to: '/plugins', label: 'Plugins' },
-      { to: '/alerts', label: 'Alerts' },
+      { to: '/templates', label: 'Templates', icon: 'templates' },
+      { to: '/plugins', label: 'Plugins', icon: 'plugins' },
+      { to: '/alerts', label: 'Alerts', icon: 'alerts' },
     ],
   },
   {
     label: 'Admin',
     items: [
-      { to: '/operators', label: 'Operators' },
-      { to: '/audit-log', label: 'Audit Log' },
-      { to: '/settings', label: 'Settings' },
-      { to: '/settings/security', label: 'Security' },
+      { to: '/operators', label: 'Operators', icon: 'operators' },
+      { to: '/audit-log', label: 'Audit Log', icon: 'audit-log' },
+      { to: '/settings', label: 'Settings', icon: 'settings' },
+      { to: '/settings/security', label: 'Security', icon: 'security' },
     ],
   },
-] as const
+]
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
 
 function AuthLayout() {
   const operator = useAuthStore((s) => s.operator)
+  const setOperator = useAuthStore((s) => s.setOperator)
+
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('tundra-sidebar-collapsed') === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('tundra-sidebar-collapsed', String(collapsed))
+  }, [collapsed])
 
   return (
     <div className="flex min-h-screen bg-tundra-paper">
-      <aside className="w-60 shrink-0 border-r border-tundra-ink-200 bg-white flex flex-col">
-        <div className="px-4 py-4 flex items-center gap-2.5">
+      {/* Sidebar */}
+      <aside
+        className={`${collapsed ? 'w-14' : 'w-60'} shrink-0 border-r border-tundra-ink-200 bg-white flex flex-col transition-[width] duration-200`}
+      >
+        {/* Logo */}
+        <div className={`flex items-center border-b border-tundra-ink-100 ${collapsed ? 'justify-center px-0 py-4' : 'gap-2.5 px-4 py-4'}`}>
           <TundraMark size={20} color="#1C1F1A" />
-          <span className="font-black text-base tracking-tight text-tundra-ink" style={{ fontFamily: "'Inter Display', 'Inter', sans-serif", letterSpacing: '-0.5px' }}>tundra</span>
+          {!collapsed && (
+            <span
+              className="font-black text-base text-tundra-ink"
+              style={{ fontFamily: "'Inter Display', 'Inter', sans-serif", letterSpacing: '-0.5px' }}
+            >
+              tundra
+            </span>
+          )}
         </div>
-        <nav className="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-4 text-sm">
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 flex flex-col gap-1">
           {NAV_GROUPS.map((group) => (
-            <div key={group.label}>
-              <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-tundra-ink-400">
-                {group.label}
-              </div>
+            <div key={group.label} className={collapsed ? 'px-2' : 'px-3'}>
+              {!collapsed && (
+                <div className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-tundra-ink-300">
+                  {group.label}
+                </div>
+              )}
+              {collapsed && <div className="my-1 border-t border-tundra-ink-100" />}
               {group.items.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="block rounded px-3 py-2 transition-colors"
+                  title={collapsed ? item.label : undefined}
+                  className={`flex items-center gap-2.5 rounded-md transition-colors text-sm ${collapsed ? 'justify-center px-0 py-2.5' : 'px-2 py-2'}`}
                   activeProps={{ className: 'bg-tundra-lichen-50 text-tundra-lichen font-medium' }}
-                  inactiveProps={{ className: 'text-tundra-ink-600 hover:bg-tundra-ink-50 hover:text-tundra-ink' }}
+                  inactiveProps={{ className: 'text-tundra-ink-500 hover:bg-tundra-ink-50 hover:text-tundra-ink' }}
                 >
-                  {item.label}
+                  <Icon path={ICONS[item.icon]} size={16} />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
                 </Link>
               ))}
             </div>
           ))}
         </nav>
-        <div className="px-4 py-3 border-t border-tundra-ink-100 text-xs text-tundra-ink-500 truncate">
-          {operator?.email}
+
+        {/* Footer */}
+        <div className={`border-t border-tundra-ink-100 ${collapsed ? 'flex flex-col items-center gap-2 py-3' : 'px-4 py-3'}`}>
+          {!collapsed && (
+            <div className="text-xs text-tundra-ink-500 truncate mb-2">{operator?.email}</div>
+          )}
+          {/* Logout */}
+          <button
+            title="Sign out"
+            onClick={() => { setOperator(null) }}
+            className={`flex items-center gap-2 rounded-md text-tundra-ink-400 hover:text-tundra-rust hover:bg-tundra-rust-50 transition-colors text-xs ${collapsed ? 'justify-center p-2' : 'w-full px-2 py-1.5'}`}
+          >
+            <Icon path={ICONS.logout} size={14} />
+            {!collapsed && <span>Sign out</span>}
+          </button>
+          {/* Collapse toggle */}
+          <button
+            onClick={() => { setCollapsed((c) => !c) }}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={`flex items-center gap-2 rounded-md text-tundra-ink-300 hover:text-tundra-ink hover:bg-tundra-ink-50 transition-colors text-xs ${collapsed ? 'justify-center p-2' : 'w-full px-2 py-1.5'}`}
+          >
+            <Icon path={collapsed ? ICONS.chevronRight : ICONS.chevronLeft} size={14} />
+            {!collapsed && <span>Collapse</span>}
+          </button>
         </div>
       </aside>
+
       <main className="flex-1 overflow-auto p-6">
         <Outlet />
       </main>
