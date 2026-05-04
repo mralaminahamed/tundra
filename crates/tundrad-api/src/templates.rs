@@ -56,8 +56,6 @@ pub fn builtin_templates() -> Vec<TemplateManifest> {
         parse(include_str!("../../../templates/static.yaml")),
         parse(include_str!("../../../templates/strapi.yaml")),
         parse(include_str!("../../../templates/sveltekit.yaml")),
-        parse(include_str!("../../../templates/woocommerce.yaml")),
-        parse(include_str!("../../../templates/wordpress.yaml")),
     ];
     templates.sort_by(|a, b| a.id.cmp(&b.id));
     templates
