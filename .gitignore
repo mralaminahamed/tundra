@@ -6,10 +6,13 @@ Cargo.lock.bak
 # Node / pnpm
 panel/node_modules/
 panel/dist/
+panel/.tanstack/
 panel/.pnpm-store/
 panel/coverage/
 panel/playwright-report/
 panel/test-results/
+panel/tsconfig.tsbuildinfo
+panel/tsconfig.node.tsbuildinfo
 
 # OS
 .DS_Store
@@ -34,3 +37,7 @@ tundra-backup-*.tar.gpg
 *.zip
 *.tar.zst
 *.tar.gz
+
+
+# AI Agent
+.claude/worktrees
