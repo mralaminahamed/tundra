@@ -1,13 +1,16 @@
+pub mod audit_redact;
 pub mod error;
 pub mod extractors;
+pub mod middleware;
 pub mod routes;
 pub mod ssh_installer;
 pub mod templates;
 
 use axum::{
-    Router,
+    Router, middleware as axum_middleware,
     routing::{delete, get, patch, post, put},
 };
+use middleware::security_headers::security_headers as security_headers_mw;
 use routes::ws;
 use tower_http::trace::TraceLayer;
 use tundrad_plugin_mcp::server::http::handle_post as mcp_post;
@@ -308,6 +311,7 @@ pub fn router(pool: PgPool) -> Router {
         // ── WebSocket event gateway ────────────────────────────────────────
         .route("/ws/v1/events", get(ws::handler))
         // ── Middleware ─────────────────────────────────────────────────────
+        .layer(axum_middleware::from_fn(security_headers_mw))
         .layer(TraceLayer::new_for_http())
         .with_state(pool)
 }
