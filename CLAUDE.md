@@ -184,7 +184,8 @@ Use these skills for the corresponding tasks when working in this repository:
 | P3 — Databases & Backups | ✅ Done | DB engine providers (PG/MySQL/MariaDB/Valkey), database schema+REST+panel, restic backup module, preview-then-confirm restore, self-backup+restore tools, e2e specs |
 | P4 — Email & DNS | ✅ Done | PowerDNS/Unbound/Postfix/Dovecot/Rspamd/Roundcube providers, domain+DNS schema+REST+panel, mail schema+DKIM+REST+panel, diagnostics, e2e specs |
 | P5 — Multi-runtime | ✅ Done | Node/Python/Go/Rust/Ruby/.NET providers, systemd Appendix B templates, blue/green deploy, daemons+cron schema+REST+panel, site wizard enhancements, starter templates, e2e specs |
-| P6 — Production hardening | ⬜ | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, plugin host, billing |
+| P6 — Multi-server | ✅ Done | SSH installer wizard, server_metrics_state, cross-server site move (7-stage pipeline), per-agent rate limiting + circuit breaker, maintenance windows, multi-server fleet panel, e2e specs |
+| P7 — Production hardening | ⬜ | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, plugin host, billing |
 
 Full phase breakdown: `docs/01-architecture/tundra-technical-implementation-plan-v3.md` §11.1.
 Build prompts for each phase: `docs/08-build-prompts/tundra-claude-code-prompts-v1.md`.
