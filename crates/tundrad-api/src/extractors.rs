@@ -2,6 +2,7 @@ use axum::{
     extract::FromRequestParts,
     http::{StatusCode, header, request::Parts},
 };
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 
 use crate::error::ApiError;
 use tundrad_domain::session::Session;
@@ -87,7 +88,7 @@ pub fn extract_session_token(parts: &Parts) -> Option<Vec<u8>> {
     for pair in cookies.split(';') {
         let pair = pair.trim();
         if let Some(val) = pair.strip_prefix("tundra_session=") {
-            return Some(val.as_bytes().to_vec());
+            return URL_SAFE_NO_PAD.decode(val).ok();
         }
     }
     None

@@ -66,7 +66,7 @@ pub async fn login(
 
     let cookie = format!(
         "tundra_session={}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000",
-        String::from_utf8_lossy(&raw_token),
+        URL_SAFE_NO_PAD.encode(&raw_token),
     );
 
     Ok((
@@ -469,7 +469,7 @@ pub async fn passkey_verify(
 
     let cookie = format!(
         "tundra_session={}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000",
-        String::from_utf8_lossy(&raw_token),
+        URL_SAFE_NO_PAD.encode(&raw_token),
     );
 
     let op = OperatorRepo::new(&pool)

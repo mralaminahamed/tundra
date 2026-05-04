@@ -1,6 +1,7 @@
 use crate::PkiError;
+use rcgen::string::Ia5String;
 use rcgen::{
-    BasicConstraints, CertificateParams, DnType, ExtendedKeyUsagePurpose, Ia5String, IsCa, KeyPair,
+    BasicConstraints, CertificateParams, DnType, ExtendedKeyUsagePurpose, IsCa, Issuer, KeyPair,
     KeyUsagePurpose, SanType,
 };
 use sha2::{Digest, Sha256};
@@ -26,11 +27,12 @@ pub struct AgentCertificate {
 }
 
 /// Internal CA that signs agent mTLS client certificates.
+///
+/// Stores raw PEM so the `Issuer` can be reconstructed on each signing operation
+/// (rcgen 0.14 `Issuer<'_, S>` is not `'static`-storable when created from parsed certs).
 pub struct TundraCA {
-    /// The original PEM — distributed to agents as their trust anchor.
-    ca_cert_pem: String,
-    ca_key_pair: KeyPair,
-    ca_cert: rcgen::Certificate,
+    pub(crate) ca_cert_pem: String,
+    ca_key_pem: String,
 }
 
 impl TundraCA {
@@ -65,30 +67,25 @@ impl TundraCA {
             bundle,
             TundraCA {
                 ca_cert_pem,
-                ca_key_pair: ca_key,
-                ca_cert,
+                ca_key_pem,
             },
         ))
     }
 
     /// Reload CA from disk PEM strings on daemon startup.
-    /// Re-self-signs with the same key so we have a `Certificate` for issuing.
-    /// The original `ca_cert_pem` is what agents trust; the re-signed copy is
-    /// only used internally to produce properly-chained leaf certs.
     pub fn from_pem(cert_pem: &str, key_pem: &str) -> Result<Self, PkiError> {
-        let ca_key = KeyPair::from_pem(key_pem).map_err(|e| PkiError::PemParse(e.to_string()))?;
-        let params = CertificateParams::from_ca_cert_pem(cert_pem)
+        // Validate both PEMs parse correctly.
+        let key = KeyPair::from_pem(key_pem).map_err(|e| PkiError::PemParse(e.to_string()))?;
+        let _issuer = Issuer::from_ca_cert_pem(cert_pem, key)
             .map_err(|e| PkiError::PemParse(e.to_string()))?;
-        let ca_cert = params.self_signed(&ca_key)?;
+
         Ok(TundraCA {
             ca_cert_pem: cert_pem.to_owned(),
-            ca_key_pair: ca_key,
-            ca_cert,
+            ca_key_pem: key_pem.to_owned(),
         })
     }
 
     /// Issue a 90-day agent client cert for `server_id`.
-    /// CN = `tundra-agent`, SAN = `URI:tundra-agent://server-<uuid>`
     pub fn issue_agent_cert(&self, server_id: Uuid) -> Result<AgentCertificate, PkiError> {
         let agent_key = KeyPair::generate()?;
         let key_pem = agent_key.serialize_pem();
@@ -124,7 +121,13 @@ impl TundraCA {
         params.not_before = now;
         params.not_after = not_after;
 
-        let cert = params.signed_by(agent_key, &self.ca_cert, &self.ca_key_pair)?;
+        // Reconstruct the CA Issuer from stored PEMs (rcgen 0.14: Issuer is not storable).
+        let ca_key =
+            KeyPair::from_pem(&self.ca_key_pem).map_err(|e| PkiError::PemParse(e.to_string()))?;
+        let issuer = Issuer::from_ca_cert_pem(&self.ca_cert_pem, ca_key)
+            .map_err(|e| PkiError::CertGen(e.to_string()))?;
+
+        let cert = params.signed_by(agent_key, &issuer)?;
         let der = cert.der();
         let fingerprint = hex::encode(Sha256::digest(der.as_ref()));
 
@@ -173,8 +176,6 @@ mod tests {
         let now = OffsetDateTime::now_utc();
         assert!(TundraCA::should_renew(now + time::Duration::days(15)));
         assert!(TundraCA::should_renew(now + time::Duration::days(30)));
-        // 35 days gives enough buffer so clock drift between the two now() calls
-        // (one in this test, one inside should_renew) doesn't cause a false positive.
         assert!(!TundraCA::should_renew(now + time::Duration::days(35)));
     }
 }
