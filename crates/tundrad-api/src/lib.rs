@@ -6,7 +6,7 @@ pub mod templates;
 
 use axum::{
     Router,
-    routing::{delete, get, post, put},
+    routing::{delete, get, patch, post, put},
 };
 use routes::ws;
 use tower_http::trace::TraceLayer;
@@ -267,6 +267,38 @@ pub fn router(pool: PgPool) -> Router {
         .route(
             "/api/v1/site-moves/{move_id}/abandon",
             post(routes::site_moves::abandon_site_move),
+        )
+        // ── Plugins ────────────────────────────────────────────────────────
+        .route("/api/v1/plugins", get(routes::plugins::list_plugins))
+        .route("/api/v1/plugins/{id}", get(routes::plugins::get_plugin))
+        .route(
+            "/api/v1/plugins/{id}/enable",
+            post(routes::plugins::enable_plugin),
+        )
+        .route(
+            "/api/v1/plugins/{id}/disable",
+            post(routes::plugins::disable_plugin),
+        )
+        // ── Alert rules ────────────────────────────────────────────────────
+        .route(
+            "/api/v1/alert-rules",
+            get(routes::alert_rules::list_alert_rules).post(routes::alert_rules::create_alert_rule),
+        )
+        .route(
+            "/api/v1/alert-rules/{id}/enable",
+            patch(routes::alert_rules::enable_alert_rule),
+        )
+        .route(
+            "/api/v1/alert-rules/{id}/disable",
+            patch(routes::alert_rules::disable_alert_rule),
+        )
+        .route(
+            "/api/v1/alert-rules/{id}",
+            delete(routes::alert_rules::delete_alert_rule),
+        )
+        .route(
+            "/api/v1/alert-deliveries",
+            get(routes::alert_rules::list_alert_deliveries),
         )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))
