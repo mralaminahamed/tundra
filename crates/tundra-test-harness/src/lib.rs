@@ -35,7 +35,7 @@ impl TestEnv {
             .await
             .expect("failed to connect to test Postgres");
 
-        sqlx::migrate!("../../database/migrations")
+        sqlx::migrate!("../../migrations")
             .run(&pool)
             .await
             .expect("failed to apply migrations");

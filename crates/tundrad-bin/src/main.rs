@@ -88,7 +88,7 @@ async fn serve() -> anyhow::Result<()> {
         .connect(&cfg.database.url)
         .await?;
 
-    sqlx::migrate!("../../database/migrations")
+    sqlx::migrate!("../../migrations")
         .run(&pool)
         .await?;
 
@@ -106,7 +106,7 @@ async fn migrate() -> anyhow::Result<()> {
         .max_connections(2)
         .connect(&cfg.database.url)
         .await?;
-    sqlx::migrate!("../../database/migrations")
+    sqlx::migrate!("../../migrations")
         .run(&pool)
         .await?;
     println!("migrations applied");
