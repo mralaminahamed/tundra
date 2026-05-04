@@ -7,6 +7,9 @@ authors.workspace = true
 license.workspace = true
 publish = false
 
+[dependencies]
+uuid = { workspace = true }
+
 [lib]
 name = "tundrad_grpc"
 path = "src/lib.rs"
