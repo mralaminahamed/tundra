@@ -185,4 +185,82 @@ impl<'a> ServerRepo<'a> {
             Ok(())
         }
     }
+
+    /// Update the maintenance window columns.  Pass `None` to clear a field.
+    pub async fn update_maintenance(
+        &self,
+        id: Uuid,
+        starts_at: Option<time::OffsetDateTime>,
+        ends_at: Option<time::OffsetDateTime>,
+    ) -> Result<(), RepoError> {
+        let n = sqlx::query(
+            "UPDATE servers SET \
+               maintenance_starts_at = $2, \
+               maintenance_ends_at   = $3 \
+             WHERE id = $1 AND deleted_at IS NULL",
+        )
+        .bind(id)
+        .bind(starts_at)
+        .bind(ends_at)
+        .execute(self.pool)
+        .await?
+        .rows_affected();
+        if n == 0 {
+            Err(RepoError::NotFound)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+// ── AgentCredentialsRepo ──────────────────────────────────────────────────────
+
+pub struct AgentCredentialsRepo<'a> {
+    pool: &'a PgPool,
+}
+
+impl<'a> AgentCredentialsRepo<'a> {
+    pub fn new(pool: &'a PgPool) -> Self {
+        Self { pool }
+    }
+
+    pub async fn suspend_agent(&self, server_id: Uuid, reason: &str) -> Result<(), RepoError> {
+        sqlx::query(
+            "UPDATE agent_credentials \
+             SET suspended_at = now(), suspend_reason = $1 \
+             WHERE server_id = $2 AND revoked_at IS NULL AND suspended_at IS NULL",
+        )
+        .bind(reason)
+        .bind(server_id)
+        .execute(self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn reinstate_agent(&self, server_id: Uuid) -> Result<(), RepoError> {
+        sqlx::query(
+            "UPDATE agent_credentials \
+             SET suspended_at = NULL, suspend_reason = NULL \
+             WHERE server_id = $1 AND revoked_at IS NULL",
+        )
+        .bind(server_id)
+        .execute(self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn is_suspended(&self, server_id: Uuid) -> Result<bool, RepoError> {
+        let row = sqlx::query_as::<_, (bool,)>(
+            "SELECT EXISTS(\
+               SELECT 1 FROM agent_credentials \
+               WHERE server_id = $1 \
+                 AND revoked_at IS NULL \
+                 AND suspended_at IS NOT NULL\
+             )",
+        )
+        .bind(server_id)
+        .fetch_one(self.pool)
+        .await?;
+        Ok(row.0)
+    }
 }

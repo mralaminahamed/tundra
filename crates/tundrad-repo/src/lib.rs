@@ -8,8 +8,10 @@ pub mod mail;
 pub mod operator;
 pub mod scheduled_task;
 pub mod server;
+pub mod server_metrics;
 pub mod session;
 pub mod site;
+pub mod site_move;
 
 pub use audit_log::AuditLogRepo;
 pub use backup::{BackupJobRepo, BackupRestoreRepo, BackupSnapshotRepo, BackupTargetRepo};
@@ -20,9 +22,11 @@ pub use error::RepoError;
 pub use mail::{AliasRepo, DkimKeyRepo, MailDomainRepo, MailQueueRepo, MailboxRepo};
 pub use operator::OperatorRepo;
 pub use scheduled_task::ScheduledTaskRepo;
-pub use server::ServerRepo;
+pub use server::{AgentCredentialsRepo, ServerRepo};
+pub use server_metrics::ServerMetricsRepo;
 pub use session::SessionRepo;
 pub use site::SiteRepo;
+pub use site_move::SiteMoveRepo;
 
 /// Re-export the pool type so callers don't need to depend on sqlx directly.
 pub type PgPool = sqlx::PgPool;

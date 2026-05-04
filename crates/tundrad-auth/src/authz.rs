@@ -38,6 +38,7 @@ pub enum Resource {
     MailQueue,
     Daemon,
     ScheduledTask,
+    SiteMove,
 }
 
 pub struct AuthzService;
@@ -116,6 +117,7 @@ impl AuthzService {
                         Action::Read | Action::Create | Action::Delete,
                         Resource::ScheduledTask
                     )
+                    | (Action::Read | Action::Create, Resource::SiteMove)
             ),
             OperatorRole::Readonly => action == Action::Read,
         }

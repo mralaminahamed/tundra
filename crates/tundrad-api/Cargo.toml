@@ -20,6 +20,7 @@ tundrad-domain = { path = "../tundrad-domain" }
 tundrad-repo = { path = "../tundrad-repo" }
 tundrad-events = { path = "../tundrad-events" }
 async-trait.workspace = true
+openssh = { workspace = true }
 axum.workspace = true
 fred.workspace = true
 serde.workspace = true

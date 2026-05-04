@@ -20,6 +20,7 @@ import { Route as AuthOperatorsRouteImport } from './routes/_auth.operators'
 import { Route as AuthServersRouteImport } from './routes/_auth.servers'
 import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
 import { Route as AuthServersServerIdRouteImport } from './routes/_auth.servers.$serverId'
+import { Route as AuthServersServerIdMaintenanceRouteImport } from './routes/_auth.servers.$serverId.maintenance'
 import { Route as AuthSitesRouteImport } from './routes/_auth.sites'
 import { Route as AuthSitesNewRouteImport } from './routes/_auth.sites.new'
 import { Route as AuthSitesSiteIdRouteImport } from './routes/_auth.sites.$siteId'
@@ -110,6 +111,13 @@ const AuthServersServerIdRoute = AuthServersServerIdRouteImport.update({
   path: '/$serverId',
   getParentRoute: () => AuthServersRoute,
 } as any)
+
+const AuthServersServerIdMaintenanceRoute =
+  AuthServersServerIdMaintenanceRouteImport.update({
+    id: '/servers/$serverId/maintenance',
+    path: '/maintenance',
+    getParentRoute: () => AuthServersServerIdRoute,
+  } as any)
 
 const AuthSitesRoute = AuthSitesRouteImport.update({
   id: '/sites',
@@ -271,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/servers': typeof AuthServersRouteWithChildren
   '/servers/new': typeof AuthServersNewRoute
   '/servers/$serverId': typeof AuthServersServerIdRoute
+  '/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
   '/sites': typeof AuthSitesRouteWithChildren
   '/sites/new': typeof AuthSitesNewRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRoute
@@ -309,6 +318,7 @@ export interface FileRoutesByTo {
   '/servers': typeof AuthServersRouteWithChildren
   '/servers/new': typeof AuthServersNewRoute
   '/servers/$serverId': typeof AuthServersServerIdRoute
+  '/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
   '/sites': typeof AuthSitesRouteWithChildren
   '/sites/new': typeof AuthSitesNewRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRoute
@@ -349,6 +359,7 @@ export interface FileRoutesById {
   '/_auth/servers': typeof AuthServersRouteWithChildren
   '/_auth/servers/new': typeof AuthServersNewRoute
   '/_auth/servers/$serverId': typeof AuthServersServerIdRoute
+  '/_auth/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
   '/_auth/sites': typeof AuthSitesRouteWithChildren
   '/_auth/sites/new': typeof AuthSitesNewRoute
   '/_auth/sites/$siteId': typeof AuthSitesSiteIdRoute
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '/_auth/servers'
     | '/_auth/servers/new'
     | '/_auth/servers/$serverId'
+    | '/_auth/servers/$serverId/maintenance'
     | '/_auth/sites'
     | '/_auth/sites/new'
     | '/_auth/sites/$siteId'
@@ -577,6 +589,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/servers/$serverId'
       preLoaderRoute: typeof AuthServersServerIdRouteImport
       parentRoute: typeof AuthServersRoute
+    }
+    '/_auth/servers/$serverId/maintenance': {
+      id: '/_auth/servers/$serverId/maintenance'
+      path: '/maintenance'
+      fullPath: '/servers/$serverId/maintenance'
+      preLoaderRoute: typeof AuthServersServerIdMaintenanceRouteImport
+      parentRoute: typeof AuthServersServerIdRoute
     }
     '/_auth/sites': {
       id: '/_auth/sites'
@@ -756,14 +775,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthServersServerIdRouteChildren {
+  AuthServersServerIdMaintenanceRoute: typeof AuthServersServerIdMaintenanceRoute
+}
+
+const AuthServersServerIdRouteChildren: AuthServersServerIdRouteChildren = {
+  AuthServersServerIdMaintenanceRoute: AuthServersServerIdMaintenanceRoute,
+}
+
+const AuthServersServerIdRouteWithChildren =
+  AuthServersServerIdRoute._addFileChildren(AuthServersServerIdRouteChildren)
+
 interface AuthServersRouteChildren {
   AuthServersNewRoute: typeof AuthServersNewRoute
-  AuthServersServerIdRoute: typeof AuthServersServerIdRoute
+  AuthServersServerIdRoute: typeof AuthServersServerIdRouteWithChildren
 }
 
 const AuthServersRouteChildren: AuthServersRouteChildren = {
   AuthServersNewRoute: AuthServersNewRoute,
-  AuthServersServerIdRoute: AuthServersServerIdRoute,
+  AuthServersServerIdRoute: AuthServersServerIdRouteWithChildren,
 }
 
 const AuthServersRouteWithChildren =

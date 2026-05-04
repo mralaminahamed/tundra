@@ -115,3 +115,6 @@ fred = { version = "10", features = ["subscriber-client", "serde-json"] }
 # Async utilities
 async-trait = "0.1"
 futures = "0.3"
+
+# SSH — wraps system openssh binary; no OpenSSL dep
+openssh = { version = "0.10", features = ["native-mux"] }

@@ -1797,6 +1797,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "non-zero-byte-slice"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89daa1daa11c9df05d1181bcd0936d8066f8543144d77b09808eb78d65e38024"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "ntapi"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1902,6 +1911,50 @@ name = "opaque-debug"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
+
+[[package]]
+name = "openssh"
+version = "0.10.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "330f4b61092456dc0aaa0cf9a205d956cae07d8127a69ffeff6760a72549c77f"
+dependencies = [
+ "libc",
+ "once_cell",
+ "openssh-mux-client",
+ "shell-escape",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-pipe",
+]
+
+[[package]]
+name = "openssh-mux-client"
+version = "0.17.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df21c25c5f6a6c11cf6c54723c7b1389bfb4b5b0c17b097da274cade81d4815e"
+dependencies = [
+ "cfg-if",
+ "non-zero-byte-slice",
+ "once_cell",
+ "openssh-mux-client-error",
+ "sendfd",
+ "serde",
+ "ssh_format",
+ "tokio",
+ "tokio-io-utility",
+ "typed-builder",
+]
+
+[[package]]
+name = "openssh-mux-client-error"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9879168afb48a235200e30d93df320b7191568cda8621df02f145c1c0f1af95a"
+dependencies = [
+ "ssh_format_error",
+ "thiserror 2.0.18",
+]
 
 [[package]]
 name = "openssl-probe"
@@ -2707,6 +2760,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a7852d02fc848982e0c167ef163aaff9cd91dc640ba85e263cb1ce46fae51cd"
 
 [[package]]
+name = "sendfd"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b183bfd5b1bc64ab0c1ef3ee06b008a9ef1b68a7d3a99ba566fbfe7a7c6d745b"
+dependencies = [
+ "libc",
+ "tokio",
+]
+
+[[package]]
 name = "serde"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2853,6 +2916,12 @@ checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
 ]
+
+[[package]]
+name = "shell-escape"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45bb67a18fa91266cc7807181f62f9178a6873bfad7dc788c42e6430db40184f"
 
 [[package]]
 name = "shlex"
@@ -3139,6 +3208,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "ssh_format"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24ab31081d1c9097c327ec23550858cb5ffb4af6b866c1ef4d728455f01f3304"
+dependencies = [
+ "serde",
+ "ssh_format_error",
+]
+
+[[package]]
+name = "ssh_format_error"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be3c6519de7ca611f71ef7e8a56eb57aa1c818fecb5242d0a0f39c83776c210c"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3409,6 +3497,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-io-utility"
+version = "0.7.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d672654d175710e52c7c41f6aec77c62b3c0954e2a7ebce9049d1e94ed7c263"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "tokio-macros"
 version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3417,6 +3514,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "tokio-pipe"
+version = "0.2.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f213a84bffbd61b8fa0ba8a044b4bbe35d471d0b518867181e82bd5c15542784"
+dependencies = [
+ "libc",
+ "tokio",
 ]
 
 [[package]]
@@ -3819,6 +3926,7 @@ dependencies = [
  "async-trait",
  "axum",
  "fred",
+ "openssh",
  "serde",
  "serde_json",
  "sqlx",
@@ -3948,6 +4056,9 @@ dependencies = [
 [[package]]
 name = "tundrad-grpc"
 version = "0.1.0"
+dependencies = [
+ "uuid",
+]
 
 [[package]]
 name = "tundrad-jobs"
@@ -4044,6 +4155,26 @@ dependencies = [
  "rand 0.9.4",
  "sha1",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "typed-builder"
+version = "0.23.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31aa81521b70f94402501d848ccc0ecaa8f93c8eb6999eb9747e72287757ffda"
+dependencies = [
+ "typed-builder-macro",
+]
+
+[[package]]
+name = "typed-builder-macro"
+version = "0.23.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "076a02dc54dd46795c2e9c8282ed40bcfb1e22747e955de9389a1de28190fb26"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

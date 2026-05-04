@@ -27,7 +27,12 @@ impl Provider for PowerDnsProvider {
     type State = PowerDnsState;
 
     async fn observe(&self) -> Result<PowerDnsState, ReconcileError> {
-        Ok(PowerDnsState { zone_exists: false, serial: 0, dnssec_active: false, record_count: 0 })
+        Ok(PowerDnsState {
+            zone_exists: false,
+            serial: 0,
+            dnssec_active: false,
+            record_count: 0,
+        })
     }
 
     async fn reconcile(&self, desired: &PowerDnsSpec) -> Result<ReconcileOutcome, ReconcileError> {
@@ -42,11 +47,23 @@ impl Provider for PowerDnsProvider {
 }
 
 impl PowerDnsProvider {
-    pub async fn upsert_record(&self, spec: &PowerDnsSpec, name: &str, rtype: &str, ttl: u32, content: &str) -> Result<(), ReconcileError> {
+    pub async fn upsert_record(
+        &self,
+        spec: &PowerDnsSpec,
+        name: &str,
+        rtype: &str,
+        ttl: u32,
+        content: &str,
+    ) -> Result<(), ReconcileError> {
         tracing::info!(zone = %spec.zone, name, rtype, ttl, content, "upsert_record (stub)");
         Ok(())
     }
-    pub async fn delete_record(&self, spec: &PowerDnsSpec, name: &str, rtype: &str) -> Result<(), ReconcileError> {
+    pub async fn delete_record(
+        &self,
+        spec: &PowerDnsSpec,
+        name: &str,
+        rtype: &str,
+    ) -> Result<(), ReconcileError> {
         tracing::info!(zone = %spec.zone, name, rtype, "delete_record (stub)");
         Ok(())
     }
@@ -65,9 +82,20 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn reconcile_ok() {
-        let spec = PowerDnsSpec { zone: "example.com.".into(), nameservers: vec![], dnssec_enabled: false, api_url: "http://127.0.0.1:8081".into(), api_key: "secret".into() };
-        assert_eq!(PowerDnsProvider.reconcile(&spec).await.unwrap(), ReconcileOutcome::Applied);
+        let spec = PowerDnsSpec {
+            zone: "example.com.".into(),
+            nameservers: vec![],
+            dnssec_enabled: false,
+            api_url: "http://127.0.0.1:8081".into(),
+            api_key: "secret".into(),
+        };
+        assert_eq!(
+            PowerDnsProvider.reconcile(&spec).await.unwrap(),
+            ReconcileOutcome::Applied
+        );
     }
     #[tokio::test]
-    async fn observe_ok() { assert!(!PowerDnsProvider.observe().await.unwrap().zone_exists); }
+    async fn observe_ok() {
+        assert!(!PowerDnsProvider.observe().await.unwrap().zone_exists);
+    }
 }

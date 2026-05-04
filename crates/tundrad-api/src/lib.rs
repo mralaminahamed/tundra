@@ -1,6 +1,7 @@
 pub mod error;
 pub mod extractors;
 pub mod routes;
+pub mod ssh_installer;
 
 use axum::{
     Router,
@@ -39,8 +40,26 @@ pub fn router(pool: PgPool) -> Router {
             get(routes::servers::list).post(routes::servers::create),
         )
         .route(
-            "/api/v1/servers/{id}",
-            get(routes::servers::get).delete(routes::servers::delete),
+            "/api/v1/servers/{server_id}",
+            get(routes::servers::get)
+                .delete(routes::servers::delete)
+                .patch(routes::servers::update_server),
+        )
+        .route(
+            "/api/v1/servers/metrics-state",
+            get(routes::servers::metrics_state),
+        )
+        .route(
+            "/api/v1/servers/suggest",
+            get(routes::servers::suggest_server),
+        )
+        .route(
+            "/api/v1/servers/wizard/fingerprint",
+            post(routes::servers::wizard_fingerprint),
+        )
+        .route(
+            "/api/v1/servers/wizard/install",
+            post(routes::servers::wizard_install),
         )
         // ── Sites ──────────────────────────────────────────────────────────
         .route(
@@ -228,6 +247,23 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/scheduled-tasks/{id}",
             get(routes::scheduled_tasks::get_scheduled_task)
                 .delete(routes::scheduled_tasks::delete_scheduled_task),
+        )
+        // ── Site moves ─────────────────────────────────────────────────────
+        .route(
+            "/api/v1/sites/{site_id}/actions/move",
+            post(routes::site_moves::initiate_site_move),
+        )
+        .route(
+            "/api/v1/sites/{site_id}/moves",
+            get(routes::site_moves::list_site_moves),
+        )
+        .route(
+            "/api/v1/site-moves/{move_id}",
+            get(routes::site_moves::get_site_move),
+        )
+        .route(
+            "/api/v1/site-moves/{move_id}/abandon",
+            post(routes::site_moves::abandon_site_move),
         )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))

@@ -7,6 +7,43 @@ export interface Server {
   status: 'provisioning' | 'active' | 'degraded' | 'offline' | 'disabled'
   agent_version: string | null
   agent_last_seen_at: string | null
+  maintenance_starts_at: string | null
+  maintenance_ends_at: string | null
+  created_at: string
+}
+
+export interface ServerMetricsState {
+  server_id: string
+  cpu_cores: number
+  cpu_used_pct: number
+  ram_total_mb: number
+  ram_used_mb: number
+  disk_total_gb: number
+  disk_used_gb: number
+  site_count: number
+  refreshed_at: string
+}
+
+export interface SuggestEntry {
+  server_id: string
+  name: string
+  score: number
+  available_ram_mb: number
+  available_disk_gb: number
+  available_cpu_pct: number
+}
+
+export interface SiteMove {
+  id: string
+  site_id: string
+  from_server_id: string
+  to_server_id: string
+  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'abandoned'
+  current_stage: string | null
+  error: string | null
+  initiated_by: string | null
+  started_at: string | null
+  finished_at: string | null
   created_at: string
 }
 
@@ -227,4 +264,14 @@ export interface ScheduledTask {
   last_run_at: string | null
   created_at: string
   updated_at: string
+}
+
+export interface WizardFingerprintResponse {
+  host: string
+  fingerprint: string
+}
+
+export interface WizardInstallResponse {
+  ok: boolean
+  log: string[]
 }
