@@ -1,0 +1,191 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write   # required for SLSA provenance
+
+jobs:
+  build-linux-x86_64:
+    name: Build linux/amd64
+    runs-on: ubuntu-24.04
+    outputs:
+      binary-digest: ${{ steps.digest.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Build panel
+        working-directory: panel
+        run: pnpm install && pnpm build
+
+      - name: Build tundrad (release)
+        run: cargo build --release --bin tundrad --bin tundra --bin tundra-agent
+
+      - name: Package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH="x86_64"
+          OUTDIR="dist/tundrad-${VERSION}-linux-${ARCH}"
+          mkdir -p "${OUTDIR}"
+          cp target/release/tundrad target/release/tundra target/release/tundra-agent "${OUTDIR}/"
+          cp installer/install.sh "${OUTDIR}/"
+          tar --use-compress-program=zstd -cf "${OUTDIR}.tar.zst" -C dist "tundrad-${VERSION}-linux-${ARCH}"
+          echo "TARBALL=${OUTDIR}.tar.zst" >> "$GITHUB_ENV"
+
+      - name: Compute digest
+        id: digest
+        run: |
+          DIGEST=$(sha256sum "${TARBALL}" | awk '{print $1}')
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          sha256sum "${TARBALL}" > "${TARBALL}.sha256"
+
+      - name: Sign with minisign
+        env:
+          MINISIGN_SECRET_KEY: ${{ secrets.MINISIGN_SECRET_KEY }}
+        run: |
+          echo "${MINISIGN_SECRET_KEY}" > /tmp/minisign.key
+          minisign -S -s /tmp/minisign.key -m "${TARBALL}" -x "${TARBALL}.minisig"
+          rm /tmp/minisign.key
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-amd64
+          path: dist/*.tar.zst*
+
+  build-linux-arm64:
+    name: Build linux/arm64
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build
+        run: cargo build --release --bin tundrad --bin tundra --bin tundra-agent
+      - name: Package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH="aarch64"
+          OUTDIR="dist/tundrad-${VERSION}-linux-${ARCH}"
+          mkdir -p "${OUTDIR}"
+          cp target/release/tundrad target/release/tundra target/release/tundra-agent "${OUTDIR}/"
+          tar --use-compress-program=zstd -cf "${OUTDIR}.tar.zst" -C dist "tundrad-${VERSION}-linux-${ARCH}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: dist/*.tar.zst*
+
+  build-macos:
+    name: Build macOS Universal (CLI only)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+      - name: Build x86_64
+        run: cargo build --release --bin tundra --target x86_64-apple-darwin
+      - name: Build arm64
+        run: cargo build --release --bin tundra --target aarch64-apple-darwin
+      - name: Lipo universal
+        run: |
+          lipo -create \
+            target/x86_64-apple-darwin/release/tundra \
+            target/aarch64-apple-darwin/release/tundra \
+            -output tundra-macos-universal
+          VERSION="${GITHUB_REF_NAME#v}"
+          tar -czf "tundra-cli-${VERSION}-macos-universal.tar.gz" tundra-macos-universal
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-universal
+          path: tundra-cli-*.tar.gz
+
+  container-images:
+    name: Publish container images
+    runs-on: ubuntu-24.04
+    needs: build-linux-x86_64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push tundrad image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.tundrad
+          push: true
+          tags: |
+            ghcr.io/mralaminahamed/tundra/tundrad:${{ github.ref_name }}
+            ghcr.io/mralaminahamed/tundra/tundrad:latest
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push agent image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.agent
+          push: true
+          tags: |
+            ghcr.io/mralaminahamed/tundra/tundra-agent:${{ github.ref_name }}
+            ghcr.io/mralaminahamed/tundra/tundra-agent:latest
+          platforms: linux/amd64,linux/arm64
+
+  slsa-provenance:
+    name: Generate SLSA provenance
+    needs: [build-linux-x86_64, build-linux-arm64]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: |
+        ${{ needs.build-linux-x86_64.outputs.binary-digest }}
+
+  github-release:
+    name: Create GitHub release
+    runs-on: ubuntu-24.04
+    needs: [build-linux-x86_64, build-linux-arm64, build-macos, slsa-provenance]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artefacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Tundra ${{ github.ref_name }}"
+          body_path: docs/release-notes/RELEASE_NOTES_${{ github.ref_name }}.md
+          files: |
+            dist/**/*.tar.zst
+            dist/**/*.tar.zst.sha256
+            dist/**/*.tar.zst.minisig
+            dist/**/*.tar.gz
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}

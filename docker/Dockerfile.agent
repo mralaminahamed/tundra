@@ -1,0 +1,20 @@
+FROM ubuntu:24.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl gnupg systemd \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --system tundra-agent && \
+    useradd --system --gid tundra-agent --home-dir /var/lib/tundra-agent --shell /usr/sbin/nologin tundra-agent && \
+    mkdir -p /var/lib/tundra-agent && \
+    chown tundra-agent:tundra-agent /var/lib/tundra-agent
+
+COPY tundra-agent /usr/local/bin/tundra-agent
+RUN chmod 0755 /usr/local/bin/tundra-agent
+
+USER tundra-agent
+WORKDIR /var/lib/tundra-agent
+
+EXPOSE 9550
+ENTRYPOINT ["/usr/local/bin/tundra-agent"]
+CMD ["serve"]
