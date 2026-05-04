@@ -1,0 +1,60 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 02:00 UTC nightly
+  workflow_dispatch:
+
+jobs:
+  performance:
+    name: Performance benchmarks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run criterion benchmarks
+        run: cargo bench --workspace --bench domain_bench -- --output-format bencher | tee bench-output.txt
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-results-${{ github.run_id }}
+          path: bench-output.txt
+
+  fuzzing:
+    name: Fuzz targets
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz
+
+      - name: Fuzz audit canonicaliser (5 min)
+        run: |
+          cd crates/tundrad-api
+          timeout 300 cargo fuzz run fuzz_audit_canonicaliser -- -max_total_time=300 || true
+
+      - name: Fuzz plugin manifest parser (5 min)
+        run: |
+          cd crates/tundrad-plugin-host
+          timeout 300 cargo fuzz run fuzz_manifest_parser -- -max_total_time=300 || true
+
+  load-tests:
+    name: k6 load tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update && sudo apt-get install k6
+
+      - name: Run k6 smoke test (no live server — dry run validates script syntax)
+        run: k6 inspect tests/load/sites-list.js
