@@ -51,9 +51,9 @@ impl TryFrom<ServerRow> for Server {
     }
 }
 
-const SELECT_COLS: &str = "id, name, hostname, region, public_ip, os, os_version, arch, \
-    agent_version, status, agent_last_seen_at, capabilities, resources_total, \
-    agent_cert_fingerprint, notes, created_at, updated_at, deleted_at";
+const SELECT_COLS: &str = "id, name, hostname, region, public_ip::text as public_ip, \
+    os, os_version, arch, agent_version, status, agent_last_seen_at, capabilities, \
+    resources_total, agent_cert_fingerprint, notes, created_at, updated_at, deleted_at";
 
 pub struct ServerRepo<'a> {
     pool: &'a PgPool,
