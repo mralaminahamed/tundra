@@ -5,11 +5,18 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { CreateSiteResponse, ListResponse, Server } from '@/lib/api-types'
+import type { CreateSiteResponse, ListResponse, Server, TemplateManifest } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
 import { SITE_TEMPLATES } from '@/lib/site-templates'
 
+interface SitesNewSearch {
+  template?: string
+}
+
 export const Route = createFileRoute('/_auth/sites/new')({
+  validateSearch: (search: Record<string, unknown>): SitesNewSearch => ({
+    template: typeof search.template === 'string' ? search.template : undefined,
+  }),
   component: CreateSitePage,
 })
 
@@ -67,6 +74,7 @@ const RUNTIME_HINTS: Record<RuntimeKind, { versionPlaceholder: string; buildHint
 
 function CreateSitePage() {
   const router = useRouter()
+  const { template: templateId } = Route.useSearch()
   const [step, setStep] = useState(0)
   const [result, setResult] = useState<CreateSiteResponse | null>(null)
 
@@ -75,14 +83,28 @@ function CreateSitePage() {
     queryFn: () => api<ListResponse<Server>>('/servers'),
   })
 
+  // Fetch templates so we can pre-fill values from the ?template= search param.
+  const { data: templatesData } = useQuery({
+    queryKey: ['templates'],
+    queryFn: () => api<{ data: TemplateManifest[] }>('/templates'),
+    staleTime: Infinity,
+    enabled: !!templateId,
+  })
+
+  const selectedTemplate = templateId
+    ? (templatesData?.data ?? []).find((t) => t.id === templateId)
+    : undefined
+
   const initialValues: FormValues = {
-    sourceKind: 'blank',
+    sourceKind: selectedTemplate ? 'template' : 'blank',
     branch: 'main',
-    kind: 'static',
-    runtimeVersion: '',
-    buildCommand: '',
-    startCommand: '',
-    listenPort: '',
+    kind: selectedTemplate
+      ? (selectedTemplate.runtime.kind === 'static' ? 'static' : selectedTemplate.runtime.kind)
+      : 'static',
+    runtimeVersion: selectedTemplate?.runtime.version ?? '',
+    buildCommand: selectedTemplate?.build_command ?? '',
+    startCommand: selectedTemplate?.start_command ?? '',
+    listenPort: selectedTemplate?.listen_port != null ? String(selectedTemplate.listen_port) : '',
     domain: '',
     serverId: '',
     name: '',

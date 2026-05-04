@@ -46,6 +46,7 @@ import { Route as AuthMailDomainsDomainIdRouteImport } from './routes/_auth.mail
 import { Route as AuthMailDomainsDomainIdDiagnosticsRouteImport } from './routes/_auth.mail.domains.$mailDomainId.diagnostics'
 import { Route as AuthMailMailboxesRouteImport } from './routes/_auth.mail.mailboxes'
 import { Route as AuthMailQueueRouteImport } from './routes/_auth.mail.queue'
+import { Route as AuthTemplatesRouteImport } from './routes/_auth.templates'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -269,6 +270,12 @@ const AuthMailQueueRoute = AuthMailQueueRouteImport.update({
   getParentRoute: () => AuthMailRoute,
 } as any)
 
+const AuthTemplatesRoute = AuthTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => AuthRoute,
+} as any)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
@@ -306,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/templates': typeof AuthTemplatesRoute
 }
 
 export interface FileRoutesByTo {
@@ -345,6 +353,7 @@ export interface FileRoutesByTo {
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/templates': typeof AuthTemplatesRoute
 }
 
 export interface FileRoutesById {
@@ -386,6 +395,7 @@ export interface FileRoutesById {
   '/_auth/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/_auth/mail/queue': typeof AuthMailQueueRoute
   '/_auth/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/_auth/templates': typeof AuthTemplatesRoute
 }
 
 export interface FileRouteTypes {
@@ -426,6 +436,7 @@ export interface FileRouteTypes {
     | '/mail/mailboxes'
     | '/mail/queue'
     | '/scheduled-tasks'
+    | '/templates'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -463,6 +474,7 @@ export interface FileRouteTypes {
     | '/mail/mailboxes'
     | '/mail/queue'
     | '/scheduled-tasks'
+    | '/templates'
   id:
     | '__root__'
     | '/'
@@ -502,6 +514,7 @@ export interface FileRouteTypes {
     | '/_auth/mail/mailboxes'
     | '/_auth/mail/queue'
     | '/_auth/scheduled-tasks'
+    | '/_auth/templates'
   fileRoutesById: FileRoutesById
 }
 
@@ -772,6 +785,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthMailQueueRouteImport
       parentRoute: typeof AuthMailRoute
     }
+    '/_auth/templates': {
+      id: '/_auth/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof AuthTemplatesRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
@@ -940,6 +960,7 @@ interface AuthRouteChildren {
   AuthBackupsRoute: typeof AuthBackupsRouteWithChildren
   AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
   AuthMailRoute: typeof AuthMailRouteWithChildren
+  AuthTemplatesRoute: typeof AuthTemplatesRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -955,6 +976,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthBackupsRoute: AuthBackupsRouteWithChildren,
   AuthDomainsRoute: AuthDomainsRouteWithChildren,
   AuthMailRoute: AuthMailRouteWithChildren,
+  AuthTemplatesRoute: AuthTemplatesRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

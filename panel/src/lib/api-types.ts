@@ -275,3 +275,28 @@ export interface WizardInstallResponse {
   ok: boolean
   log: string[]
 }
+
+export interface TemplateRuntime {
+  kind: string
+  version: string
+}
+
+export interface TemplateSource {
+  kind: string
+}
+
+export interface TemplateManifest {
+  id: string
+  name: string
+  description: string
+  version: string
+  runtime: TemplateRuntime
+  source: TemplateSource
+  build_command: string | null
+  start_command: string | null
+  listen_port: number | null
+  env: Record<string, string>
+  post_create: string[]
+  tags: string[]
+  icon: string
+}
