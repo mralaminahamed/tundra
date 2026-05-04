@@ -100,6 +100,20 @@ fn official_catalog() -> Vec<serde_json::Value> {
             "download_url": null,
             "signature_verified": true
         }),
+        serde_json::json!({
+            "plugin_id": "com.tundra.wordpress",
+            "name": "WordPress",
+            "description": "Manage WordPress and WooCommerce installations: install, configure plugins/themes, and cleanly remove sites. Includes WP and WooCommerce site templates.",
+            "author": "Tundra Core Team",
+            "version": "1.0.0",
+            "tier": "core",
+            "kind": "native",
+            "official": true,
+            "homepage": "https://github.com/mralaminahamed/tundra",
+            "capabilities": ["sites:read", "sites:write", "http:fetch"],
+            "download_url": null,
+            "signature_verified": true
+        }),
         // ── Bundled plugins (dynamically loaded, native Rust) ─────────────────
         serde_json::json!({
             "plugin_id": "com.tundra.cloudflare-dns",

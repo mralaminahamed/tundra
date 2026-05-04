@@ -320,6 +320,35 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/plugins/{id}/disable",
             post(routes::plugins::disable_plugin),
         )
+        // ── WordPress ─────────────────────────────────────────────────────────
+        .route(
+            "/api/v1/wordpress/installations",
+            get(routes::wordpress::list_installations).post(routes::wordpress::install_wordpress),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}",
+            get(routes::wordpress::get_installation).delete(routes::wordpress::remove_installation),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/plugins",
+            get(routes::wordpress::list_wp_plugins).post(routes::wordpress::install_wp_plugin),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/plugins/{slug}",
+            delete(routes::wordpress::remove_wp_plugin),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/themes",
+            get(routes::wordpress::list_wp_themes).post(routes::wordpress::install_wp_theme),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/themes/{slug}",
+            delete(routes::wordpress::remove_wp_theme),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/themes/{slug}/activate",
+            post(routes::wordpress::activate_wp_theme),
+        )
         // ── MCP (Model Context Protocol) ───────────────────────────────────
         .route("/mcp", post(mcp_post))
         // ── Alert rules ────────────────────────────────────────────────────
