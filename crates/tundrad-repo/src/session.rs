@@ -36,8 +36,8 @@ impl From<SessionRow> for Session {
     }
 }
 
-const SELECT_COLS: &str = "id, operator_id, user_agent, ip, created_at, last_seen_at, last_full_auth_at, \
-     expires_at, revoked_at";
+const SELECT_COLS: &str = "id, operator_id, user_agent, ip::text as ip, created_at, last_seen_at, \
+     last_full_auth_at, expires_at, revoked_at";
 
 pub struct SessionRepo<'a> {
     pool: &'a PgPool,
@@ -53,7 +53,7 @@ impl<'a> SessionRepo<'a> {
         let sql = format!(
             "INSERT INTO sessions \
                (operator_id, refresh_token_hash, user_agent, ip, expires_at) \
-             VALUES ($1, $2, $3, $4, $5) \
+             VALUES ($1, $2, $3, $4::inet, $5) \
              RETURNING {SELECT_COLS}"
         );
         sqlx::query_as::<_, SessionRow>(&sql)

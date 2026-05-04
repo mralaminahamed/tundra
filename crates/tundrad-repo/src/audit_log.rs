@@ -19,7 +19,7 @@ impl<'a> AuditLogRepo<'a> {
             "INSERT INTO audit_log \
                (actor_type, actor_id, action, resource_type, resource_id, \
                 ip, user_agent, details) \
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) \
+             VALUES ($1, $2, $3, $4, $5, $6::inet, $7, $8) \
              RETURNING id",
         )
         .bind(actor_type)
@@ -57,7 +57,7 @@ impl<'a> AuditLogRepo<'a> {
         let rows: Vec<Row> = if let Some(after_id) = cursor {
             sqlx::query_as(
                 "SELECT id, occurred_at, actor_type, actor_id, action, \
-                        resource_type, resource_id, ip, user_agent, details \
+                        resource_type, resource_id, ip::text as ip, user_agent, details \
                  FROM   audit_log \
                  WHERE  occurred_at < (SELECT occurred_at FROM audit_log WHERE id = $2) \
                  ORDER  BY occurred_at DESC, id DESC \
@@ -70,7 +70,7 @@ impl<'a> AuditLogRepo<'a> {
         } else {
             sqlx::query_as(
                 "SELECT id, occurred_at, actor_type, actor_id, action, \
-                        resource_type, resource_id, ip, user_agent, details \
+                        resource_type, resource_id, ip::text as ip, user_agent, details \
                  FROM   audit_log \
                  ORDER  BY occurred_at DESC, id DESC \
                  LIMIT  $1",

@@ -29,7 +29,7 @@ CREATE TABLE databases (
   database_server_id  uuid        NOT NULL REFERENCES database_servers(id) ON DELETE RESTRICT,
   name                text        NOT NULL,
   charset             text        NULL,
-  collation           text        NULL,
+  "collation"         text        NULL,
   size_bytes          bigint      NULL,
   application_id      uuid        NULL REFERENCES applications(id) ON DELETE SET NULL,
   created_at          timestamptz NOT NULL DEFAULT now(),

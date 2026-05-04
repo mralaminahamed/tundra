@@ -141,7 +141,7 @@ impl From<DatabaseRow> for Database {
     }
 }
 
-const DB_COLS: &str = "id, database_server_id, name, charset, collation, size_bytes, \
+const DB_COLS: &str = "id, database_server_id, name, charset, \"collation\", size_bytes, \
     application_id, created_at, updated_at";
 
 pub struct DatabaseRepo<'a>(pub &'a PgPool);
@@ -181,7 +181,7 @@ impl<'a> DatabaseRepo<'a> {
 
     pub async fn create(&self, new: NewDatabase) -> Result<Database, RepoError> {
         sqlx::query_as::<_, DatabaseRow>(&format!(
-            "INSERT INTO databases (database_server_id, name, charset, collation) \
+            "INSERT INTO databases (database_server_id, name, charset, \"collation\") \
              VALUES ($1, $2, $3, $4) RETURNING {DB_COLS}"
         ))
         .bind(new.database_server_id)
