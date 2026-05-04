@@ -357,6 +357,7 @@ function PluginsPage() {
     mutationFn: (id: string) => api(`/plugins/${id}/enable`, { method: 'POST' }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['plugins'] })
+      void queryClient.invalidateQueries({ queryKey: ['plugins-nav'] })
       toast.success('Plugin enabled')
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Enable failed'),
@@ -366,6 +367,7 @@ function PluginsPage() {
     mutationFn: (id: string) => api(`/plugins/${id}/disable`, { method: 'POST' }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['plugins'] })
+      void queryClient.invalidateQueries({ queryKey: ['plugins-nav'] })
       toast.success('Plugin disabled')
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Disable failed'),

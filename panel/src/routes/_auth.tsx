@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth'
 import { TundraMark } from '@/components/TundraLogo'
 
@@ -87,7 +88,6 @@ const NAV_GROUPS: {
     items: [
       { to: '/domains', label: 'Domains', icon: 'domains' },
       { to: '/mail', label: 'Mail', icon: 'mail' },
-      { to: '/wordpress', label: 'WordPress', icon: 'wordpress' },
       { to: '/daemons', label: 'Daemons', icon: 'daemons' },
       { to: '/scheduled-tasks', label: 'Scheduled Tasks', icon: 'scheduled-tasks' },
     ],
@@ -116,6 +116,28 @@ const NAV_GROUPS: {
 function AuthLayout() {
   const operator = useAuthStore((s) => s.operator)
   const setOperator = useAuthStore((s) => s.setOperator)
+
+  const { data: installedPlugins = [] } = useQuery<{ plugin_id: string; state: string }[]>({
+    queryKey: ['plugins-nav'],
+    queryFn: () =>
+      fetch('/api/v1/plugins')
+        .then((r) => r.json())
+        .then((r: { data: { plugin_id: string; state: string }[] }) => r.data),
+    staleTime: 30_000,
+  })
+
+  const wordpressEnabled = installedPlugins.some(
+    (p) => p.plugin_id === 'com.tundra.wordpress' && p.state === 'enabled',
+  )
+
+  const navGroups = NAV_GROUPS.map((group) => {
+    if (group.label !== 'Services') return group
+    const wpItem = { to: '/wordpress', label: 'WordPress', icon: 'wordpress' } as const
+    const items = wordpressEnabled
+      ? [group.items[0]!, group.items[1]!, wpItem, ...group.items.slice(2)]
+      : group.items
+    return { ...group, items }
+  })
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
@@ -157,7 +179,7 @@ function AuthLayout() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 flex flex-col gap-1">
-          {NAV_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.label} className={collapsed ? 'px-2' : 'px-3'}>
               {!collapsed && (
                 <div className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-tundra-ink-300">
