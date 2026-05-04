@@ -11,6 +11,9 @@ Single binary. No licensing fees. PostgreSQL + Valkey + Caddy.
 curl -fsSL https://tundra.dev/install.sh | sudo bash
 ```
 
+> **Security note:** Always verify the installer SHA256 before running in production.
+> The installer is signed; see [docs/security.md](docs/security.md) for verification steps.
+
 Runs on Ubuntu 24.04, Debian 12/13, RHEL 9/10.
 After install, visit the printed setup URL.
 
