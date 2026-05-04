@@ -23,6 +23,7 @@ import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
 import { Route as AuthServersServerIdRouteImport } from './routes/_auth.servers.$serverId'
 import { Route as AuthServersServerIdMaintenanceRouteImport } from './routes/_auth.servers.$serverId.maintenance'
 import { Route as AuthSitesRouteImport } from './routes/_auth.sites'
+import { Route as AuthSitesIndexRouteImport } from './routes/_auth.sites.index'
 import { Route as AuthSitesNewRouteImport } from './routes/_auth.sites.new'
 import { Route as AuthSitesSiteIdRouteImport } from './routes/_auth.sites.$siteId'
 import { Route as AuthDatabaseServersRouteImport } from './routes/_auth.database-servers'
@@ -136,6 +137,12 @@ const AuthSitesRoute = AuthSitesRouteImport.update({
   id: '/sites',
   path: '/sites',
   getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthSitesIndexRoute = AuthSitesIndexRouteImport.update({
+  id: '/sites/',
+  path: '/',
+  getParentRoute: () => AuthSitesRoute,
 } as any)
 
 const AuthSitesNewRoute = AuthSitesNewRouteImport.update({
@@ -331,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/servers/$serverId': typeof AuthServersServerIdRoute
   '/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
   '/sites': typeof AuthSitesRouteWithChildren
+  '/sites/': typeof AuthSitesIndexRoute
   '/sites/new': typeof AuthSitesNewRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/database-servers': typeof AuthDatabaseServersRouteWithChildren
@@ -377,6 +385,7 @@ export interface FileRoutesByTo {
   '/servers/$serverId': typeof AuthServersServerIdRoute
   '/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
   '/sites': typeof AuthSitesRouteWithChildren
+  '/sites/': typeof AuthSitesIndexRoute
   '/sites/new': typeof AuthSitesNewRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/database-servers': typeof AuthDatabaseServersRouteWithChildren
@@ -425,6 +434,7 @@ export interface FileRoutesById {
   '/_auth/servers/$serverId': typeof AuthServersServerIdRoute
   '/_auth/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
   '/_auth/sites': typeof AuthSitesRouteWithChildren
+  '/_auth/sites/': typeof AuthSitesIndexRoute
   '/_auth/sites/new': typeof AuthSitesNewRoute
   '/_auth/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/_auth/database-servers': typeof AuthDatabaseServersRouteWithChildren
@@ -471,7 +481,9 @@ export interface FileRouteTypes {
     | '/servers/'
     | '/servers/new'
     | '/servers/$serverId'
+    | '/servers/$serverId/maintenance'
     | '/sites'
+    | '/sites/'
     | '/sites/new'
     | '/sites/$siteId'
     | '/database-servers'
@@ -515,7 +527,9 @@ export interface FileRouteTypes {
     | '/servers/'
     | '/servers/new'
     | '/servers/$serverId'
+    | '/servers/$serverId/maintenance'
     | '/sites'
+    | '/sites/'
     | '/sites/new'
     | '/sites/$siteId'
     | '/database-servers'
@@ -561,6 +575,7 @@ export interface FileRouteTypes {
     | '/_auth/servers/$serverId'
     | '/_auth/servers/$serverId/maintenance'
     | '/_auth/sites'
+    | '/_auth/sites/'
     | '/_auth/sites/new'
     | '/_auth/sites/$siteId'
     | '/_auth/database-servers'
@@ -700,6 +715,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/sites'
       preLoaderRoute: typeof AuthSitesRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/_auth/sites/': {
+      id: '/_auth/sites/'
+      path: '/'
+      fullPath: '/sites/'
+      preLoaderRoute: typeof AuthSitesIndexRouteImport
+      parentRoute: typeof AuthSitesRoute
     }
     '/_auth/sites/new': {
       id: '/_auth/sites/new'
@@ -946,11 +968,13 @@ const AuthServersRouteWithChildren =
   AuthServersRoute._addFileChildren(AuthServersRouteChildren)
 
 interface AuthSitesRouteChildren {
+  AuthSitesIndexRoute: typeof AuthSitesIndexRoute
   AuthSitesNewRoute: typeof AuthSitesNewRoute
   AuthSitesSiteIdRoute: typeof AuthSitesSiteIdRoute
 }
 
 const AuthSitesRouteChildren: AuthSitesRouteChildren = {
+  AuthSitesIndexRoute: AuthSitesIndexRoute,
   AuthSitesNewRoute: AuthSitesNewRoute,
   AuthSitesSiteIdRoute: AuthSitesSiteIdRoute,
 }
