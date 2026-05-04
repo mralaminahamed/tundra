@@ -133,17 +133,24 @@ function AuthLayout() {
       <aside
         className={`${collapsed ? 'w-14' : 'w-60'} shrink-0 border-r border-tundra-ink-200 bg-white flex flex-col transition-[width] duration-200`}
       >
-        {/* Logo */}
-        <div className={`flex items-center border-b border-tundra-ink-100 ${collapsed ? 'justify-center px-0 py-4' : 'gap-2.5 px-4 py-4'}`}>
+        {/* Logo + collapse toggle */}
+        <div className={`flex items-center border-b border-tundra-ink-100 ${collapsed ? 'justify-center px-3 py-4' : 'gap-2.5 px-4 py-4'}`}>
           <TundraMark size={20} color="#1C1F1A" />
           {!collapsed && (
             <span
-              className="font-black text-base text-tundra-ink"
+              className="font-black text-base text-tundra-ink flex-1"
               style={{ fontFamily: "'Inter Display', 'Inter', sans-serif", letterSpacing: '-0.5px' }}
             >
               tundra
             </span>
           )}
+          <button
+            onClick={() => { setCollapsed((c) => !c) }}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="rounded-md p-1 text-tundra-ink-300 hover:bg-tundra-ink-50 hover:text-tundra-ink transition-colors"
+          >
+            <Icon path={collapsed ? ICONS.chevronRight : ICONS.chevronLeft} size={14} />
+          </button>
         </div>
 
         {/* Nav */}
@@ -186,15 +193,6 @@ function AuthLayout() {
           >
             <Icon path={ICONS.logout} size={14} />
             {!collapsed && <span>Sign out</span>}
-          </button>
-          {/* Collapse toggle */}
-          <button
-            onClick={() => { setCollapsed((c) => !c) }}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={`flex items-center gap-2 rounded-md text-tundra-ink-300 hover:text-tundra-ink hover:bg-tundra-ink-50 transition-colors text-xs ${collapsed ? 'justify-center p-2' : 'w-full px-2 py-1.5'}`}
-          >
-            <Icon path={collapsed ? ICONS.chevronRight : ICONS.chevronLeft} size={14} />
-            {!collapsed && <span>Collapse</span>}
           </button>
         </div>
       </aside>
