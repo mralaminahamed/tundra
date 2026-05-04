@@ -42,6 +42,7 @@ import { Route as AuthDomainsRouteImport } from './routes/_auth.domains'
 import { Route as AuthDomainsNewRouteImport } from './routes/_auth.domains.new'
 import { Route as AuthDomainsDomainIdRouteImport } from './routes/_auth.domains.$domainId'
 import { Route as AuthMailRouteImport } from './routes/_auth.mail'
+import { Route as AuthWordPressRouteImport } from './routes/_auth.wordpress'
 import { Route as AuthMailDomainsRouteImport } from './routes/_auth.mail.domains'
 import { Route as AuthMailDomainsNewRouteImport } from './routes/_auth.mail.domains.new'
 import { Route as AuthMailDomainsDomainIdRouteImport } from './routes/_auth.mail.domains.$mailDomainId'
@@ -289,6 +290,12 @@ const AuthMailQueueRoute = AuthMailQueueRouteImport.update({
   getParentRoute: () => AuthMailRoute,
 } as any)
 
+const AuthWordPressRoute = AuthWordPressRouteImport.update({
+  id: '/_auth/wordpress',
+  path: '/wordpress',
+  getParentRoute: () => AuthRoute,
+} as any)
+
 const AuthTemplatesRoute = AuthTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -364,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/wordpress': typeof AuthWordPressRoute
   '/templates': typeof AuthTemplatesRoute
   '/plugins': typeof AuthPluginsRoute
   '/alerts': typeof AuthAlertsRoute
@@ -411,6 +419,7 @@ export interface FileRoutesByTo {
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/wordpress': typeof AuthWordPressRoute
   '/templates': typeof AuthTemplatesRoute
   '/plugins': typeof AuthPluginsRoute
   '/alerts': typeof AuthAlertsRoute
@@ -460,6 +469,7 @@ export interface FileRoutesById {
   '/_auth/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/_auth/mail/queue': typeof AuthMailQueueRoute
   '/_auth/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/_auth/wordpress': typeof AuthWordPressRoute
   '/_auth/templates': typeof AuthTemplatesRoute
   '/_auth/plugins': typeof AuthPluginsRoute
   '/_auth/alerts': typeof AuthAlertsRoute
@@ -509,6 +519,7 @@ export interface FileRouteTypes {
     | '/mail/mailboxes'
     | '/mail/queue'
     | '/scheduled-tasks'
+    | '/wordpress'
     | '/templates'
     | '/plugins'
     | '/alerts'
@@ -555,6 +566,7 @@ export interface FileRouteTypes {
     | '/mail/mailboxes'
     | '/mail/queue'
     | '/scheduled-tasks'
+    | '/wordpress'
     | '/templates'
     | '/plugins'
     | '/alerts'
@@ -601,6 +613,7 @@ export interface FileRouteTypes {
     | '/_auth/mail/mailboxes'
     | '/_auth/mail/queue'
     | '/_auth/scheduled-tasks'
+    | '/_auth/wordpress'
     | '/_auth/templates'
     | '/_auth/plugins'
     | '/_auth/alerts'
@@ -891,6 +904,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthMailQueueRouteImport
       parentRoute: typeof AuthMailRoute
     }
+    '/_auth/wordpress': {
+      id: '/_auth/wordpress'
+      path: '/wordpress'
+      fullPath: '/wordpress'
+      preLoaderRoute: typeof AuthWordPressRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/templates': {
       id: '/_auth/templates'
       path: '/templates'
@@ -1110,6 +1130,7 @@ interface AuthRouteChildren {
   AuthBackupsRoute: typeof AuthBackupsRouteWithChildren
   AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
   AuthMailRoute: typeof AuthMailRouteWithChildren
+  AuthWordPressRoute: typeof AuthWordPressRoute
   AuthTemplatesRoute: typeof AuthTemplatesRoute
   AuthPluginsRoute: typeof AuthPluginsRoute
   AuthAlertsRoute: typeof AuthAlertsRoute
@@ -1129,6 +1150,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthBackupsRoute: AuthBackupsRouteWithChildren,
   AuthDomainsRoute: AuthDomainsRouteWithChildren,
   AuthMailRoute: AuthMailRouteWithChildren,
+  AuthWordPressRoute: AuthWordPressRoute,
   AuthTemplatesRoute: AuthTemplatesRoute,
   AuthPluginsRoute: AuthPluginsRoute,
   AuthAlertsRoute: AuthAlertsRoute,
