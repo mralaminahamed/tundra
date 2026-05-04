@@ -11,6 +11,7 @@ members = [
     "crates/tundrad-auth",
     "crates/tundrad-crypto",
     "crates/tundrad-plugin-host",
+    "crates/tundra-plugin-sdk",
     "crates/tundrad-config",
     "crates/tundrad-telemetry",
     "crates/tundra-agent-bin",
@@ -53,6 +54,7 @@ prost-types = "0.13"
 # Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_yaml = "0.9"
 bincode = "1"
 
 # Database — SQLx 0.8 (spec §3.1); rustls only, no openssl-sys
@@ -92,6 +94,12 @@ figment = { version = "0.10", features = ["toml", "env"] }
 
 # Plugin sandbox — Wasmtime latest stable (spec §3.1)
 wasmtime = { version = "28", features = ["component-model"] }
+
+# Plugin SDK (workspace-internal)
+tundra-plugin-sdk = { path = "crates/tundra-plugin-sdk" }
+
+# TOML parsing (manifest files)
+toml = "0.8"
 
 # ACME client — instant-acme (spec §3.4)
 instant-acme = "0.7"

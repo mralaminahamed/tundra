@@ -11,5 +11,6 @@ pub mod scheduled_tasks;
 pub mod servers;
 pub mod site_moves;
 pub mod sites;
+pub mod templates;
 pub mod tokens;
 pub mod ws;

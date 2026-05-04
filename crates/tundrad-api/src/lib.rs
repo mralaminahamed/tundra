@@ -2,6 +2,7 @@ pub mod error;
 pub mod extractors;
 pub mod routes;
 pub mod ssh_installer;
+pub mod templates;
 
 use axum::{
     Router,
@@ -17,6 +18,8 @@ pub fn router(pool: PgPool) -> Router {
         // ── Probes ─────────────────────────────────────────────────────────
         .route("/healthz", get(routes::health::healthz))
         .route("/readyz", get(routes::health::readyz))
+        // ── Templates ──────────────────────────────────────────────────────
+        .route("/api/v1/templates", get(routes::templates::list))
         // ── Auth ───────────────────────────────────────────────────────────
         .route("/api/v1/auth/login", post(routes::auth::login))
         .route("/api/v1/auth/logout", post(routes::auth::logout))
