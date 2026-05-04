@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Tundra — Primary Horizontal Lockup
-  Mark + wordmark, optically balanced.
-  Mark height = cap-height of wordmark × 1.4 (mark dominates slightly, as it should).
-  Spacing between mark and wordmark: equal to wordmark x-height (Inter convention).
+  Tundra — Primary Horizontal Lockup (default logo)
+  Mark + wordmark, side by side. Mark height optically matches wordmark cap-height × 1.15.
+  Gap between mark and wordmark = wordmark x-height (~one-quarter em at this size).
+  Author: Al Amin Ahamed (@mralaminahamed)
+  Canvas: 560×120. Mark area: 0–120. Gap: 20px. Wordmark: 140–560.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="600" height="160" role="img" aria-label="Tundra">
-  <!-- Mark, scaled to 120×120, positioned left -->
-  <g transform="translate(20, 20)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 120" width="560" height="120" role="img" aria-label="Tundra">
+  <title>Tundra</title>
+
+  <!-- Mark, scaled to 80×80, vertically centred at y=20 -->
+  <g transform="translate(20, 20) scale(0.333)">
     <path
-      d="M 60 6
-         L 68.5 51
-         L 86 60
-         L 68.5 69
-         L 60 114
-         L 51.5 69
-         L 34 60
-         L 51.5 51
-         Z"
-      fill="#1C1F1A" />
+      d="M120 12 L137 103 L172 120 L137 137 L120 228 L103 137 L68 120 L103 103 Z"
+      fill="#1C1F1A"
+    />
   </g>
-  <!-- Wordmark, baseline-aligned to mark vertical center -->
-  <text x="170" y="106"
-        font-family="'Inter Display', 'Inter', -apple-system, sans-serif"
-        font-weight="900"
-        font-size="96"
-        letter-spacing="-3"
-        fill="#1C1F1A">tundra</text>
+
+  <!-- Wordmark, baseline at y=94, x=134 -->
+  <text
+    x="134"
+    y="94"
+    font-family="'Inter Display', 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-weight="900"
+    font-size="84"
+    letter-spacing="-2.52"
+    fill="#1C1F1A"
+  >tundra</text>
 </svg>

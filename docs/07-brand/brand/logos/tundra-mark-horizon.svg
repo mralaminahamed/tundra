@@ -1,26 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Tundra Mark — Horizon variant
-  The north star above a horizon line suggesting the tundra landscape.
-  Use for hero contexts, brand book covers, the install screen.
+  North star above a tundra landscape. Three terrain layers create depth.
+  Use for hero panels, install screens, brand storytelling contexts.
+  Author: Al Amin Ahamed (@mralaminahamed)
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" role="img" aria-label="Tundra">
-  <!-- Star, repositioned and slightly smaller so the horizon has room -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" width="400" height="280" role="img" aria-label="Tundra">
+  <title>Tundra</title>
+
+  <!-- North star, centered, sitting above the horizon -->
+  <g transform="translate(200, 32) scale(0.54)">
+    <path
+      d="M0 -96 L15.3 -15.3 L96 0 L15.3 15.3 L0 96 L-15.3 15.3 L-96 0 L-15.3 -15.3 Z"
+      fill="#1C1F1A"
+    />
+  </g>
+
+  <!-- Terrain layer 3 — far distance (lightest, most recessed) -->
   <path
-    d="M 160 30
-       L 174 102
-       L 202 120
-       L 174 138
-       L 160 196
-       L 146 138
-       L 118 120
-       L 146 102
-       Z"
-    fill="#1C1F1A" />
-  <!-- Horizon line: subtle, 2px stroke, 60% width centered -->
-  <line x1="60" y1="216" x2="260" y2="216"
-        stroke="#3A3D38" stroke-width="2" stroke-linecap="round" />
-  <!-- Distant ridge hint: very subtle, suggesting depth -->
-  <path d="M 60 216 L 110 208 L 145 213 L 175 207 L 215 213 L 260 216"
-        fill="none" stroke="#6B6F66" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.55" />
+    d="M0 252 L38 244 L74 248 L105 238 L138 242 L168 233 L200 238 L230 229 L262 235 L294 226 L328 231 L362 240 L400 252 Z"
+    fill="#E8E5DC"
+  />
+
+  <!-- Terrain layer 2 — mid distance -->
+  <path
+    d="M0 262 L30 254 L58 258 L86 247 L116 252 L148 243 L178 249 L210 241 L244 246 L272 237 L304 243 L336 252 L370 258 L400 262 Z"
+    fill="#CACEC5"
+  />
+
+  <!-- Terrain layer 1 — near foreground (darkest) -->
+  <path
+    d="M0 280 L0 268 L28 261 L54 265 L82 256 L112 262 L142 254 L170 259 L198 251 L228 256 L258 248 L288 254 L318 261 L350 268 L400 268 L400 280 Z"
+    fill="#929C8B"
+  />
+
+  <!-- Horizon rule — subtle separator between sky and earth -->
+  <line x1="40" y1="252" x2="360" y2="252"
+        stroke="#6B6F66" stroke-width="1" stroke-linecap="round" opacity="0.4" />
 </svg>

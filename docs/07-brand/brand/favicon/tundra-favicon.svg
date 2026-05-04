@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Tundra Favicon — heavily optimized for 16-32px display.
-  Inner radius pulled in further (28% of long axis) to thicken arms.
+  Tundra Favicon — optimised for 16–64px display
+  Rounded square (rx=14) in Tundra Ink. Mark in Tundra Paper, arms thickened
+  for small-size legibility (compact variant geometry, 28% inner-vertex ratio).
+  Author: Al Amin Ahamed (@mralaminahamed)
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <rect width="64" height="64" rx="12" fill="#1C1F1A"/>
+  <!-- Background container -->
+  <rect width="64" height="64" rx="14" fill="#1C1F1A"/>
+  <!-- North-star mark, Paper colour, compact geometry for legibility -->
   <path
-    d="M 32 8
-       L 38 26
-       L 50 32
-       L 38 38
-       L 32 56
-       L 26 38
-       L 14 32
-       L 26 26
-       Z"
-    fill="#F5F2E9" />
+    d="M32 9 L37.5 26.5 L50 32 L37.5 37.5 L32 55 L26.5 37.5 L14 32 L26.5 26.5 Z"
+    fill="#F5F2E9"
+  />
 </svg>

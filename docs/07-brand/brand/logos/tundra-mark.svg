@@ -2,24 +2,15 @@
 <!--
   Tundra Mark — The North Star
   Author: Al Amin Ahamed (@mralaminahamed)
-  Construction: 4-pointed star with elongated vertical axis.
-  Vertical:Horizontal ratio = 1.6:1 (~golden ratio).
-  Cleanly snaps to 24×24 grid for icon scaling.
-  Single closed path — no strokes, no gradients, no effects.
+  Construction: 4-pointed star, elongated vertical axis.
+  Vertical:Horizontal = 2.077:1 (108px each side / 52px each side, 240×240 viewBox).
+  Inner vertices: 17px from center axis, creating a graceful narrow-arm form.
+  Single closed path — solid fill only. No strokes, no gradients, no shadows.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Tundra">
-  <!-- Star: built from 8 control points around a center; long N/S arms, short E/W arms.
-       Center: (120, 120). North tip: (120, 12). South tip: (120, 228). East tip: (172, 120). West tip: (68, 120).
-       Concave vertices (inner): pulled toward center using ~0.18 of the long-axis radius. -->
+  <title>Tundra</title>
   <path
-    d="M 120 12
-       L 137 102
-       L 172 120
-       L 137 138
-       L 120 228
-       L 103 138
-       L 68 120
-       L 103 102
-       Z"
-    fill="#1C1F1A" />
+    d="M120 12 L137 103 L172 120 L137 137 L120 228 L103 137 L68 120 L103 103 Z"
+    fill="#1C1F1A"
+  />
 </svg>
