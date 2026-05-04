@@ -9,6 +9,7 @@ pub mod mail;
 pub mod operators;
 pub mod scheduled_tasks;
 pub mod servers;
+pub mod site_moves;
 pub mod sites;
 pub mod tokens;
 pub mod ws;
