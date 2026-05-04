@@ -29,9 +29,12 @@ tracing.workspace = true
 uuid.workspace = true
 
 # TOTP — HMAC-SHA1 per RFC 6238 (not in workspace; SHA-1 is intentional for TOTP)
-hmac = "0.12"
-sha1 = "0.10"
+hmac = "0.13.0"
+sha1 = "0.11.0"
 
 [dev-dependencies]
 tundra-test-harness = { path = "../tundra-test-harness" }
+tundrad-domain = { path = "../tundrad-domain" }
+tundrad-repo = { path = "../tundrad-repo" }
+tundrad-crypto = { path = "../tundrad-crypto" }
 tokio = { workspace = true, features = ["test-util", "macros"] }
