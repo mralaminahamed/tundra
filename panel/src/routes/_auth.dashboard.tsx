@@ -41,10 +41,10 @@ interface AuditEntry {
 function relTime(iso: string | null | undefined): string {
   if (!iso) return '—'
   const s = (Date.now() - new Date(iso).getTime()) / 1000
-  if (s < 60) return `${Math.floor(s)}s ago`
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`
-  return `${Math.floor(s / 86400)}d ago`
+  if (s < 60) return `${String(Math.floor(s))}s ago`
+  if (s < 3600) return `${String(Math.floor(s / 60))}m ago`
+  if (s < 86400) return `${String(Math.floor(s / 3600))}h ago`
+  return `${String(Math.floor(s / 86400))}d ago`
 }
 
 function pct(used: number, total: number) {
@@ -57,7 +57,7 @@ function ResourceBar({ value, warn = 75, crit = 90, label }: { value: number; wa
     <div className="flex items-center gap-2 text-xs">
       <span className="w-8 shrink-0 text-tundra-ink-400">{label}</span>
       <div className="h-1.5 flex-1 rounded-full bg-tundra-ink-100 overflow-hidden">
-        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${String(Math.min(value, 100))}%` }} />
       </div>
       <span className="w-8 shrink-0 tabular-nums text-right text-tundra-ink-500">{value}%</span>
     </div>
@@ -159,18 +159,19 @@ function DashboardPage() {
   const activeAlerts = deliveries.filter((d) => !d.resolved_at)
   const degradedServers = servers.filter((s) => s.status === 'degraded' || s.status === 'offline').length
   const activeSites = sites.filter((s) => s.status === 'active').length
-  const metricsMap = Object.fromEntries(metrics.map((m) => [m.server_id, m]))
+  const metricsMap = Object.fromEntries(metrics.map((m) => [m.server_id, m])) as Record<string, ServerMetricsState | undefined>
 
   // Fleet aggregates
-  const metricsArr = metrics.filter((m) => m.cpu_used_pct != null)
+  const metricsArr = metrics
   const avgCpu = metricsArr.length > 0 ? Math.round(metricsArr.reduce((s, m) => s + m.cpu_used_pct, 0) / metricsArr.length) : null
   const avgRam = metricsArr.length > 0 ? Math.round(metricsArr.reduce((s, m) => s + pct(m.ram_used_mb, m.ram_total_mb), 0) / metricsArr.length) : null
   const avgDisk = metricsArr.length > 0 ? Math.round(metricsArr.reduce((s, m) => s + pct(m.disk_used_gb, m.disk_total_gb), 0) / metricsArr.length) : null
 
   // Domains expiring within 30 days
+  const nowMs = Date.now()
   const expiringDomains = domains.filter((d) => {
     if (!d.registration_expires_at) return false
-    const daysLeft = (new Date(d.registration_expires_at).getTime() - Date.now()) / 86_400_000
+    const daysLeft = (new Date(d.registration_expires_at).getTime() - nowMs) / 86_400_000
     return daysLeft >= 0 && daysLeft <= 30
   })
 
@@ -182,7 +183,7 @@ function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-tundra-ink">
-          {greeting}, {operator?.full_name?.split(' ')[0]}.
+          {greeting}, {operator?.full_name.split(' ')[0]}.
         </h1>
         <p className="mt-1 text-sm text-tundra-ink-400">
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -240,18 +241,21 @@ function DashboardPage() {
           </div>
           {/* Per-server dots */}
           <div className="mt-3 flex flex-wrap gap-3">
-            {servers.map((s) => (
-              <Link key={s.id} to="/servers/$serverId" params={{ serverId: s.id }}
-                className="flex items-center gap-1.5 text-xs text-tundra-ink-500 hover:text-tundra-ink">
-                <StatusDot status={s.status} />
-                <span>{s.name}</span>
-                {metricsMap[s.id] && (
-                  <span className="text-tundra-ink-300">
-                    CPU {Math.round(metricsMap[s.id].cpu_used_pct)}%
-                  </span>
-                )}
-              </Link>
-            ))}
+            {servers.map((s) => {
+              const sm = metricsMap[s.id]
+              return (
+                <Link key={s.id} to="/servers/$serverId" params={{ serverId: s.id }}
+                  className="flex items-center gap-1.5 text-xs text-tundra-ink-500 hover:text-tundra-ink">
+                  <StatusDot status={s.status} />
+                  <span>{s.name}</span>
+                  {sm && (
+                    <span className="text-tundra-ink-300">
+                      CPU {String(Math.round(sm.cpu_used_pct))}%
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}
@@ -373,7 +377,7 @@ function DashboardPage() {
               <div className="divide-y divide-tundra-ink-100">
                 {domains.slice(0, 5).map((d) => {
                   const daysLeft = d.registration_expires_at
-                    ? Math.ceil((new Date(d.registration_expires_at).getTime() - Date.now()) / 86_400_000)
+                    ? Math.ceil((new Date(d.registration_expires_at).getTime() - nowMs) / 86_400_000)
                     : null
                   const expiringSoon = daysLeft != null && daysLeft <= 30
                   return (

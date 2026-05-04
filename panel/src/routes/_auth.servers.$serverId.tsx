@@ -105,7 +105,7 @@ function ServerDetailPage() {
 
         {inMaintenance && (
           <div className="mt-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-            Server is in scheduled maintenance window until {new Date(server.maintenance_ends_at!).toLocaleString()}.
+            Server is in scheduled maintenance window until {new Date(server.maintenance_ends_at ?? '').toLocaleString()}.
           </div>
         )}
       </div>
