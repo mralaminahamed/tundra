@@ -1,54 +1,66 @@
-interface TundraLogoProps {
+interface TundraMarkProps {
   size?: number
-  variant?: 'light' | 'dark'
+  color?: string
+  className?: string
 }
 
-export function TundraLogo({ size = 48, variant = 'dark' }: TundraLogoProps) {
-  const peak = variant === 'dark' ? '#f5f2e9' : '#1c1f1a'
+/** The official Tundra north-star mark. Single solid path, no gradients, no strokes. */
+export function TundraMark({ size = 24, color = 'currentColor', className }: TundraMarkProps) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 48 48"
+      viewBox="0 0 240 240"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="Tundra"
+      aria-hidden="true"
+      className={className}
     >
-      {/* Aurora arcs */}
       <path
-        d="M4 18 Q12 12 20 16 Q28 20 36 14 Q42 10 46 12"
-        stroke="#7a8a5c"
-        strokeWidth="2"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.9"
+        d="M 120 12 L 137 102 L 172 120 L 137 138 L 120 228 L 103 138 L 68 120 L 103 102 Z"
+        fill={color}
       />
-      <path
-        d="M2 22 Q10 17 18 21 Q26 25 34 19 Q40 15 46 17"
-        stroke="#5b7a8c"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.7"
-      />
-      <path
-        d="M4 26 Q11 22 19 25 Q27 28 35 23 Q41 19 46 21"
-        stroke="#b5613a"
-        strokeWidth="1"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.5"
-      />
-      {/* Mountain range */}
-      <path
-        d="M0 44 L10 28 L17 36 L26 20 L35 33 L40 26 L48 44 Z"
-        fill={peak}
-      />
-      {/* Snow cap on main peak */}
-      <path
-        d="M26 20 L22 28 L30 28 Z"
-        fill={variant === 'dark' ? 'rgba(245,242,233,0.4)' : 'rgba(28,31,26,0.15)'}
-      />
+    </svg>
+  )
+}
+
+interface TundraLogoProps {
+  size?: number
+  variant?: 'light' | 'dark'
+  className?: string
+}
+
+/** Mark + "tundra" wordmark lockup, horizontal. */
+export function TundraLogo({ size = 32, variant = 'light', className }: TundraLogoProps) {
+  const ink = variant === 'dark' ? '#F5F2E9' : '#1C1F1A'
+  return (
+    <svg
+      width={size * 3.75}
+      height={size}
+      viewBox="0 0 600 160"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Tundra"
+      className={className}
+    >
+      <g transform="translate(20, 20)">
+        <path
+          d="M 60 6 L 68.5 51 L 86 60 L 68.5 69 L 60 114 L 51.5 69 L 34 60 L 51.5 51 Z"
+          fill={ink}
+        />
+      </g>
+      <text
+        x="170"
+        y="106"
+        fontFamily="'Inter Display', 'Inter', -apple-system, sans-serif"
+        fontWeight="900"
+        fontSize="96"
+        letterSpacing="-3"
+        fill={ink}
+      >
+        tundra
+      </text>
     </svg>
   )
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra Favicon — heavily optimized for 16-32px display.
+  Inner radius pulled in further (28% of long axis) to thicken arms.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="12" fill="#1C1F1A"/>
+  <path
+    d="M 32 8
+       L 38 26
+       L 50 32
+       L 38 38
+       L 32 56
+       L 26 38
+       L 14 32
+       L 26 26
+       Z"
+    fill="#F5F2E9" />
+</svg>

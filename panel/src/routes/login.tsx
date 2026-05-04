@@ -36,9 +36,8 @@ function LoginPage() {
     <div className="flex min-h-screen">
       {/* Left branding panel */}
       <div className="hidden lg:flex lg:w-105 xl:w-120 shrink-0 flex-col justify-between bg-tundra-ink-900 px-10 py-12">
-        <div className="flex items-center gap-3">
-          <TundraLogo size={40} variant="dark" />
-          <span className="text-xl font-semibold tracking-tight text-tundra-paper">Tundra</span>
+        <div>
+          <TundraLogo size={36} variant="dark" />
         </div>
 
         <div className="space-y-4">
@@ -63,9 +62,8 @@ function LoginPage() {
       {/* Right form panel */}
       <div className="flex flex-1 flex-col items-center justify-center bg-tundra-paper px-6 py-12">
         {/* Mobile logo (hidden on lg+) */}
-        <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-          <TundraLogo size={36} variant="light" />
-          <span className="text-xl font-semibold text-tundra-ink">Tundra</span>
+        <div className="mb-8 lg:hidden">
+          <TundraLogo size={28} variant="light" />
         </div>
 
         <div className="w-full max-w-sm">

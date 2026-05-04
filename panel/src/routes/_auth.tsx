@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth'
+import { TundraMark } from '@/components/TundraLogo'
 
 export const Route = createFileRoute('/_auth')({
   beforeLoad: () => {
@@ -61,7 +62,10 @@ function AuthLayout() {
   return (
     <div className="flex min-h-screen bg-tundra-paper">
       <aside className="w-60 shrink-0 border-r border-tundra-ink-200 bg-white flex flex-col">
-        <div className="px-4 py-5 font-semibold text-tundra-ink text-lg">Tundra</div>
+        <div className="px-4 py-4 flex items-center gap-2.5">
+          <TundraMark size={20} color="#1C1F1A" />
+          <span className="font-black text-base tracking-tight text-tundra-ink" style={{ fontFamily: "'Inter Display', 'Inter', sans-serif", letterSpacing: '-0.5px' }}>tundra</span>
+        </div>
         <nav className="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-4 text-sm">
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
