@@ -3,6 +3,7 @@
 
 use hmac::{Hmac, Mac};
 use rand::RngCore;
+use sha1::digest::KeyInit;
 use sha1::Sha1;
 
 type HmacSha1 = Hmac<Sha1>;

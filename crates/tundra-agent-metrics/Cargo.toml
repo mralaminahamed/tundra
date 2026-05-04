@@ -16,4 +16,4 @@ tundra-proto = { path = "../tundra-proto" }
 thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true
-sysinfo = "0.32"
+sysinfo = "0.38.4"
