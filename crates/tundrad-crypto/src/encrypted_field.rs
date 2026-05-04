@@ -54,7 +54,7 @@ impl<T: std::fmt::Debug, F: EncryptedFamily> std::fmt::Debug for EncryptedField<
 
 // ── Encrypt ──────────────────────────────────────────────────────────────────
 
-pub(crate) fn encrypt_value<T: Serialize>(value: &T, family: &str) -> Result<Vec<u8>, CryptoError> {
+pub fn encrypt_value<T: Serialize>(value: &T, family: &str) -> Result<Vec<u8>, CryptoError> {
     let ring = crate::KeyRing::global()?;
     let cipher = ring.family_cipher(family)?;
 
@@ -78,10 +78,7 @@ pub(crate) fn encrypt_value<T: Serialize>(value: &T, family: &str) -> Result<Vec
 
 // ── Decrypt ──────────────────────────────────────────────────────────────────
 
-pub(crate) fn decrypt_value<T: DeserializeOwned>(
-    bytes: &[u8],
-    family: &str,
-) -> Result<T, CryptoError> {
+pub fn decrypt_value<T: DeserializeOwned>(bytes: &[u8], family: &str) -> Result<T, CryptoError> {
     const MIN_LEN: usize = 1 + NONCE_LEN + 16; // version + nonce + tag (empty plaintext)
     if bytes.len() < MIN_LEN {
         return Err(CryptoError::InvalidCiphertext("too short"));
