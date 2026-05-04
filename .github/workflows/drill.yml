@@ -1,0 +1,23 @@
+name: Backup-Restore Drill
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'   # Weekly on Sunday 04:00 UTC
+  workflow_dispatch:
+
+jobs:
+  backup-restore-drill:
+    name: Backup-restore drill
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Tundra stack (stub — verifies script runs cleanly)
+        run: echo "In production: docker-compose up -d tundrad postgres valkey"
+
+      - name: Run backup-restore drill
+        run: |
+          chmod +x tests/drill/backup_restore_drill.sh
+          tests/drill/backup_restore_drill.sh
+        env:
+          TUNDRA_PANEL_URL: http://localhost:7400
