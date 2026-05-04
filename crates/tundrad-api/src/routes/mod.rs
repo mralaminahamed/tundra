@@ -1,3 +1,4 @@
+pub mod alert_rules;
 pub mod audit_log;
 pub mod auth;
 pub mod backups;
@@ -7,9 +8,11 @@ pub mod domains;
 pub mod health;
 pub mod mail;
 pub mod operators;
+pub mod plugins;
 pub mod scheduled_tasks;
 pub mod servers;
 pub mod site_moves;
 pub mod sites;
+pub mod templates;
 pub mod tokens;
 pub mod ws;

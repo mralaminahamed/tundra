@@ -185,7 +185,8 @@ Use these skills for the corresponding tasks when working in this repository:
 | P4 — Email & DNS | ✅ Done | PowerDNS/Unbound/Postfix/Dovecot/Rspamd/Roundcube providers, domain+DNS schema+REST+panel, mail schema+DKIM+REST+panel, diagnostics, e2e specs |
 | P5 — Multi-runtime | ✅ Done | Node/Python/Go/Rust/Ruby/.NET providers, systemd Appendix B templates, blue/green deploy, daemons+cron schema+REST+panel, site wizard enhancements, starter templates, e2e specs |
 | P6 — Multi-server | ✅ Done | SSH installer wizard, server_metrics_state, cross-server site move (7-stage pipeline), per-agent rate limiting + circuit breaker, maintenance windows, multi-server fleet panel, e2e specs |
-| P7 — Production hardening | ⬜ | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, plugin host, billing |
+| P7 — Templates & Plugins | ✅ Done | Wasmtime plugin host (tundra-plugin-sdk + WIT), MCP server plugin (stdio+HTTP, scope/session model), Namecheap + GitHub plugins, 13 YAML templates + gallery, metrics_samples partitioning, alert rule evaluator, alerts panel, e2e specs |
+| P8 — Production hardening | ⬜ | Nginx/PHP-FPM provisioning, Let's Encrypt ACME, billing |
 
 Full phase breakdown: `docs/01-architecture/tundra-technical-implementation-plan-v3.md` §11.1.
 Build prompts for each phase: `docs/08-build-prompts/tundra-claude-code-prompts-v1.md`.

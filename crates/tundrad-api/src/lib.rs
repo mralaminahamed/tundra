@@ -2,13 +2,15 @@ pub mod error;
 pub mod extractors;
 pub mod routes;
 pub mod ssh_installer;
+pub mod templates;
 
 use axum::{
     Router,
-    routing::{delete, get, post, put},
+    routing::{delete, get, patch, post, put},
 };
 use routes::ws;
 use tower_http::trace::TraceLayer;
+use tundrad_plugin_mcp::server::http::handle_post as mcp_post;
 use tundrad_repo::PgPool;
 
 /// Build the complete Axum router. `state` is the `PgPool` injected into every handler.
@@ -17,6 +19,8 @@ pub fn router(pool: PgPool) -> Router {
         // ── Probes ─────────────────────────────────────────────────────────
         .route("/healthz", get(routes::health::healthz))
         .route("/readyz", get(routes::health::readyz))
+        // ── Templates ──────────────────────────────────────────────────────
+        .route("/api/v1/templates", get(routes::templates::list))
         // ── Auth ───────────────────────────────────────────────────────────
         .route("/api/v1/auth/login", post(routes::auth::login))
         .route("/api/v1/auth/logout", post(routes::auth::logout))
@@ -264,6 +268,40 @@ pub fn router(pool: PgPool) -> Router {
         .route(
             "/api/v1/site-moves/{move_id}/abandon",
             post(routes::site_moves::abandon_site_move),
+        )
+        // ── Plugins ────────────────────────────────────────────────────────
+        .route("/api/v1/plugins", get(routes::plugins::list_plugins))
+        .route("/api/v1/plugins/{id}", get(routes::plugins::get_plugin))
+        .route(
+            "/api/v1/plugins/{id}/enable",
+            post(routes::plugins::enable_plugin),
+        )
+        .route(
+            "/api/v1/plugins/{id}/disable",
+            post(routes::plugins::disable_plugin),
+        )
+        // ── MCP (Model Context Protocol) ───────────────────────────────────
+        .route("/mcp", post(mcp_post))
+        // ── Alert rules ────────────────────────────────────────────────────
+        .route(
+            "/api/v1/alert-rules",
+            get(routes::alert_rules::list_alert_rules).post(routes::alert_rules::create_alert_rule),
+        )
+        .route(
+            "/api/v1/alert-rules/{id}/enable",
+            patch(routes::alert_rules::enable_alert_rule),
+        )
+        .route(
+            "/api/v1/alert-rules/{id}/disable",
+            patch(routes::alert_rules::disable_alert_rule),
+        )
+        .route(
+            "/api/v1/alert-rules/{id}",
+            delete(routes::alert_rules::delete_alert_rule),
+        )
+        .route(
+            "/api/v1/alert-deliveries",
+            get(routes::alert_rules::list_alert_deliveries),
         )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))

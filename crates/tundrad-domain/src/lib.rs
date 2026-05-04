@@ -4,6 +4,7 @@ pub mod daemon;
 pub mod database;
 pub mod domain;
 pub mod mail;
+pub mod metrics;
 pub mod operator;
 pub mod scheduled_task;
 pub mod server;
@@ -26,6 +27,9 @@ pub use domain::{DnsManagedBy, DnsRecord, Domain, NewDnsRecord, NewDomain};
 pub use mail::{
     Alias, DkimKey, MailDomain, MailQueueEntry, Mailbox, NewAlias, NewDkimKey, NewMailDomain,
     NewMailbox,
+};
+pub use metrics::{
+    AlertCondition, AlertDelivery, AlertRule, MetricSample, NewAlertRule, NewMetricSample,
 };
 pub use operator::{NewOperator, Operator, OperatorRole};
 pub use scheduled_task::{NewScheduledTask, ScheduledTask};

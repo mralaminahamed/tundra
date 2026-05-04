@@ -13,6 +13,7 @@ path = "src/lib.rs"
 
 [dependencies]
 tundrad-auth = { path = "../tundrad-auth" }
+tundrad-plugin-mcp = { workspace = true }
 tundrad-backup = { path = "../tundrad-backup" }
 tundrad-pki  = { path = "../tundrad-pki" }
 tundrad-crypto = { path = "../tundrad-crypto" }
@@ -26,6 +27,7 @@ fred.workspace = true
 serde.workspace = true
 sqlx.workspace = true
 serde_json.workspace = true
+serde_yaml.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio.workspace = true

@@ -10,3 +10,6 @@ publish = false
 [[bin]]
 name = "tundra"
 path = "src/main.rs"
+
+[dependencies]
+anyhow = { workspace = true }

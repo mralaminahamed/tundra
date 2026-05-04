@@ -1,0 +1,33 @@
+package tundra:plugin@1.0.0;
+
+interface metadata {
+    record manifest {
+        id: string,
+        name: string,
+        version: string,
+        description: string,
+        author: string,
+        license: string,
+        tundra-min-version: string,
+    }
+}
+
+interface lifecycle {
+    use metadata.{manifest};
+    init: func() -> result<manifest, string>;
+    enable: func() -> result<_, string>;
+    disable: func() -> result<_, string>;
+    shutdown: func();
+}
+
+interface host-services {
+    get-secret: func(name: string) -> result<list<u8>, string>;
+    log: func(level: u8, message: string);
+    emit: func(kind: string, payload: list<u8>) -> result<_, string>;
+}
+
+world plugin {
+    import host-services;
+    export lifecycle;
+    export metadata;
+}

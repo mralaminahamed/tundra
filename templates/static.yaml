@@ -1,0 +1,16 @@
+id: "static"
+name: "Static Site"
+description: "Plain HTML, CSS, and JavaScript — no build step or runtime required. Served directly by Nginx."
+version: "1.0.0"
+runtime:
+  kind: "static"
+  version: ""
+source:
+  kind: "skeleton"
+build_command: null
+start_command: null
+listen_port: null
+env: {}
+post_create: []
+tags: ["html", "css", "javascript", "static"]
+icon: "static"
