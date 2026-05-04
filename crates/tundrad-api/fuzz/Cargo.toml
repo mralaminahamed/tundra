@@ -1,0 +1,19 @@
+[package]
+name = "tundrad-api-fuzz"
+version = "0.0.1"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+tundrad-api = { path = ".." }
+serde_json = "1"
+
+[[bin]]
+name = "fuzz_audit_canonicaliser"
+path = "fuzz_targets/fuzz_audit_canonicaliser.rs"
+test = false
+doc = false
