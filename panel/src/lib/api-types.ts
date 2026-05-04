@@ -60,6 +60,8 @@ export interface Site {
   server_id: string
   status: 'provisioning' | 'active' | 'suspended' | 'migrating' | 'archived'
   document_root: string
+  source_kind: 'github' | 'gitlab' | 'blank' | 'template' | 'tarball' | null
+  source_config: { template_id?: string; branch?: string } | null
   created_at: string
 }
 

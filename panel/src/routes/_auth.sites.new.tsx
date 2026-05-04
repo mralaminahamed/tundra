@@ -165,7 +165,12 @@ function CreateSitePage() {
                   listen_port: values.listenPort ? parseInt(values.listenPort, 10) : null,
                   health_check_path: '/',
                   source_kind: values.sourceKind,
-                  source_config: { branch: values.branch },
+                  source_config: {
+                    branch: values.branch || undefined,
+                    template_id: values.sourceKind === 'template' && selectedTemplate
+                      ? selectedTemplate.id
+                      : undefined,
+                  },
                 },
               },
             })

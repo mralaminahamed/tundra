@@ -46,6 +46,8 @@ pub struct SiteDto {
     pub server_id: String,
     pub status: String,
     pub document_root: String,
+    pub source_kind: Option<String>,
+    pub source_config: Option<serde_json::Value>,
     pub created_at: String,
 }
 
@@ -86,7 +88,30 @@ pub async fn list(
         .await
         .map_err(ApiError::from)?;
 
-    let data: Vec<SiteDto> = sites.into_iter().map(to_site_dto).collect();
+    // Batch-fetch source_kind + source_config from applications (one query, no N+1)
+    let site_ids: Vec<Uuid> = sites.iter().map(|s| s.id).collect();
+    let app_rows: Vec<(Uuid, String, serde_json::Value)> = sqlx::query_as(
+        "SELECT site_id, source_kind, source_config FROM applications WHERE site_id = ANY($1)",
+    )
+    .bind(&site_ids)
+    .fetch_all(&pool)
+    .await
+    .unwrap_or_default();
+    let source_map: std::collections::HashMap<Uuid, (String, serde_json::Value)> = app_rows
+        .into_iter()
+        .map(|(id, k, c)| (id, (k, c)))
+        .collect();
+
+    let data: Vec<SiteDto> = sites
+        .into_iter()
+        .map(|s| {
+            let (sk, sc) = source_map
+                .get(&s.id)
+                .map(|(k, c)| (Some(k.clone()), Some(c.clone())))
+                .unwrap_or((None, None));
+            to_site_dto(s, sk, sc)
+        })
+        .collect();
     Ok(Json(
         serde_json::json!({ "data": data, "next_cursor": null }),
     ))
@@ -111,7 +136,19 @@ pub async fn get(
         .await
         .map_err(ApiError::from)?;
 
-    Ok(Json(to_site_dto(site)))
+    let app_row: Option<(String, serde_json::Value)> = sqlx::query_as(
+        "SELECT source_kind, source_config FROM applications WHERE site_id = $1 LIMIT 1",
+    )
+    .bind(site.id)
+    .fetch_optional(&pool)
+    .await
+    .unwrap_or(None);
+
+    let (source_kind, source_config) = app_row
+        .map(|(k, c)| (Some(k), Some(c)))
+        .unwrap_or((None, None));
+
+    Ok(Json(to_site_dto(site, source_kind, source_config)))
 }
 
 pub async fn create(
@@ -144,7 +181,7 @@ pub async fn create(
         source_config: body.application.source_config,
     };
 
-    let (site, _app, deploy) = tundrad_repo::SiteRepo::new(&pool)
+    let (site, app, deploy) = tundrad_repo::SiteRepo::new(&pool)
         .create_with_application(new_site, session.operator_id)
         .await
         .map_err(ApiError::from)?;
@@ -166,7 +203,7 @@ pub async fn create(
         StatusCode::CREATED,
         Json(CreateSiteResponse {
             deployment: to_deploy_dto(&deploy),
-            data: to_site_dto(site),
+            data: to_site_dto(site, Some(app.source_kind), Some(app.source_config)),
         }),
     ))
 }
@@ -283,7 +320,16 @@ pub async fn trigger_deploy(
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-fn to_site_dto(s: tundrad_domain::Site) -> SiteDto {
+fn fmt_ts(dt: time::OffsetDateTime) -> String {
+    dt.format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_else(|_| dt.to_string())
+}
+
+fn to_site_dto(
+    s: tundrad_domain::Site,
+    source_kind: Option<String>,
+    source_config: Option<serde_json::Value>,
+) -> SiteDto {
     SiteDto {
         id: s.id.to_string(),
         name: s.name,
@@ -291,7 +337,9 @@ fn to_site_dto(s: tundrad_domain::Site) -> SiteDto {
         server_id: s.server_id.to_string(),
         status: s.status.as_str().to_owned(),
         document_root: s.document_root,
-        created_at: s.created_at.to_string(),
+        source_kind,
+        source_config,
+        created_at: fmt_ts(s.created_at),
     }
 }
 
@@ -303,7 +351,7 @@ fn to_deploy_dto(d: &tundrad_domain::Deployment) -> DeploymentDto {
         status: d.status.as_str().to_owned(),
         triggered_by: d.triggered_by.clone(),
         source_ref: d.source_ref.clone(),
-        created_at: d.created_at.to_string(),
+        created_at: fmt_ts(d.created_at),
         log_stream,
     }
 }

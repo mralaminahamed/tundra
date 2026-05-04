@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
 import type { ListResponse, Site, Server } from '@/lib/api-types'
+import { resolveBadge } from '@/lib/source-badge'
 
 export const Route = createFileRoute('/_auth/sites/')({
   component: SitesPage,
@@ -16,6 +17,16 @@ const STATUS_COLORS: Record<string, { dot: string; pill: string }> = {
   suspended:    { dot: 'bg-yellow-400',      pill: 'border-yellow-300 text-yellow-800 bg-yellow-50' },
   migrating:    { dot: 'bg-tundra-aurora',   pill: 'border-tundra-aurora-300 text-tundra-aurora-700 bg-tundra-aurora-50' },
   archived:     { dot: 'bg-tundra-ink-300',  pill: 'border-tundra-ink-200 text-tundra-ink-400 bg-tundra-ink-50' },
+}
+
+function SourceBadge({ site, enabledPlugins }: { site: Site; enabledPlugins: string[] }) {
+  const m = resolveBadge(site, enabledPlugins)
+  if (!m) return null
+  return (
+    <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${m.cls}`}>
+      {m.label}
+    </span>
+  )
 }
 
 function StatusPill({ status }: { status: Site['status'] }) {
@@ -79,6 +90,15 @@ function SitesPage() {
     queryKey: ['servers'],
     queryFn: () => api<ListResponse<Server>>('/servers'),
   })
+
+  const { data: pluginsNav = [] } = useQuery<{ plugin_id: string; state: string }[]>({
+    queryKey: ['plugins-nav'],
+    queryFn: () =>
+      fetch('/api/v1/plugins').then((r) => r.json()).then((r: { data: { plugin_id: string; state: string }[] }) => r.data),
+    staleTime: 30_000,
+  })
+
+  const enabledPluginIds = pluginsNav.filter((p) => p.state === 'enabled').map((p) => p.plugin_id)
 
   const serverMap = new Map<string, Server>((serversData?.data ?? []).map((s) => [s.id, s]))
   const sites = data?.data ?? []
@@ -241,10 +261,13 @@ function SitesPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <StatusPill status={s.status} />
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <StatusPill status={s.status} />
+                            <SourceBadge site={s} enabledPlugins={enabledPluginIds} />
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-xs text-tundra-ink-400 whitespace-nowrap">
-                          {new Date(s.created_at).toLocaleDateString()}
+                          {new Date(s.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">

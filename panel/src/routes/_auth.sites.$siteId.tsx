@@ -4,12 +4,23 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Daemon, Deployment, ListResponse, ScheduledTask, Site, Server } from '@/lib/api-types'
+import { resolveBadge } from '@/lib/source-badge'
 
 export const Route = createFileRoute('/_auth/sites/$siteId')({
   component: SiteDetailPage,
 })
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
+
+function SourceBadge({ site, enabledPlugins }: { site: Site; enabledPlugins: string[] }) {
+  const m = resolveBadge(site, enabledPlugins)
+  if (!m) return null
+  return (
+    <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${m.cls}`}>
+      {m.label}
+    </span>
+  )
+}
 
 function StatusBadge({ status }: { status: Site['status'] }) {
   const map: Record<string, string> = {
@@ -93,6 +104,14 @@ function SiteDetailPage() {
     queryKey: ['servers'],
     queryFn: () => api<ListResponse<Server>>('/servers'),
   })
+
+  const { data: pluginsNav = [] } = useQuery<{ plugin_id: string; state: string }[]>({
+    queryKey: ['plugins-nav'],
+    queryFn: () =>
+      fetch('/api/v1/plugins').then((r) => r.json()).then((r: { data: { plugin_id: string; state: string }[] }) => r.data),
+    staleTime: 30_000,
+  })
+  const enabledPluginIds = pluginsNav.filter((p) => p.state === 'enabled').map((p) => p.plugin_id)
 
   const { data: deploys, isLoading: deploysLoading } = useQuery({
     queryKey: ['sites', siteId, 'deployments'],
@@ -263,12 +282,20 @@ function SiteDetailPage() {
                 <span className="font-mono text-xs text-tundra-ink-400">{site.server_id.slice(0, 12)}</span>
               )}
             </InfoRow>
+            <InfoRow label="Source">
+              <SourceBadge site={site} enabledPlugins={enabledPluginIds} />
+            </InfoRow>
             <InfoRow label="Document root">
               <span className="font-mono text-xs">{site.document_root}</span>
               <CopyButton value={site.document_root} label="Document root" />
             </InfoRow>
             <InfoRow label="Created">
-              <span className="text-tundra-ink-500">{new Date(site.created_at).toLocaleString()}</span>
+              <span className="text-tundra-ink-500">
+                {new Date(site.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+              </span>
+              <span className="text-tundra-ink-300 text-xs">
+                {new Date(site.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </InfoRow>
           </div>
 
