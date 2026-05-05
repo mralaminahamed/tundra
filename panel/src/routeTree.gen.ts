@@ -12,630 +12,602 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthDaemonsRouteImport } from './routes/_auth.daemons'
-import { Route as AuthScheduledTasksRouteImport } from './routes/_auth.scheduled-tasks'
-import { Route as AuthAuditLogRouteImport } from './routes/_auth.audit-log'
-import { Route as AuthDashboardRouteImport } from './routes/_auth.dashboard'
-import { Route as AuthOperatorsRouteImport } from './routes/_auth.operators'
-import { Route as AuthServersRouteImport } from './routes/_auth.servers'
-import { Route as AuthServersIndexRouteImport } from './routes/_auth.servers.index'
-import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
-import { Route as AuthServersServerIdRouteImport } from './routes/_auth.servers.$serverId'
-import { Route as AuthServersServerIdMaintenanceRouteImport } from './routes/_auth.servers.$serverId.maintenance'
+import { Route as AuthWordpressRouteImport } from './routes/_auth.wordpress'
+import { Route as AuthTemplatesRouteImport } from './routes/_auth.templates'
 import { Route as AuthSitesRouteImport } from './routes/_auth.sites'
+import { Route as AuthSettingsRouteImport } from './routes/_auth.settings'
+import { Route as AuthServersRouteImport } from './routes/_auth.servers'
+import { Route as AuthScheduledTasksRouteImport } from './routes/_auth.scheduled-tasks'
+import { Route as AuthPluginsRouteImport } from './routes/_auth.plugins'
+import { Route as AuthOperatorsRouteImport } from './routes/_auth.operators'
+import { Route as AuthMailRouteImport } from './routes/_auth.mail'
+import { Route as AuthDomainsRouteImport } from './routes/_auth.domains'
+import { Route as AuthDatabasesRouteImport } from './routes/_auth.databases'
+import { Route as AuthDatabaseServersRouteImport } from './routes/_auth.database-servers'
+import { Route as AuthDashboardRouteImport } from './routes/_auth.dashboard'
+import { Route as AuthDaemonsRouteImport } from './routes/_auth.daemons'
+import { Route as AuthBackupsRouteImport } from './routes/_auth.backups'
+import { Route as AuthAuditLogRouteImport } from './routes/_auth.audit-log'
+import { Route as AuthAlertsRouteImport } from './routes/_auth.alerts'
 import { Route as AuthSitesIndexRouteImport } from './routes/_auth.sites.index'
+import { Route as AuthServersIndexRouteImport } from './routes/_auth.servers.index'
+import { Route as AuthPluginsIndexRouteImport } from './routes/_auth.plugins.index'
+import { Route as AuthWordpressInstallIdRouteImport } from './routes/_auth.wordpress.$installId'
 import { Route as AuthSitesNewRouteImport } from './routes/_auth.sites.new'
 import { Route as AuthSitesSiteIdRouteImport } from './routes/_auth.sites.$siteId'
-import { Route as AuthDatabaseServersRouteImport } from './routes/_auth.database-servers'
-import { Route as AuthDatabaseServersNewRouteImport } from './routes/_auth.database-servers.new'
-import { Route as AuthDatabaseServersServerIdRouteImport } from './routes/_auth.database-servers.$serverId'
-import { Route as AuthDatabasesRouteImport } from './routes/_auth.databases'
-import { Route as AuthDatabasesNewRouteImport } from './routes/_auth.databases.new'
-import { Route as AuthDatabasesDatabaseIdRouteImport } from './routes/_auth.databases.$databaseId'
-import { Route as AuthBackupsRouteImport } from './routes/_auth.backups'
-import { Route as AuthBackupsJobsRouteImport } from './routes/_auth.backups.jobs'
-import { Route as AuthBackupsJobsNewRouteImport } from './routes/_auth.backups.jobs.new'
-import { Route as AuthBackupsSnapshotsRouteImport } from './routes/_auth.backups.snapshots'
-import { Route as AuthBackupsTargetsRouteImport } from './routes/_auth.backups.targets'
-import { Route as AuthBackupsTargetsNewRouteImport } from './routes/_auth.backups.targets.new'
-import { Route as AuthDomainsRouteImport } from './routes/_auth.domains'
+import { Route as AuthSettingsSecurityRouteImport } from './routes/_auth.settings.security'
+import { Route as AuthSettingsMcpRouteImport } from './routes/_auth.settings.mcp'
+import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
+import { Route as AuthServersServerIdRouteImport } from './routes/_auth.servers.$serverId'
+import { Route as AuthPluginsPluginIdRouteImport } from './routes/_auth.plugins.$pluginId'
+import { Route as AuthMailQueueRouteImport } from './routes/_auth.mail.queue'
+import { Route as AuthMailMailboxesRouteImport } from './routes/_auth.mail.mailboxes'
+import { Route as AuthMailDomainsRouteImport } from './routes/_auth.mail.domains'
 import { Route as AuthDomainsNewRouteImport } from './routes/_auth.domains.new'
 import { Route as AuthDomainsDomainIdRouteImport } from './routes/_auth.domains.$domainId'
-import { Route as AuthMailRouteImport } from './routes/_auth.mail'
-import { Route as AuthWordPressRouteImport } from './routes/_auth.wordpress'
-import { Route as AuthWordPressInstallIdRouteImport } from './routes/_auth.wordpress.$installId'
-import { Route as AuthMailDomainsRouteImport } from './routes/_auth.mail.domains'
+import { Route as AuthDatabasesNewRouteImport } from './routes/_auth.databases.new'
+import { Route as AuthDatabasesDatabaseIdRouteImport } from './routes/_auth.databases.$databaseId'
+import { Route as AuthDatabaseServersNewRouteImport } from './routes/_auth.database-servers.new'
+import { Route as AuthDatabaseServersServerIdRouteImport } from './routes/_auth.database-servers.$serverId'
+import { Route as AuthBackupsTargetsRouteImport } from './routes/_auth.backups.targets'
+import { Route as AuthBackupsSnapshotsRouteImport } from './routes/_auth.backups.snapshots'
+import { Route as AuthBackupsJobsRouteImport } from './routes/_auth.backups.jobs'
+import { Route as AuthServersServerIdMaintenanceRouteImport } from './routes/_auth.servers.$serverId.maintenance'
 import { Route as AuthMailDomainsNewRouteImport } from './routes/_auth.mail.domains.new'
-import { Route as AuthMailDomainsDomainIdRouteImport } from './routes/_auth.mail.domains.$mailDomainId'
-import { Route as AuthMailDomainsDomainIdDiagnosticsRouteImport } from './routes/_auth.mail.domains.$mailDomainId.diagnostics'
-import { Route as AuthMailMailboxesRouteImport } from './routes/_auth.mail.mailboxes'
-import { Route as AuthMailQueueRouteImport } from './routes/_auth.mail.queue'
-import { Route as AuthTemplatesRouteImport } from './routes/_auth.templates'
-import { Route as AuthPluginsRouteImport } from './routes/_auth.plugins'
-import { Route as AuthAlertsRouteImport } from './routes/_auth.alerts'
-import { Route as AuthSettingsRouteImport } from './routes/_auth.settings'
-import { Route as AuthSettingsMcpRouteImport } from './routes/_auth.settings.mcp'
-import { Route as AuthSettingsSecurityRouteImport } from './routes/_auth.settings.security'
+import { Route as AuthMailDomainsMailDomainIdRouteImport } from './routes/_auth.mail.domains.$mailDomainId'
+import { Route as AuthBackupsTargetsNewRouteImport } from './routes/_auth.backups.targets.new'
+import { Route as AuthBackupsJobsNewRouteImport } from './routes/_auth.backups.jobs.new'
+import { Route as AuthMailDomainsMailDomainIdDiagnosticsRouteImport } from './routes/_auth.mail.domains.$mailDomainId.diagnostics'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthDaemonsRoute = AuthDaemonsRouteImport.update({
-  id: '/daemons',
-  path: '/daemons',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthScheduledTasksRoute = AuthScheduledTasksRouteImport.update({
-  id: '/scheduled-tasks',
-  path: '/scheduled-tasks',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthAuditLogRoute = AuthAuditLogRouteImport.update({
-  id: '/audit-log',
-  path: '/audit-log',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthDashboardRoute = AuthDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthOperatorsRoute = AuthOperatorsRouteImport.update({
-  id: '/operators',
-  path: '/operators',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthServersRoute = AuthServersRouteImport.update({
-  id: '/servers',
-  path: '/servers',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthServersIndexRoute = AuthServersIndexRouteImport.update({
-  id: '/servers/',
-  path: '/',
-  getParentRoute: () => AuthServersRoute,
-} as any)
-
-const AuthServersNewRoute = AuthServersNewRouteImport.update({
-  id: '/servers/new',
-  path: '/new',
-  getParentRoute: () => AuthServersRoute,
-} as any)
-
-const AuthServersServerIdRoute = AuthServersServerIdRouteImport.update({
-  id: '/servers/$serverId',
-  path: '/$serverId',
-  getParentRoute: () => AuthServersRoute,
-} as any)
-
-const AuthServersServerIdMaintenanceRoute =
-  AuthServersServerIdMaintenanceRouteImport.update({
-    id: '/servers/$serverId/maintenance',
-    path: '/$serverId/maintenance',
-    getParentRoute: () => AuthServersRoute,
-  } as any)
-
-const AuthSitesRoute = AuthSitesRouteImport.update({
-  id: '/sites',
-  path: '/sites',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthSitesIndexRoute = AuthSitesIndexRouteImport.update({
-  id: '/sites/',
-  path: '/',
-  getParentRoute: () => AuthSitesRoute,
-} as any)
-
-const AuthSitesNewRoute = AuthSitesNewRouteImport.update({
-  id: '/sites/new',
-  path: '/new',
-  getParentRoute: () => AuthSitesRoute,
-} as any)
-
-const AuthSitesSiteIdRoute = AuthSitesSiteIdRouteImport.update({
-  id: '/sites/$siteId',
-  path: '/$siteId',
-  getParentRoute: () => AuthSitesRoute,
-} as any)
-
-const AuthDatabaseServersRoute = AuthDatabaseServersRouteImport.update({
-  id: '/database-servers',
-  path: '/database-servers',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthDatabaseServersNewRoute = AuthDatabaseServersNewRouteImport.update({
-  id: '/database-servers/new',
-  path: '/new',
-  getParentRoute: () => AuthDatabaseServersRoute,
-} as any)
-
-const AuthDatabaseServersServerIdRoute = AuthDatabaseServersServerIdRouteImport.update({
-  id: '/database-servers/$serverId',
-  path: '/$serverId',
-  getParentRoute: () => AuthDatabaseServersRoute,
-} as any)
-
-const AuthDatabasesRoute = AuthDatabasesRouteImport.update({
-  id: '/databases',
-  path: '/databases',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthDatabasesNewRoute = AuthDatabasesNewRouteImport.update({
-  id: '/databases/new',
-  path: '/new',
-  getParentRoute: () => AuthDatabasesRoute,
-} as any)
-
-const AuthDatabasesDatabaseIdRoute = AuthDatabasesDatabaseIdRouteImport.update({
-  id: '/databases/$databaseId',
-  path: '/$databaseId',
-  getParentRoute: () => AuthDatabasesRoute,
-} as any)
-
-const AuthBackupsRoute = AuthBackupsRouteImport.update({
-  id: '/backups',
-  path: '/backups',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthBackupsJobsRoute = AuthBackupsJobsRouteImport.update({
-  id: '/backups/jobs',
-  path: '/jobs',
-  getParentRoute: () => AuthBackupsRoute,
-} as any)
-
-const AuthBackupsJobsNewRoute = AuthBackupsJobsNewRouteImport.update({
-  id: '/backups/jobs/new',
-  path: '/new',
-  getParentRoute: () => AuthBackupsJobsRoute,
-} as any)
-
-const AuthBackupsSnapshotsRoute = AuthBackupsSnapshotsRouteImport.update({
-  id: '/backups/snapshots',
-  path: '/snapshots',
-  getParentRoute: () => AuthBackupsRoute,
-} as any)
-
-const AuthBackupsTargetsRoute = AuthBackupsTargetsRouteImport.update({
-  id: '/backups/targets',
-  path: '/targets',
-  getParentRoute: () => AuthBackupsRoute,
-} as any)
-
-const AuthBackupsTargetsNewRoute = AuthBackupsTargetsNewRouteImport.update({
-  id: '/backups/targets/new',
-  path: '/new',
-  getParentRoute: () => AuthBackupsTargetsRoute,
-} as any)
-
-const AuthDomainsRoute = AuthDomainsRouteImport.update({
-  id: '/domains',
-  path: '/domains',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthDomainsNewRoute = AuthDomainsNewRouteImport.update({
-  id: '/domains/new',
-  path: '/new',
-  getParentRoute: () => AuthDomainsRoute,
-} as any)
-
-const AuthDomainsDomainIdRoute = AuthDomainsDomainIdRouteImport.update({
-  id: '/domains/$domainId',
-  path: '/$domainId',
-  getParentRoute: () => AuthDomainsRoute,
-} as any)
-
-const AuthMailRoute = AuthMailRouteImport.update({
-  id: '/mail',
-  path: '/mail',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthMailDomainsRoute = AuthMailDomainsRouteImport.update({
-  id: '/mail/domains',
-  path: '/domains',
-  getParentRoute: () => AuthMailRoute,
-} as any)
-
-const AuthMailDomainsNewRoute = AuthMailDomainsNewRouteImport.update({
-  id: '/mail/domains/new',
-  path: '/new',
-  getParentRoute: () => AuthMailDomainsRoute,
-} as any)
-
-const AuthMailDomainsDomainIdRoute = AuthMailDomainsDomainIdRouteImport.update({
-  id: '/mail/domains/$mailDomainId',
-  path: '/$mailDomainId',
-  getParentRoute: () => AuthMailDomainsRoute,
-} as any)
-
-const AuthMailDomainsDomainIdDiagnosticsRoute = AuthMailDomainsDomainIdDiagnosticsRouteImport.update({
-  id: '/mail/domains/$mailDomainId/diagnostics',
-  path: '/diagnostics',
-  getParentRoute: () => AuthMailDomainsDomainIdRoute,
-} as any)
-
-const AuthMailMailboxesRoute = AuthMailMailboxesRouteImport.update({
-  id: '/mail/mailboxes',
-  path: '/mailboxes',
-  getParentRoute: () => AuthMailRoute,
-} as any)
-
-const AuthMailQueueRoute = AuthMailQueueRouteImport.update({
-  id: '/mail/queue',
-  path: '/queue',
-  getParentRoute: () => AuthMailRoute,
-} as any)
-
-const AuthWordPressRoute = AuthWordPressRouteImport.update({
-  id: '/_auth/wordpress',
+const AuthWordpressRoute = AuthWordpressRouteImport.update({
+  id: '/wordpress',
   path: '/wordpress',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthWordPressInstallIdRoute = AuthWordPressInstallIdRouteImport.update({
-  id: '/_auth/wordpress/$installId',
-  path: '/$installId',
-  getParentRoute: () => AuthWordPressRoute,
-} as any)
-
 const AuthTemplatesRoute = AuthTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthPluginsRoute = AuthPluginsRouteImport.update({
-  id: '/plugins',
-  path: '/plugins',
+const AuthSitesRoute = AuthSitesRouteImport.update({
+  id: '/sites',
+  path: '/sites',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthAlertsRoute = AuthAlertsRouteImport.update({
-  id: '/alerts',
-  path: '/alerts',
-  getParentRoute: () => AuthRoute,
-} as any)
-
 const AuthSettingsRoute = AuthSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthSettingsMcpRoute = AuthSettingsMcpRouteImport.update({
-  id: '/settings/mcp',
-  path: '/mcp',
-  getParentRoute: () => AuthSettingsRoute,
+const AuthServersRoute = AuthServersRouteImport.update({
+  id: '/servers',
+  path: '/servers',
+  getParentRoute: () => AuthRoute,
 } as any)
-
+const AuthScheduledTasksRoute = AuthScheduledTasksRouteImport.update({
+  id: '/scheduled-tasks',
+  path: '/scheduled-tasks',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthPluginsRoute = AuthPluginsRouteImport.update({
+  id: '/plugins',
+  path: '/plugins',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthOperatorsRoute = AuthOperatorsRouteImport.update({
+  id: '/operators',
+  path: '/operators',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthMailRoute = AuthMailRouteImport.update({
+  id: '/mail',
+  path: '/mail',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthDomainsRoute = AuthDomainsRouteImport.update({
+  id: '/domains',
+  path: '/domains',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthDatabasesRoute = AuthDatabasesRouteImport.update({
+  id: '/databases',
+  path: '/databases',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthDatabaseServersRoute = AuthDatabaseServersRouteImport.update({
+  id: '/database-servers',
+  path: '/database-servers',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthDashboardRoute = AuthDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthDaemonsRoute = AuthDaemonsRouteImport.update({
+  id: '/daemons',
+  path: '/daemons',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthBackupsRoute = AuthBackupsRouteImport.update({
+  id: '/backups',
+  path: '/backups',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthAuditLogRoute = AuthAuditLogRouteImport.update({
+  id: '/audit-log',
+  path: '/audit-log',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthAlertsRoute = AuthAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSitesIndexRoute = AuthSitesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthSitesRoute,
+} as any)
+const AuthServersIndexRoute = AuthServersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthServersRoute,
+} as any)
+const AuthPluginsIndexRoute = AuthPluginsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthPluginsRoute,
+} as any)
+const AuthWordpressInstallIdRoute = AuthWordpressInstallIdRouteImport.update({
+  id: '/$installId',
+  path: '/$installId',
+  getParentRoute: () => AuthWordpressRoute,
+} as any)
+const AuthSitesNewRoute = AuthSitesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthSitesRoute,
+} as any)
+const AuthSitesSiteIdRoute = AuthSitesSiteIdRouteImport.update({
+  id: '/$siteId',
+  path: '/$siteId',
+  getParentRoute: () => AuthSitesRoute,
+} as any)
 const AuthSettingsSecurityRoute = AuthSettingsSecurityRouteImport.update({
-  id: '/settings/security',
+  id: '/security',
   path: '/security',
   getParentRoute: () => AuthSettingsRoute,
 } as any)
+const AuthSettingsMcpRoute = AuthSettingsMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthServersNewRoute = AuthServersNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthServersRoute,
+} as any)
+const AuthServersServerIdRoute = AuthServersServerIdRouteImport.update({
+  id: '/$serverId',
+  path: '/$serverId',
+  getParentRoute: () => AuthServersRoute,
+} as any)
+const AuthPluginsPluginIdRoute = AuthPluginsPluginIdRouteImport.update({
+  id: '/$pluginId',
+  path: '/$pluginId',
+  getParentRoute: () => AuthPluginsRoute,
+} as any)
+const AuthMailQueueRoute = AuthMailQueueRouteImport.update({
+  id: '/queue',
+  path: '/queue',
+  getParentRoute: () => AuthMailRoute,
+} as any)
+const AuthMailMailboxesRoute = AuthMailMailboxesRouteImport.update({
+  id: '/mailboxes',
+  path: '/mailboxes',
+  getParentRoute: () => AuthMailRoute,
+} as any)
+const AuthMailDomainsRoute = AuthMailDomainsRouteImport.update({
+  id: '/domains',
+  path: '/domains',
+  getParentRoute: () => AuthMailRoute,
+} as any)
+const AuthDomainsNewRoute = AuthDomainsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthDomainsRoute,
+} as any)
+const AuthDomainsDomainIdRoute = AuthDomainsDomainIdRouteImport.update({
+  id: '/$domainId',
+  path: '/$domainId',
+  getParentRoute: () => AuthDomainsRoute,
+} as any)
+const AuthDatabasesNewRoute = AuthDatabasesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthDatabasesRoute,
+} as any)
+const AuthDatabasesDatabaseIdRoute = AuthDatabasesDatabaseIdRouteImport.update({
+  id: '/$databaseId',
+  path: '/$databaseId',
+  getParentRoute: () => AuthDatabasesRoute,
+} as any)
+const AuthDatabaseServersNewRoute = AuthDatabaseServersNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthDatabaseServersRoute,
+} as any)
+const AuthDatabaseServersServerIdRoute =
+  AuthDatabaseServersServerIdRouteImport.update({
+    id: '/$serverId',
+    path: '/$serverId',
+    getParentRoute: () => AuthDatabaseServersRoute,
+  } as any)
+const AuthBackupsTargetsRoute = AuthBackupsTargetsRouteImport.update({
+  id: '/targets',
+  path: '/targets',
+  getParentRoute: () => AuthBackupsRoute,
+} as any)
+const AuthBackupsSnapshotsRoute = AuthBackupsSnapshotsRouteImport.update({
+  id: '/snapshots',
+  path: '/snapshots',
+  getParentRoute: () => AuthBackupsRoute,
+} as any)
+const AuthBackupsJobsRoute = AuthBackupsJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AuthBackupsRoute,
+} as any)
+const AuthServersServerIdMaintenanceRoute =
+  AuthServersServerIdMaintenanceRouteImport.update({
+    id: '/maintenance',
+    path: '/maintenance',
+    getParentRoute: () => AuthServersServerIdRoute,
+  } as any)
+const AuthMailDomainsNewRoute = AuthMailDomainsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthMailDomainsRoute,
+} as any)
+const AuthMailDomainsMailDomainIdRoute =
+  AuthMailDomainsMailDomainIdRouteImport.update({
+    id: '/$mailDomainId',
+    path: '/$mailDomainId',
+    getParentRoute: () => AuthMailDomainsRoute,
+  } as any)
+const AuthBackupsTargetsNewRoute = AuthBackupsTargetsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthBackupsTargetsRoute,
+} as any)
+const AuthBackupsJobsNewRoute = AuthBackupsJobsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthBackupsJobsRoute,
+} as any)
+const AuthMailDomainsMailDomainIdDiagnosticsRoute =
+  AuthMailDomainsMailDomainIdDiagnosticsRouteImport.update({
+    id: '/diagnostics',
+    path: '/diagnostics',
+    getParentRoute: () => AuthMailDomainsMailDomainIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/alerts': typeof AuthAlertsRoute
   '/audit-log': typeof AuthAuditLogRoute
+  '/backups': typeof AuthBackupsRouteWithChildren
   '/daemons': typeof AuthDaemonsRoute
   '/dashboard': typeof AuthDashboardRoute
-  '/operators': typeof AuthOperatorsRoute
-  '/servers': typeof AuthServersRouteWithChildren
-  '/servers/': typeof AuthServersIndexRoute
-  '/servers/new': typeof AuthServersNewRoute
-  '/servers/$serverId': typeof AuthServersServerIdRoute
-  '/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
-  '/sites': typeof AuthSitesRouteWithChildren
-  '/sites/': typeof AuthSitesIndexRoute
-  '/sites/new': typeof AuthSitesNewRoute
-  '/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/database-servers': typeof AuthDatabaseServersRouteWithChildren
-  '/database-servers/new': typeof AuthDatabaseServersNewRoute
-  '/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
   '/databases': typeof AuthDatabasesRouteWithChildren
-  '/databases/new': typeof AuthDatabasesNewRoute
-  '/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
-  '/backups': typeof AuthBackupsRouteWithChildren
+  '/domains': typeof AuthDomainsRouteWithChildren
+  '/mail': typeof AuthMailRouteWithChildren
+  '/operators': typeof AuthOperatorsRoute
+  '/plugins': typeof AuthPluginsRouteWithChildren
+  '/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/servers': typeof AuthServersRouteWithChildren
+  '/settings': typeof AuthSettingsRouteWithChildren
+  '/sites': typeof AuthSitesRouteWithChildren
+  '/templates': typeof AuthTemplatesRoute
+  '/wordpress': typeof AuthWordpressRouteWithChildren
   '/backups/jobs': typeof AuthBackupsJobsRouteWithChildren
-  '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/backups/snapshots': typeof AuthBackupsSnapshotsRoute
   '/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
-  '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
-  '/domains': typeof AuthDomainsRouteWithChildren
-  '/domains/new': typeof AuthDomainsNewRoute
+  '/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
+  '/database-servers/new': typeof AuthDatabaseServersNewRoute
+  '/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
+  '/databases/new': typeof AuthDatabasesNewRoute
   '/domains/$domainId': typeof AuthDomainsDomainIdRoute
-  '/mail': typeof AuthMailRouteWithChildren
+  '/domains/new': typeof AuthDomainsNewRoute
   '/mail/domains': typeof AuthMailDomainsRouteWithChildren
-  '/mail/domains/new': typeof AuthMailDomainsNewRoute
-  '/mail/domains/$mailDomainId': typeof AuthMailDomainsDomainIdRouteWithChildren
-  '/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
-  '/scheduled-tasks': typeof AuthScheduledTasksRoute
-  '/wordpress': typeof AuthWordPressRouteWithChildren
-  '/wordpress/$installId': typeof AuthWordPressInstallIdRoute
-  '/templates': typeof AuthTemplatesRoute
-  '/plugins': typeof AuthPluginsRoute
-  '/alerts': typeof AuthAlertsRoute
-  '/settings': typeof AuthSettingsRouteWithChildren
+  '/plugins/$pluginId': typeof AuthPluginsPluginIdRoute
+  '/servers/$serverId': typeof AuthServersServerIdRouteWithChildren
+  '/servers/new': typeof AuthServersNewRoute
   '/settings/mcp': typeof AuthSettingsMcpRoute
   '/settings/security': typeof AuthSettingsSecurityRoute
+  '/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/sites/new': typeof AuthSitesNewRoute
+  '/wordpress/$installId': typeof AuthWordpressInstallIdRoute
+  '/plugins/': typeof AuthPluginsIndexRoute
+  '/servers/': typeof AuthServersIndexRoute
+  '/sites/': typeof AuthSitesIndexRoute
+  '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
+  '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
+  '/mail/domains/$mailDomainId': typeof AuthMailDomainsMailDomainIdRouteWithChildren
+  '/mail/domains/new': typeof AuthMailDomainsNewRoute
+  '/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
+  '/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsMailDomainIdDiagnosticsRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/alerts': typeof AuthAlertsRoute
   '/audit-log': typeof AuthAuditLogRoute
+  '/backups': typeof AuthBackupsRouteWithChildren
   '/daemons': typeof AuthDaemonsRoute
   '/dashboard': typeof AuthDashboardRoute
-  '/operators': typeof AuthOperatorsRoute
-  '/servers': typeof AuthServersRouteWithChildren
-  '/servers/': typeof AuthServersIndexRoute
-  '/servers/new': typeof AuthServersNewRoute
-  '/servers/$serverId': typeof AuthServersServerIdRoute
-  '/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
-  '/sites': typeof AuthSitesRouteWithChildren
-  '/sites/': typeof AuthSitesIndexRoute
-  '/sites/new': typeof AuthSitesNewRoute
-  '/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/database-servers': typeof AuthDatabaseServersRouteWithChildren
-  '/database-servers/new': typeof AuthDatabaseServersNewRoute
-  '/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
   '/databases': typeof AuthDatabasesRouteWithChildren
-  '/databases/new': typeof AuthDatabasesNewRoute
-  '/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
-  '/backups': typeof AuthBackupsRouteWithChildren
+  '/domains': typeof AuthDomainsRouteWithChildren
+  '/mail': typeof AuthMailRouteWithChildren
+  '/operators': typeof AuthOperatorsRoute
+  '/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/settings': typeof AuthSettingsRouteWithChildren
+  '/templates': typeof AuthTemplatesRoute
+  '/wordpress': typeof AuthWordpressRouteWithChildren
   '/backups/jobs': typeof AuthBackupsJobsRouteWithChildren
-  '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/backups/snapshots': typeof AuthBackupsSnapshotsRoute
   '/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
-  '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
-  '/domains': typeof AuthDomainsRouteWithChildren
-  '/domains/new': typeof AuthDomainsNewRoute
+  '/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
+  '/database-servers/new': typeof AuthDatabaseServersNewRoute
+  '/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
+  '/databases/new': typeof AuthDatabasesNewRoute
   '/domains/$domainId': typeof AuthDomainsDomainIdRoute
-  '/mail': typeof AuthMailRouteWithChildren
+  '/domains/new': typeof AuthDomainsNewRoute
   '/mail/domains': typeof AuthMailDomainsRouteWithChildren
-  '/mail/domains/new': typeof AuthMailDomainsNewRoute
-  '/mail/domains/$mailDomainId': typeof AuthMailDomainsDomainIdRouteWithChildren
-  '/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
   '/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/mail/queue': typeof AuthMailQueueRoute
-  '/scheduled-tasks': typeof AuthScheduledTasksRoute
-  '/wordpress': typeof AuthWordPressRouteWithChildren
-  '/wordpress/$installId': typeof AuthWordPressInstallIdRoute
-  '/templates': typeof AuthTemplatesRoute
-  '/plugins': typeof AuthPluginsRoute
-  '/alerts': typeof AuthAlertsRoute
-  '/settings': typeof AuthSettingsRouteWithChildren
+  '/plugins/$pluginId': typeof AuthPluginsPluginIdRoute
+  '/servers/$serverId': typeof AuthServersServerIdRouteWithChildren
+  '/servers/new': typeof AuthServersNewRoute
   '/settings/mcp': typeof AuthSettingsMcpRoute
   '/settings/security': typeof AuthSettingsSecurityRoute
+  '/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/sites/new': typeof AuthSitesNewRoute
+  '/wordpress/$installId': typeof AuthWordpressInstallIdRoute
+  '/plugins': typeof AuthPluginsIndexRoute
+  '/servers': typeof AuthServersIndexRoute
+  '/sites': typeof AuthSitesIndexRoute
+  '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
+  '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
+  '/mail/domains/$mailDomainId': typeof AuthMailDomainsMailDomainIdRouteWithChildren
+  '/mail/domains/new': typeof AuthMailDomainsNewRoute
+  '/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
+  '/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsMailDomainIdDiagnosticsRoute
 }
-
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
+  '/_auth/alerts': typeof AuthAlertsRoute
   '/_auth/audit-log': typeof AuthAuditLogRoute
+  '/_auth/backups': typeof AuthBackupsRouteWithChildren
   '/_auth/daemons': typeof AuthDaemonsRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
-  '/_auth/operators': typeof AuthOperatorsRoute
-  '/_auth/servers': typeof AuthServersRouteWithChildren
-  '/_auth/servers/': typeof AuthServersIndexRoute
-  '/_auth/servers/new': typeof AuthServersNewRoute
-  '/_auth/servers/$serverId': typeof AuthServersServerIdRoute
-  '/_auth/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
-  '/_auth/sites': typeof AuthSitesRouteWithChildren
-  '/_auth/sites/': typeof AuthSitesIndexRoute
-  '/_auth/sites/new': typeof AuthSitesNewRoute
-  '/_auth/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/_auth/database-servers': typeof AuthDatabaseServersRouteWithChildren
-  '/_auth/database-servers/new': typeof AuthDatabaseServersNewRoute
-  '/_auth/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
   '/_auth/databases': typeof AuthDatabasesRouteWithChildren
-  '/_auth/databases/new': typeof AuthDatabasesNewRoute
-  '/_auth/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
-  '/_auth/backups': typeof AuthBackupsRouteWithChildren
+  '/_auth/domains': typeof AuthDomainsRouteWithChildren
+  '/_auth/mail': typeof AuthMailRouteWithChildren
+  '/_auth/operators': typeof AuthOperatorsRoute
+  '/_auth/plugins': typeof AuthPluginsRouteWithChildren
+  '/_auth/scheduled-tasks': typeof AuthScheduledTasksRoute
+  '/_auth/servers': typeof AuthServersRouteWithChildren
+  '/_auth/settings': typeof AuthSettingsRouteWithChildren
+  '/_auth/sites': typeof AuthSitesRouteWithChildren
+  '/_auth/templates': typeof AuthTemplatesRoute
+  '/_auth/wordpress': typeof AuthWordpressRouteWithChildren
   '/_auth/backups/jobs': typeof AuthBackupsJobsRouteWithChildren
-  '/_auth/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/_auth/backups/snapshots': typeof AuthBackupsSnapshotsRoute
   '/_auth/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
-  '/_auth/backups/targets/new': typeof AuthBackupsTargetsNewRoute
-  '/_auth/domains': typeof AuthDomainsRouteWithChildren
-  '/_auth/domains/new': typeof AuthDomainsNewRoute
+  '/_auth/database-servers/$serverId': typeof AuthDatabaseServersServerIdRoute
+  '/_auth/database-servers/new': typeof AuthDatabaseServersNewRoute
+  '/_auth/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
+  '/_auth/databases/new': typeof AuthDatabasesNewRoute
   '/_auth/domains/$domainId': typeof AuthDomainsDomainIdRoute
-  '/_auth/mail': typeof AuthMailRouteWithChildren
+  '/_auth/domains/new': typeof AuthDomainsNewRoute
   '/_auth/mail/domains': typeof AuthMailDomainsRouteWithChildren
-  '/_auth/mail/domains/new': typeof AuthMailDomainsNewRoute
-  '/_auth/mail/domains/$mailDomainId': typeof AuthMailDomainsDomainIdRouteWithChildren
-  '/_auth/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsDomainIdDiagnosticsRoute
   '/_auth/mail/mailboxes': typeof AuthMailMailboxesRoute
   '/_auth/mail/queue': typeof AuthMailQueueRoute
-  '/_auth/scheduled-tasks': typeof AuthScheduledTasksRoute
-  '/_auth/wordpress': typeof AuthWordPressRouteWithChildren
-  '/_auth/wordpress/$installId': typeof AuthWordPressInstallIdRoute
-  '/_auth/templates': typeof AuthTemplatesRoute
-  '/_auth/plugins': typeof AuthPluginsRoute
-  '/_auth/alerts': typeof AuthAlertsRoute
-  '/_auth/settings': typeof AuthSettingsRouteWithChildren
+  '/_auth/plugins/$pluginId': typeof AuthPluginsPluginIdRoute
+  '/_auth/servers/$serverId': typeof AuthServersServerIdRouteWithChildren
+  '/_auth/servers/new': typeof AuthServersNewRoute
   '/_auth/settings/mcp': typeof AuthSettingsMcpRoute
   '/_auth/settings/security': typeof AuthSettingsSecurityRoute
+  '/_auth/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/_auth/sites/new': typeof AuthSitesNewRoute
+  '/_auth/wordpress/$installId': typeof AuthWordpressInstallIdRoute
+  '/_auth/plugins/': typeof AuthPluginsIndexRoute
+  '/_auth/servers/': typeof AuthServersIndexRoute
+  '/_auth/sites/': typeof AuthSitesIndexRoute
+  '/_auth/backups/jobs/new': typeof AuthBackupsJobsNewRoute
+  '/_auth/backups/targets/new': typeof AuthBackupsTargetsNewRoute
+  '/_auth/mail/domains/$mailDomainId': typeof AuthMailDomainsMailDomainIdRouteWithChildren
+  '/_auth/mail/domains/new': typeof AuthMailDomainsNewRoute
+  '/_auth/servers/$serverId/maintenance': typeof AuthServersServerIdMaintenanceRoute
+  '/_auth/mail/domains/$mailDomainId/diagnostics': typeof AuthMailDomainsMailDomainIdDiagnosticsRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
+    | '/alerts'
     | '/audit-log'
+    | '/backups'
     | '/daemons'
     | '/dashboard'
-    | '/operators'
-    | '/servers'
-    | '/servers/'
-    | '/servers/new'
-    | '/servers/$serverId'
-    | '/servers/$serverId/maintenance'
-    | '/sites'
-    | '/sites/'
-    | '/sites/new'
-    | '/sites/$siteId'
     | '/database-servers'
-    | '/database-servers/new'
-    | '/database-servers/$serverId'
     | '/databases'
-    | '/databases/new'
-    | '/databases/$databaseId'
-    | '/backups'
+    | '/domains'
+    | '/mail'
+    | '/operators'
+    | '/plugins'
+    | '/scheduled-tasks'
+    | '/servers'
+    | '/settings'
+    | '/sites'
+    | '/templates'
+    | '/wordpress'
     | '/backups/jobs'
-    | '/backups/jobs/new'
     | '/backups/snapshots'
     | '/backups/targets'
-    | '/backups/targets/new'
-    | '/domains'
-    | '/domains/new'
+    | '/database-servers/$serverId'
+    | '/database-servers/new'
+    | '/databases/$databaseId'
+    | '/databases/new'
     | '/domains/$domainId'
-    | '/mail'
+    | '/domains/new'
     | '/mail/domains'
-    | '/mail/domains/new'
-    | '/mail/domains/$mailDomainId'
-    | '/mail/domains/$mailDomainId/diagnostics'
     | '/mail/mailboxes'
     | '/mail/queue'
-    | '/scheduled-tasks'
-    | '/wordpress'
-    | '/wordpress/$installId'
-    | '/templates'
-    | '/plugins'
-    | '/alerts'
-    | '/settings'
+    | '/plugins/$pluginId'
+    | '/servers/$serverId'
+    | '/servers/new'
     | '/settings/mcp'
     | '/settings/security'
+    | '/sites/$siteId'
+    | '/sites/new'
+    | '/wordpress/$installId'
+    | '/plugins/'
+    | '/servers/'
+    | '/sites/'
+    | '/backups/jobs/new'
+    | '/backups/targets/new'
+    | '/mail/domains/$mailDomainId'
+    | '/mail/domains/new'
+    | '/servers/$serverId/maintenance'
+    | '/mail/domains/$mailDomainId/diagnostics'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/alerts'
     | '/audit-log'
+    | '/backups'
     | '/daemons'
     | '/dashboard'
-    | '/operators'
-    | '/servers'
-    | '/servers/'
-    | '/servers/new'
-    | '/servers/$serverId'
-    | '/servers/$serverId/maintenance'
-    | '/sites'
-    | '/sites/'
-    | '/sites/new'
-    | '/sites/$siteId'
     | '/database-servers'
-    | '/database-servers/new'
-    | '/database-servers/$serverId'
     | '/databases'
-    | '/databases/new'
-    | '/databases/$databaseId'
-    | '/backups'
+    | '/domains'
+    | '/mail'
+    | '/operators'
+    | '/scheduled-tasks'
+    | '/settings'
+    | '/templates'
+    | '/wordpress'
     | '/backups/jobs'
-    | '/backups/jobs/new'
     | '/backups/snapshots'
     | '/backups/targets'
-    | '/backups/targets/new'
-    | '/domains'
-    | '/domains/new'
+    | '/database-servers/$serverId'
+    | '/database-servers/new'
+    | '/databases/$databaseId'
+    | '/databases/new'
     | '/domains/$domainId'
-    | '/mail'
+    | '/domains/new'
     | '/mail/domains'
-    | '/mail/domains/new'
-    | '/mail/domains/$mailDomainId'
-    | '/mail/domains/$mailDomainId/diagnostics'
     | '/mail/mailboxes'
     | '/mail/queue'
-    | '/scheduled-tasks'
-    | '/wordpress'
-    | '/wordpress/$installId'
-    | '/templates'
-    | '/plugins'
-    | '/alerts'
-    | '/settings'
+    | '/plugins/$pluginId'
+    | '/servers/$serverId'
+    | '/servers/new'
     | '/settings/mcp'
     | '/settings/security'
+    | '/sites/$siteId'
+    | '/sites/new'
+    | '/wordpress/$installId'
+    | '/plugins'
+    | '/servers'
+    | '/sites'
+    | '/backups/jobs/new'
+    | '/backups/targets/new'
+    | '/mail/domains/$mailDomainId'
+    | '/mail/domains/new'
+    | '/servers/$serverId/maintenance'
+    | '/mail/domains/$mailDomainId/diagnostics'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/login'
+    | '/_auth/alerts'
     | '/_auth/audit-log'
+    | '/_auth/backups'
     | '/_auth/daemons'
     | '/_auth/dashboard'
-    | '/_auth/operators'
-    | '/_auth/servers'
-    | '/_auth/servers/new'
-    | '/_auth/servers/$serverId'
-    | '/_auth/servers/$serverId/maintenance'
-    | '/_auth/sites'
-    | '/_auth/sites/'
-    | '/_auth/sites/new'
-    | '/_auth/sites/$siteId'
     | '/_auth/database-servers'
-    | '/_auth/database-servers/new'
-    | '/_auth/database-servers/$serverId'
     | '/_auth/databases'
-    | '/_auth/databases/new'
-    | '/_auth/databases/$databaseId'
-    | '/_auth/backups'
+    | '/_auth/domains'
+    | '/_auth/mail'
+    | '/_auth/operators'
+    | '/_auth/plugins'
+    | '/_auth/scheduled-tasks'
+    | '/_auth/servers'
+    | '/_auth/settings'
+    | '/_auth/sites'
+    | '/_auth/templates'
+    | '/_auth/wordpress'
     | '/_auth/backups/jobs'
-    | '/_auth/backups/jobs/new'
     | '/_auth/backups/snapshots'
     | '/_auth/backups/targets'
-    | '/_auth/backups/targets/new'
-    | '/_auth/domains'
-    | '/_auth/domains/new'
+    | '/_auth/database-servers/$serverId'
+    | '/_auth/database-servers/new'
+    | '/_auth/databases/$databaseId'
+    | '/_auth/databases/new'
     | '/_auth/domains/$domainId'
-    | '/_auth/mail'
+    | '/_auth/domains/new'
     | '/_auth/mail/domains'
-    | '/_auth/mail/domains/new'
-    | '/_auth/mail/domains/$mailDomainId'
-    | '/_auth/mail/domains/$mailDomainId/diagnostics'
     | '/_auth/mail/mailboxes'
     | '/_auth/mail/queue'
-    | '/_auth/scheduled-tasks'
-    | '/_auth/wordpress'
-    | '/_auth/wordpress/$installId'
-    | '/_auth/templates'
-    | '/_auth/plugins'
-    | '/_auth/alerts'
-    | '/_auth/settings'
+    | '/_auth/plugins/$pluginId'
+    | '/_auth/servers/$serverId'
+    | '/_auth/servers/new'
     | '/_auth/settings/mcp'
     | '/_auth/settings/security'
+    | '/_auth/sites/$siteId'
+    | '/_auth/sites/new'
+    | '/_auth/wordpress/$installId'
+    | '/_auth/plugins/'
+    | '/_auth/servers/'
+    | '/_auth/sites/'
+    | '/_auth/backups/jobs/new'
+    | '/_auth/backups/targets/new'
+    | '/_auth/mail/domains/$mailDomainId'
+    | '/_auth/mail/domains/new'
+    | '/_auth/servers/$serverId/maintenance'
+    | '/_auth/mail/domains/$mailDomainId/diagnostics'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
@@ -665,39 +637,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth/audit-log': {
-      id: '/_auth/audit-log'
-      path: '/audit-log'
-      fullPath: '/audit-log'
-      preLoaderRoute: typeof AuthAuditLogRouteImport
+    '/_auth/wordpress': {
+      id: '/_auth/wordpress'
+      path: '/wordpress'
+      fullPath: '/wordpress'
+      preLoaderRoute: typeof AuthWordpressRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/daemons': {
-      id: '/_auth/daemons'
-      path: '/daemons'
-      fullPath: '/daemons'
-      preLoaderRoute: typeof AuthDaemonsRouteImport
+    '/_auth/templates': {
+      id: '/_auth/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof AuthTemplatesRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/scheduled-tasks': {
-      id: '/_auth/scheduled-tasks'
-      path: '/scheduled-tasks'
-      fullPath: '/scheduled-tasks'
-      preLoaderRoute: typeof AuthScheduledTasksRouteImport
+    '/_auth/sites': {
+      id: '/_auth/sites'
+      path: '/sites'
+      fullPath: '/sites'
+      preLoaderRoute: typeof AuthSitesRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/dashboard': {
-      id: '/_auth/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthDashboardRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/operators': {
-      id: '/_auth/operators'
-      path: '/operators'
-      fullPath: '/operators'
-      preLoaderRoute: typeof AuthOperatorsRouteImport
+    '/_auth/settings': {
+      id: '/_auth/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthSettingsRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/servers': {
@@ -707,39 +672,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthServersRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/servers/new': {
-      id: '/_auth/servers/new'
-      path: '/new'
-      fullPath: '/servers/new'
-      preLoaderRoute: typeof AuthServersNewRouteImport
-      parentRoute: typeof AuthServersRoute
+    '/_auth/scheduled-tasks': {
+      id: '/_auth/scheduled-tasks'
+      path: '/scheduled-tasks'
+      fullPath: '/scheduled-tasks'
+      preLoaderRoute: typeof AuthScheduledTasksRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/_auth/servers/$serverId': {
-      id: '/_auth/servers/$serverId'
-      path: '/$serverId'
-      fullPath: '/servers/$serverId'
-      preLoaderRoute: typeof AuthServersServerIdRouteImport
-      parentRoute: typeof AuthServersRoute
+    '/_auth/plugins': {
+      id: '/_auth/plugins'
+      path: '/plugins'
+      fullPath: '/plugins'
+      preLoaderRoute: typeof AuthPluginsRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/_auth/servers/': {
-      id: '/_auth/servers/'
-      path: '/'
-      fullPath: '/servers/'
-      preLoaderRoute: typeof AuthServersIndexRouteImport
-      parentRoute: typeof AuthServersRoute
+    '/_auth/operators': {
+      id: '/_auth/operators'
+      path: '/operators'
+      fullPath: '/operators'
+      preLoaderRoute: typeof AuthOperatorsRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/_auth/servers/$serverId/maintenance': {
-      id: '/_auth/servers/$serverId/maintenance'
-      path: '/$serverId/maintenance'
-      fullPath: '/servers/$serverId/maintenance'
-      preLoaderRoute: typeof AuthServersServerIdMaintenanceRouteImport
-      parentRoute: typeof AuthServersRoute
+    '/_auth/mail': {
+      id: '/_auth/mail'
+      path: '/mail'
+      fullPath: '/mail'
+      preLoaderRoute: typeof AuthMailRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/_auth/sites': {
-      id: '/_auth/sites'
-      path: '/sites'
-      fullPath: '/sites'
-      preLoaderRoute: typeof AuthSitesRouteImport
+    '/_auth/domains': {
+      id: '/_auth/domains'
+      path: '/domains'
+      fullPath: '/domains'
+      preLoaderRoute: typeof AuthDomainsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/databases': {
+      id: '/_auth/databases'
+      path: '/databases'
+      fullPath: '/databases'
+      preLoaderRoute: typeof AuthDatabasesRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/database-servers': {
+      id: '/_auth/database-servers'
+      path: '/database-servers'
+      fullPath: '/database-servers'
+      preLoaderRoute: typeof AuthDatabaseServersRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/dashboard': {
+      id: '/_auth/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthDashboardRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/daemons': {
+      id: '/_auth/daemons'
+      path: '/daemons'
+      fullPath: '/daemons'
+      preLoaderRoute: typeof AuthDaemonsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/backups': {
+      id: '/_auth/backups'
+      path: '/backups'
+      fullPath: '/backups'
+      preLoaderRoute: typeof AuthBackupsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/audit-log': {
+      id: '/_auth/audit-log'
+      path: '/audit-log'
+      fullPath: '/audit-log'
+      preLoaderRoute: typeof AuthAuditLogRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/alerts': {
+      id: '/_auth/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AuthAlertsRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/sites/': {
@@ -748,6 +762,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/sites/'
       preLoaderRoute: typeof AuthSitesIndexRouteImport
       parentRoute: typeof AuthSitesRoute
+    }
+    '/_auth/servers/': {
+      id: '/_auth/servers/'
+      path: '/'
+      fullPath: '/servers/'
+      preLoaderRoute: typeof AuthServersIndexRouteImport
+      parentRoute: typeof AuthServersRoute
+    }
+    '/_auth/plugins/': {
+      id: '/_auth/plugins/'
+      path: '/'
+      fullPath: '/plugins/'
+      preLoaderRoute: typeof AuthPluginsIndexRouteImport
+      parentRoute: typeof AuthPluginsRoute
+    }
+    '/_auth/wordpress/$installId': {
+      id: '/_auth/wordpress/$installId'
+      path: '/$installId'
+      fullPath: '/wordpress/$installId'
+      preLoaderRoute: typeof AuthWordpressInstallIdRouteImport
+      parentRoute: typeof AuthWordpressRoute
     }
     '/_auth/sites/new': {
       id: '/_auth/sites/new'
@@ -763,96 +798,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSitesSiteIdRouteImport
       parentRoute: typeof AuthSitesRoute
     }
-    '/_auth/database-servers': {
-      id: '/_auth/database-servers'
-      path: '/database-servers'
-      fullPath: '/database-servers'
-      preLoaderRoute: typeof AuthDatabaseServersRouteImport
-      parentRoute: typeof AuthRoute
+    '/_auth/settings/security': {
+      id: '/_auth/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof AuthSettingsSecurityRouteImport
+      parentRoute: typeof AuthSettingsRoute
     }
-    '/_auth/database-servers/new': {
-      id: '/_auth/database-servers/new'
+    '/_auth/settings/mcp': {
+      id: '/_auth/settings/mcp'
+      path: '/mcp'
+      fullPath: '/settings/mcp'
+      preLoaderRoute: typeof AuthSettingsMcpRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/servers/new': {
+      id: '/_auth/servers/new'
       path: '/new'
-      fullPath: '/database-servers/new'
-      preLoaderRoute: typeof AuthDatabaseServersNewRouteImport
-      parentRoute: typeof AuthDatabaseServersRoute
+      fullPath: '/servers/new'
+      preLoaderRoute: typeof AuthServersNewRouteImport
+      parentRoute: typeof AuthServersRoute
     }
-    '/_auth/database-servers/$serverId': {
-      id: '/_auth/database-servers/$serverId'
+    '/_auth/servers/$serverId': {
+      id: '/_auth/servers/$serverId'
       path: '/$serverId'
-      fullPath: '/database-servers/$serverId'
-      preLoaderRoute: typeof AuthDatabaseServersServerIdRouteImport
-      parentRoute: typeof AuthDatabaseServersRoute
+      fullPath: '/servers/$serverId'
+      preLoaderRoute: typeof AuthServersServerIdRouteImport
+      parentRoute: typeof AuthServersRoute
     }
-    '/_auth/databases': {
-      id: '/_auth/databases'
-      path: '/databases'
-      fullPath: '/databases'
-      preLoaderRoute: typeof AuthDatabasesRouteImport
-      parentRoute: typeof AuthRoute
+    '/_auth/plugins/$pluginId': {
+      id: '/_auth/plugins/$pluginId'
+      path: '/$pluginId'
+      fullPath: '/plugins/$pluginId'
+      preLoaderRoute: typeof AuthPluginsPluginIdRouteImport
+      parentRoute: typeof AuthPluginsRoute
     }
-    '/_auth/databases/new': {
-      id: '/_auth/databases/new'
-      path: '/new'
-      fullPath: '/databases/new'
-      preLoaderRoute: typeof AuthDatabasesNewRouteImport
-      parentRoute: typeof AuthDatabasesRoute
+    '/_auth/mail/queue': {
+      id: '/_auth/mail/queue'
+      path: '/queue'
+      fullPath: '/mail/queue'
+      preLoaderRoute: typeof AuthMailQueueRouteImport
+      parentRoute: typeof AuthMailRoute
     }
-    '/_auth/databases/$databaseId': {
-      id: '/_auth/databases/$databaseId'
-      path: '/$databaseId'
-      fullPath: '/databases/$databaseId'
-      preLoaderRoute: typeof AuthDatabasesDatabaseIdRouteImport
-      parentRoute: typeof AuthDatabasesRoute
+    '/_auth/mail/mailboxes': {
+      id: '/_auth/mail/mailboxes'
+      path: '/mailboxes'
+      fullPath: '/mail/mailboxes'
+      preLoaderRoute: typeof AuthMailMailboxesRouteImport
+      parentRoute: typeof AuthMailRoute
     }
-    '/_auth/backups': {
-      id: '/_auth/backups'
-      path: '/backups'
-      fullPath: '/backups'
-      preLoaderRoute: typeof AuthBackupsRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/backups/jobs': {
-      id: '/_auth/backups/jobs'
-      path: '/jobs'
-      fullPath: '/backups/jobs'
-      preLoaderRoute: typeof AuthBackupsJobsRouteImport
-      parentRoute: typeof AuthBackupsRoute
-    }
-    '/_auth/backups/jobs/new': {
-      id: '/_auth/backups/jobs/new'
-      path: '/new'
-      fullPath: '/backups/jobs/new'
-      preLoaderRoute: typeof AuthBackupsJobsNewRouteImport
-      parentRoute: typeof AuthBackupsJobsRoute
-    }
-    '/_auth/backups/snapshots': {
-      id: '/_auth/backups/snapshots'
-      path: '/snapshots'
-      fullPath: '/backups/snapshots'
-      preLoaderRoute: typeof AuthBackupsSnapshotsRouteImport
-      parentRoute: typeof AuthBackupsRoute
-    }
-    '/_auth/backups/targets': {
-      id: '/_auth/backups/targets'
-      path: '/targets'
-      fullPath: '/backups/targets'
-      preLoaderRoute: typeof AuthBackupsTargetsRouteImport
-      parentRoute: typeof AuthBackupsRoute
-    }
-    '/_auth/backups/targets/new': {
-      id: '/_auth/backups/targets/new'
-      path: '/new'
-      fullPath: '/backups/targets/new'
-      preLoaderRoute: typeof AuthBackupsTargetsNewRouteImport
-      parentRoute: typeof AuthBackupsTargetsRoute
-    }
-    '/_auth/domains': {
-      id: '/_auth/domains'
+    '/_auth/mail/domains': {
+      id: '/_auth/mail/domains'
       path: '/domains'
-      fullPath: '/domains'
-      preLoaderRoute: typeof AuthDomainsRouteImport
-      parentRoute: typeof AuthRoute
+      fullPath: '/mail/domains'
+      preLoaderRoute: typeof AuthMailDomainsRouteImport
+      parentRoute: typeof AuthMailRoute
     }
     '/_auth/domains/new': {
       id: '/_auth/domains/new'
@@ -868,19 +868,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDomainsDomainIdRouteImport
       parentRoute: typeof AuthDomainsRoute
     }
-    '/_auth/mail': {
-      id: '/_auth/mail'
-      path: '/mail'
-      fullPath: '/mail'
-      preLoaderRoute: typeof AuthMailRouteImport
-      parentRoute: typeof AuthRoute
+    '/_auth/databases/new': {
+      id: '/_auth/databases/new'
+      path: '/new'
+      fullPath: '/databases/new'
+      preLoaderRoute: typeof AuthDatabasesNewRouteImport
+      parentRoute: typeof AuthDatabasesRoute
     }
-    '/_auth/mail/domains': {
-      id: '/_auth/mail/domains'
-      path: '/domains'
-      fullPath: '/mail/domains'
-      preLoaderRoute: typeof AuthMailDomainsRouteImport
-      parentRoute: typeof AuthMailRoute
+    '/_auth/databases/$databaseId': {
+      id: '/_auth/databases/$databaseId'
+      path: '/$databaseId'
+      fullPath: '/databases/$databaseId'
+      preLoaderRoute: typeof AuthDatabasesDatabaseIdRouteImport
+      parentRoute: typeof AuthDatabasesRoute
+    }
+    '/_auth/database-servers/new': {
+      id: '/_auth/database-servers/new'
+      path: '/new'
+      fullPath: '/database-servers/new'
+      preLoaderRoute: typeof AuthDatabaseServersNewRouteImport
+      parentRoute: typeof AuthDatabaseServersRoute
+    }
+    '/_auth/database-servers/$serverId': {
+      id: '/_auth/database-servers/$serverId'
+      path: '/$serverId'
+      fullPath: '/database-servers/$serverId'
+      preLoaderRoute: typeof AuthDatabaseServersServerIdRouteImport
+      parentRoute: typeof AuthDatabaseServersRoute
+    }
+    '/_auth/backups/targets': {
+      id: '/_auth/backups/targets'
+      path: '/targets'
+      fullPath: '/backups/targets'
+      preLoaderRoute: typeof AuthBackupsTargetsRouteImport
+      parentRoute: typeof AuthBackupsRoute
+    }
+    '/_auth/backups/snapshots': {
+      id: '/_auth/backups/snapshots'
+      path: '/snapshots'
+      fullPath: '/backups/snapshots'
+      preLoaderRoute: typeof AuthBackupsSnapshotsRouteImport
+      parentRoute: typeof AuthBackupsRoute
+    }
+    '/_auth/backups/jobs': {
+      id: '/_auth/backups/jobs'
+      path: '/jobs'
+      fullPath: '/backups/jobs'
+      preLoaderRoute: typeof AuthBackupsJobsRouteImport
+      parentRoute: typeof AuthBackupsRoute
+    }
+    '/_auth/servers/$serverId/maintenance': {
+      id: '/_auth/servers/$serverId/maintenance'
+      path: '/maintenance'
+      fullPath: '/servers/$serverId/maintenance'
+      preLoaderRoute: typeof AuthServersServerIdMaintenanceRouteImport
+      parentRoute: typeof AuthServersServerIdRoute
     }
     '/_auth/mail/domains/new': {
       id: '/_auth/mail/domains/new'
@@ -893,160 +935,32 @@ declare module '@tanstack/react-router' {
       id: '/_auth/mail/domains/$mailDomainId'
       path: '/$mailDomainId'
       fullPath: '/mail/domains/$mailDomainId'
-      preLoaderRoute: typeof AuthMailDomainsDomainIdRouteImport
+      preLoaderRoute: typeof AuthMailDomainsMailDomainIdRouteImport
       parentRoute: typeof AuthMailDomainsRoute
+    }
+    '/_auth/backups/targets/new': {
+      id: '/_auth/backups/targets/new'
+      path: '/new'
+      fullPath: '/backups/targets/new'
+      preLoaderRoute: typeof AuthBackupsTargetsNewRouteImport
+      parentRoute: typeof AuthBackupsTargetsRoute
+    }
+    '/_auth/backups/jobs/new': {
+      id: '/_auth/backups/jobs/new'
+      path: '/new'
+      fullPath: '/backups/jobs/new'
+      preLoaderRoute: typeof AuthBackupsJobsNewRouteImport
+      parentRoute: typeof AuthBackupsJobsRoute
     }
     '/_auth/mail/domains/$mailDomainId/diagnostics': {
       id: '/_auth/mail/domains/$mailDomainId/diagnostics'
       path: '/diagnostics'
       fullPath: '/mail/domains/$mailDomainId/diagnostics'
-      preLoaderRoute: typeof AuthMailDomainsDomainIdDiagnosticsRouteImport
-      parentRoute: typeof AuthMailDomainsDomainIdRoute
-    }
-    '/_auth/mail/mailboxes': {
-      id: '/_auth/mail/mailboxes'
-      path: '/mailboxes'
-      fullPath: '/mail/mailboxes'
-      preLoaderRoute: typeof AuthMailMailboxesRouteImport
-      parentRoute: typeof AuthMailRoute
-    }
-    '/_auth/mail/queue': {
-      id: '/_auth/mail/queue'
-      path: '/queue'
-      fullPath: '/mail/queue'
-      preLoaderRoute: typeof AuthMailQueueRouteImport
-      parentRoute: typeof AuthMailRoute
-    }
-    '/_auth/wordpress': {
-      id: '/_auth/wordpress'
-      path: '/wordpress'
-      fullPath: '/wordpress'
-      preLoaderRoute: typeof AuthWordPressRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/wordpress/$installId': {
-      id: '/_auth/wordpress/$installId'
-      path: '/$installId'
-      fullPath: '/wordpress/$installId'
-      preLoaderRoute: typeof AuthWordPressInstallIdRouteImport
-      parentRoute: typeof AuthWordPressRoute
-    }
-    '/_auth/templates': {
-      id: '/_auth/templates'
-      path: '/templates'
-      fullPath: '/templates'
-      preLoaderRoute: typeof AuthTemplatesRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/plugins': {
-      id: '/_auth/plugins'
-      path: '/plugins'
-      fullPath: '/plugins'
-      preLoaderRoute: typeof AuthPluginsRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/alerts': {
-      id: '/_auth/alerts'
-      path: '/alerts'
-      fullPath: '/alerts'
-      preLoaderRoute: typeof AuthAlertsRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/settings': {
-      id: '/_auth/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthSettingsRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/settings/mcp': {
-      id: '/_auth/settings/mcp'
-      path: '/mcp'
-      fullPath: '/settings/mcp'
-      preLoaderRoute: typeof AuthSettingsMcpRouteImport
-      parentRoute: typeof AuthSettingsRoute
-    }
-    '/_auth/settings/security': {
-      id: '/_auth/settings/security'
-      path: '/security'
-      fullPath: '/settings/security'
-      preLoaderRoute: typeof AuthSettingsSecurityRouteImport
-      parentRoute: typeof AuthSettingsRoute
+      preLoaderRoute: typeof AuthMailDomainsMailDomainIdDiagnosticsRouteImport
+      parentRoute: typeof AuthMailDomainsMailDomainIdRoute
     }
   }
 }
-
-interface AuthSettingsRouteChildren {
-  AuthSettingsMcpRoute: typeof AuthSettingsMcpRoute
-  AuthSettingsSecurityRoute: typeof AuthSettingsSecurityRoute
-}
-
-const AuthSettingsRouteChildren: AuthSettingsRouteChildren = {
-  AuthSettingsMcpRoute: AuthSettingsMcpRoute,
-  AuthSettingsSecurityRoute: AuthSettingsSecurityRoute,
-}
-
-const AuthSettingsRouteWithChildren = AuthSettingsRoute._addFileChildren(
-  AuthSettingsRouteChildren,
-)
-
-interface AuthServersRouteChildren {
-  AuthServersIndexRoute: typeof AuthServersIndexRoute
-  AuthServersNewRoute: typeof AuthServersNewRoute
-  AuthServersServerIdRoute: typeof AuthServersServerIdRoute
-  AuthServersServerIdMaintenanceRoute: typeof AuthServersServerIdMaintenanceRoute
-}
-
-const AuthServersRouteChildren: AuthServersRouteChildren = {
-  AuthServersIndexRoute: AuthServersIndexRoute,
-  AuthServersNewRoute: AuthServersNewRoute,
-  AuthServersServerIdRoute: AuthServersServerIdRoute,
-  AuthServersServerIdMaintenanceRoute: AuthServersServerIdMaintenanceRoute,
-}
-
-const AuthServersRouteWithChildren =
-  AuthServersRoute._addFileChildren(AuthServersRouteChildren)
-
-interface AuthSitesRouteChildren {
-  AuthSitesIndexRoute: typeof AuthSitesIndexRoute
-  AuthSitesNewRoute: typeof AuthSitesNewRoute
-  AuthSitesSiteIdRoute: typeof AuthSitesSiteIdRoute
-}
-
-const AuthSitesRouteChildren: AuthSitesRouteChildren = {
-  AuthSitesIndexRoute: AuthSitesIndexRoute,
-  AuthSitesNewRoute: AuthSitesNewRoute,
-  AuthSitesSiteIdRoute: AuthSitesSiteIdRoute,
-}
-
-const AuthSitesRouteWithChildren =
-  AuthSitesRoute._addFileChildren(AuthSitesRouteChildren)
-
-interface AuthDatabaseServersRouteChildren {
-  AuthDatabaseServersNewRoute: typeof AuthDatabaseServersNewRoute
-  AuthDatabaseServersServerIdRoute: typeof AuthDatabaseServersServerIdRoute
-}
-
-const AuthDatabaseServersRouteChildren: AuthDatabaseServersRouteChildren = {
-  AuthDatabaseServersNewRoute: AuthDatabaseServersNewRoute,
-  AuthDatabaseServersServerIdRoute: AuthDatabaseServersServerIdRoute,
-}
-
-const AuthDatabaseServersRouteWithChildren =
-  AuthDatabaseServersRoute._addFileChildren(AuthDatabaseServersRouteChildren)
-
-interface AuthDatabasesRouteChildren {
-  AuthDatabasesNewRoute: typeof AuthDatabasesNewRoute
-  AuthDatabasesDatabaseIdRoute: typeof AuthDatabasesDatabaseIdRoute
-}
-
-const AuthDatabasesRouteChildren: AuthDatabasesRouteChildren = {
-  AuthDatabasesNewRoute: AuthDatabasesNewRoute,
-  AuthDatabasesDatabaseIdRoute: AuthDatabasesDatabaseIdRoute,
-}
-
-const AuthDatabasesRouteWithChildren =
-  AuthDatabasesRoute._addFileChildren(AuthDatabasesRouteChildren)
 
 interface AuthBackupsJobsRouteChildren {
   AuthBackupsJobsNewRoute: typeof AuthBackupsJobsNewRoute
@@ -1056,8 +970,9 @@ const AuthBackupsJobsRouteChildren: AuthBackupsJobsRouteChildren = {
   AuthBackupsJobsNewRoute: AuthBackupsJobsNewRoute,
 }
 
-const AuthBackupsJobsRouteWithChildren =
-  AuthBackupsJobsRoute._addFileChildren(AuthBackupsJobsRouteChildren)
+const AuthBackupsJobsRouteWithChildren = AuthBackupsJobsRoute._addFileChildren(
+  AuthBackupsJobsRouteChildren,
+)
 
 interface AuthBackupsTargetsRouteChildren {
   AuthBackupsTargetsNewRoute: typeof AuthBackupsTargetsNewRoute
@@ -1082,56 +997,79 @@ const AuthBackupsRouteChildren: AuthBackupsRouteChildren = {
   AuthBackupsTargetsRoute: AuthBackupsTargetsRouteWithChildren,
 }
 
-const AuthBackupsRouteWithChildren =
-  AuthBackupsRoute._addFileChildren(AuthBackupsRouteChildren)
+const AuthBackupsRouteWithChildren = AuthBackupsRoute._addFileChildren(
+  AuthBackupsRouteChildren,
+)
+
+interface AuthDatabaseServersRouteChildren {
+  AuthDatabaseServersServerIdRoute: typeof AuthDatabaseServersServerIdRoute
+  AuthDatabaseServersNewRoute: typeof AuthDatabaseServersNewRoute
+}
+
+const AuthDatabaseServersRouteChildren: AuthDatabaseServersRouteChildren = {
+  AuthDatabaseServersServerIdRoute: AuthDatabaseServersServerIdRoute,
+  AuthDatabaseServersNewRoute: AuthDatabaseServersNewRoute,
+}
+
+const AuthDatabaseServersRouteWithChildren =
+  AuthDatabaseServersRoute._addFileChildren(AuthDatabaseServersRouteChildren)
+
+interface AuthDatabasesRouteChildren {
+  AuthDatabasesDatabaseIdRoute: typeof AuthDatabasesDatabaseIdRoute
+  AuthDatabasesNewRoute: typeof AuthDatabasesNewRoute
+}
+
+const AuthDatabasesRouteChildren: AuthDatabasesRouteChildren = {
+  AuthDatabasesDatabaseIdRoute: AuthDatabasesDatabaseIdRoute,
+  AuthDatabasesNewRoute: AuthDatabasesNewRoute,
+}
+
+const AuthDatabasesRouteWithChildren = AuthDatabasesRoute._addFileChildren(
+  AuthDatabasesRouteChildren,
+)
 
 interface AuthDomainsRouteChildren {
-  AuthDomainsNewRoute: typeof AuthDomainsNewRoute
   AuthDomainsDomainIdRoute: typeof AuthDomainsDomainIdRoute
+  AuthDomainsNewRoute: typeof AuthDomainsNewRoute
 }
 
 const AuthDomainsRouteChildren: AuthDomainsRouteChildren = {
-  AuthDomainsNewRoute: AuthDomainsNewRoute,
   AuthDomainsDomainIdRoute: AuthDomainsDomainIdRoute,
+  AuthDomainsNewRoute: AuthDomainsNewRoute,
 }
 
-const AuthDomainsRouteWithChildren =
-  AuthDomainsRoute._addFileChildren(AuthDomainsRouteChildren)
+const AuthDomainsRouteWithChildren = AuthDomainsRoute._addFileChildren(
+  AuthDomainsRouteChildren,
+)
 
-interface AuthMailDomainsDomainIdRouteChildren {
-  AuthMailDomainsDomainIdDiagnosticsRoute: typeof AuthMailDomainsDomainIdDiagnosticsRoute
+interface AuthMailDomainsMailDomainIdRouteChildren {
+  AuthMailDomainsMailDomainIdDiagnosticsRoute: typeof AuthMailDomainsMailDomainIdDiagnosticsRoute
 }
 
-const AuthMailDomainsDomainIdRouteChildren: AuthMailDomainsDomainIdRouteChildren = {
-  AuthMailDomainsDomainIdDiagnosticsRoute: AuthMailDomainsDomainIdDiagnosticsRoute,
-}
+const AuthMailDomainsMailDomainIdRouteChildren: AuthMailDomainsMailDomainIdRouteChildren =
+  {
+    AuthMailDomainsMailDomainIdDiagnosticsRoute:
+      AuthMailDomainsMailDomainIdDiagnosticsRoute,
+  }
 
-const AuthMailDomainsDomainIdRouteWithChildren =
-  AuthMailDomainsDomainIdRoute._addFileChildren(AuthMailDomainsDomainIdRouteChildren)
+const AuthMailDomainsMailDomainIdRouteWithChildren =
+  AuthMailDomainsMailDomainIdRoute._addFileChildren(
+    AuthMailDomainsMailDomainIdRouteChildren,
+  )
 
 interface AuthMailDomainsRouteChildren {
+  AuthMailDomainsMailDomainIdRoute: typeof AuthMailDomainsMailDomainIdRouteWithChildren
   AuthMailDomainsNewRoute: typeof AuthMailDomainsNewRoute
-  AuthMailDomainsDomainIdRoute: typeof AuthMailDomainsDomainIdRouteWithChildren
 }
 
 const AuthMailDomainsRouteChildren: AuthMailDomainsRouteChildren = {
+  AuthMailDomainsMailDomainIdRoute:
+    AuthMailDomainsMailDomainIdRouteWithChildren,
   AuthMailDomainsNewRoute: AuthMailDomainsNewRoute,
-  AuthMailDomainsDomainIdRoute: AuthMailDomainsDomainIdRouteWithChildren,
 }
 
-const AuthMailDomainsRouteWithChildren =
-  AuthMailDomainsRoute._addFileChildren(AuthMailDomainsRouteChildren)
-
-interface AuthWordPressRouteChildren {
-  AuthWordPressInstallIdRoute: typeof AuthWordPressInstallIdRoute
-}
-
-const AuthWordPressRouteChildren: AuthWordPressRouteChildren = {
-  AuthWordPressInstallIdRoute: AuthWordPressInstallIdRoute,
-}
-
-const AuthWordPressRouteWithChildren = AuthWordPressRoute._addFileChildren(
-  AuthWordPressRouteChildren,
+const AuthMailDomainsRouteWithChildren = AuthMailDomainsRoute._addFileChildren(
+  AuthMailDomainsRouteChildren,
 )
 
 interface AuthMailRouteChildren {
@@ -1146,47 +1084,131 @@ const AuthMailRouteChildren: AuthMailRouteChildren = {
   AuthMailQueueRoute: AuthMailQueueRoute,
 }
 
-const AuthMailRouteWithChildren =
-  AuthMailRoute._addFileChildren(AuthMailRouteChildren)
+const AuthMailRouteWithChildren = AuthMailRoute._addFileChildren(
+  AuthMailRouteChildren,
+)
+
+interface AuthPluginsRouteChildren {
+  AuthPluginsPluginIdRoute: typeof AuthPluginsPluginIdRoute
+  AuthPluginsIndexRoute: typeof AuthPluginsIndexRoute
+}
+
+const AuthPluginsRouteChildren: AuthPluginsRouteChildren = {
+  AuthPluginsPluginIdRoute: AuthPluginsPluginIdRoute,
+  AuthPluginsIndexRoute: AuthPluginsIndexRoute,
+}
+
+const AuthPluginsRouteWithChildren = AuthPluginsRoute._addFileChildren(
+  AuthPluginsRouteChildren,
+)
+
+interface AuthServersServerIdRouteChildren {
+  AuthServersServerIdMaintenanceRoute: typeof AuthServersServerIdMaintenanceRoute
+}
+
+const AuthServersServerIdRouteChildren: AuthServersServerIdRouteChildren = {
+  AuthServersServerIdMaintenanceRoute: AuthServersServerIdMaintenanceRoute,
+}
+
+const AuthServersServerIdRouteWithChildren =
+  AuthServersServerIdRoute._addFileChildren(AuthServersServerIdRouteChildren)
+
+interface AuthServersRouteChildren {
+  AuthServersServerIdRoute: typeof AuthServersServerIdRouteWithChildren
+  AuthServersNewRoute: typeof AuthServersNewRoute
+  AuthServersIndexRoute: typeof AuthServersIndexRoute
+}
+
+const AuthServersRouteChildren: AuthServersRouteChildren = {
+  AuthServersServerIdRoute: AuthServersServerIdRouteWithChildren,
+  AuthServersNewRoute: AuthServersNewRoute,
+  AuthServersIndexRoute: AuthServersIndexRoute,
+}
+
+const AuthServersRouteWithChildren = AuthServersRoute._addFileChildren(
+  AuthServersRouteChildren,
+)
+
+interface AuthSettingsRouteChildren {
+  AuthSettingsMcpRoute: typeof AuthSettingsMcpRoute
+  AuthSettingsSecurityRoute: typeof AuthSettingsSecurityRoute
+}
+
+const AuthSettingsRouteChildren: AuthSettingsRouteChildren = {
+  AuthSettingsMcpRoute: AuthSettingsMcpRoute,
+  AuthSettingsSecurityRoute: AuthSettingsSecurityRoute,
+}
+
+const AuthSettingsRouteWithChildren = AuthSettingsRoute._addFileChildren(
+  AuthSettingsRouteChildren,
+)
+
+interface AuthSitesRouteChildren {
+  AuthSitesSiteIdRoute: typeof AuthSitesSiteIdRoute
+  AuthSitesNewRoute: typeof AuthSitesNewRoute
+  AuthSitesIndexRoute: typeof AuthSitesIndexRoute
+}
+
+const AuthSitesRouteChildren: AuthSitesRouteChildren = {
+  AuthSitesSiteIdRoute: AuthSitesSiteIdRoute,
+  AuthSitesNewRoute: AuthSitesNewRoute,
+  AuthSitesIndexRoute: AuthSitesIndexRoute,
+}
+
+const AuthSitesRouteWithChildren = AuthSitesRoute._addFileChildren(
+  AuthSitesRouteChildren,
+)
+
+interface AuthWordpressRouteChildren {
+  AuthWordpressInstallIdRoute: typeof AuthWordpressInstallIdRoute
+}
+
+const AuthWordpressRouteChildren: AuthWordpressRouteChildren = {
+  AuthWordpressInstallIdRoute: AuthWordpressInstallIdRoute,
+}
+
+const AuthWordpressRouteWithChildren = AuthWordpressRoute._addFileChildren(
+  AuthWordpressRouteChildren,
+)
 
 interface AuthRouteChildren {
+  AuthAlertsRoute: typeof AuthAlertsRoute
   AuthAuditLogRoute: typeof AuthAuditLogRoute
+  AuthBackupsRoute: typeof AuthBackupsRouteWithChildren
   AuthDaemonsRoute: typeof AuthDaemonsRoute
-  AuthScheduledTasksRoute: typeof AuthScheduledTasksRoute
   AuthDashboardRoute: typeof AuthDashboardRoute
-  AuthOperatorsRoute: typeof AuthOperatorsRoute
-  AuthServersRoute: typeof AuthServersRouteWithChildren
-  AuthSitesRoute: typeof AuthSitesRouteWithChildren
   AuthDatabaseServersRoute: typeof AuthDatabaseServersRouteWithChildren
   AuthDatabasesRoute: typeof AuthDatabasesRouteWithChildren
-  AuthBackupsRoute: typeof AuthBackupsRouteWithChildren
   AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
   AuthMailRoute: typeof AuthMailRouteWithChildren
-  AuthWordPressRoute: typeof AuthWordPressRouteWithChildren
-  AuthTemplatesRoute: typeof AuthTemplatesRoute
-  AuthPluginsRoute: typeof AuthPluginsRoute
-  AuthAlertsRoute: typeof AuthAlertsRoute
+  AuthOperatorsRoute: typeof AuthOperatorsRoute
+  AuthPluginsRoute: typeof AuthPluginsRouteWithChildren
+  AuthScheduledTasksRoute: typeof AuthScheduledTasksRoute
+  AuthServersRoute: typeof AuthServersRouteWithChildren
   AuthSettingsRoute: typeof AuthSettingsRouteWithChildren
+  AuthSitesRoute: typeof AuthSitesRouteWithChildren
+  AuthTemplatesRoute: typeof AuthTemplatesRoute
+  AuthWordpressRoute: typeof AuthWordpressRouteWithChildren
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthAlertsRoute: AuthAlertsRoute,
   AuthAuditLogRoute: AuthAuditLogRoute,
+  AuthBackupsRoute: AuthBackupsRouteWithChildren,
   AuthDaemonsRoute: AuthDaemonsRoute,
-  AuthScheduledTasksRoute: AuthScheduledTasksRoute,
   AuthDashboardRoute: AuthDashboardRoute,
-  AuthOperatorsRoute: AuthOperatorsRoute,
-  AuthServersRoute: AuthServersRouteWithChildren,
-  AuthSitesRoute: AuthSitesRouteWithChildren,
   AuthDatabaseServersRoute: AuthDatabaseServersRouteWithChildren,
   AuthDatabasesRoute: AuthDatabasesRouteWithChildren,
-  AuthBackupsRoute: AuthBackupsRouteWithChildren,
   AuthDomainsRoute: AuthDomainsRouteWithChildren,
   AuthMailRoute: AuthMailRouteWithChildren,
-  AuthWordPressRoute: AuthWordPressRouteWithChildren,
-  AuthTemplatesRoute: AuthTemplatesRoute,
-  AuthPluginsRoute: AuthPluginsRoute,
-  AuthAlertsRoute: AuthAlertsRoute,
+  AuthOperatorsRoute: AuthOperatorsRoute,
+  AuthPluginsRoute: AuthPluginsRouteWithChildren,
+  AuthScheduledTasksRoute: AuthScheduledTasksRoute,
+  AuthServersRoute: AuthServersRouteWithChildren,
   AuthSettingsRoute: AuthSettingsRouteWithChildren,
+  AuthSitesRoute: AuthSitesRouteWithChildren,
+  AuthTemplatesRoute: AuthTemplatesRoute,
+  AuthWordpressRoute: AuthWordpressRouteWithChildren,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
@@ -1196,7 +1218,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   LoginRoute: LoginRoute,
 }
-
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
