@@ -36,11 +36,11 @@ All commands below assume this working directory.
 
 ### 2. Check the env file
 
-The default `.env.example` works out of the box for local dev. Copy it if you need to customise ports:
+`.env` is ready to use. Edit it to override ports if defaults clash:
 
 ```bash
-cp .env.example .env.local
-# edit ports in .env.local if defaults clash
+# ports are already set to sane dev defaults — change only if something conflicts
+$EDITOR .env
 ```
 
 ### 3. Set DOCKER_HOST (macOS only)
@@ -54,7 +54,7 @@ export DOCKER_HOST=unix:///var/run/docker.sock
 ### 4. Start core services
 
 ```bash
-docker compose --env-file .env.example up -d postgres valkey tundrad panel-ui
+docker compose --env-file .env up -d postgres valkey tundrad panel-ui
 ```
 
 Skip `workload` unless you have the agent image built (see "Workload container" below).  
@@ -86,13 +86,13 @@ Default dev credentials (auto-created — dev profile only):
 
 ```bash
 # Stop (keep volumes)
-docker compose --env-file .env.example down
+docker compose --env-file .env down
 
 # Stop and wipe all data (full reset)
-docker compose --env-file .env.example down -v
+docker compose --env-file .env down -v
 
 # Restart a single service
-docker compose --env-file .env.example restart tundrad
+docker compose --env-file .env restart tundrad
 ```
 
 ### Workload container (optional)
@@ -109,7 +109,7 @@ docker build \
 
 # Then start the full stack
 cd docs/09-deployment-bundle/dev
-docker compose --env-file .env.example up -d
+docker compose --env-file .env up -d
 ```
 
 ### PATH fix (applied automatically)
@@ -395,8 +395,8 @@ createdb -U tundra -E UTF8 tundra
 sqlx migrate run
 
 # Docker Compose — wipe volumes and restart (run from docs/09-deployment-bundle/dev/)
-docker compose --env-file .env.example down -v
-docker compose --env-file .env.example up -d postgres valkey tundrad panel-ui
+docker compose --env-file .env down -v
+docker compose --env-file .env up -d postgres valkey tundrad panel-ui
 ```
 
 ---
