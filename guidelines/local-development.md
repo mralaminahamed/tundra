@@ -68,7 +68,26 @@ docker compose logs -f tundrad
 
 Ready when you see: `tundrad listening addr=0.0.0.0:7400`
 
-### 6. Verify
+### 6. Generate master key (first run only)
+
+```bash
+DOCKER_HOST=unix:///var/run/docker.sock docker exec tundra-dev-tundrad \
+  /target/debug/tundrad master-key generate --path /tmp/tundra/data/master.key
+```
+
+Then trigger a restart so cargo-watch picks it up:
+```bash
+docker exec tundra-dev-tundrad touch /src/Cargo.toml
+```
+
+### 7. Seed the database (first run only)
+
+```bash
+DOCKER_HOST=unix:///var/run/docker.sock docker exec tundra-dev-tundrad \
+  /target/debug/tundrad seed run
+```
+
+### 8. Verify
 
 ```bash
 # Control plane health
@@ -78,9 +97,14 @@ curl http://localhost:7400/api/v1/healthz
 open http://localhost:5173
 ```
 
-Default dev credentials (auto-created — dev profile only):
-- **Email:** `owner@example.test`
-- **Password:** `developmentonly`
+Dev credentials (seeded — all use the same password):
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@tundra.local` | `admin123!` | owner |
+| `alice@tundra.local` | `admin123!` | admin |
+| `bob@tundra.local` | `admin123!` | operator |
+| `viewer@tundra.local` | `admin123!` | viewer |
 
 ### Stop / restart
 
@@ -299,8 +323,8 @@ require_2fa_for_owners = false    # dev convenience
 
 ```toml
 auto_create_owner     = true
-auto_owner_email      = "owner@example.test"
-auto_owner_password   = "developmentonly"
+auto_owner_email      = "admin@tundra.local"
+auto_owner_password   = "admin123!"
 ```
 
 tundrad refuses to load `[security.dev]` when `TUNDRAD_PROFILE=production`. Safe to leave in dev config.
@@ -335,7 +359,7 @@ curl -s http://localhost:5173/api/v1/healthz   # goes through Vite proxy
 curl -s -c /tmp/tundra-cookies.txt \
   -X POST http://localhost:7400/api/v1/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"owner@example.test","password":"developmentonly"}' \
+  -d '{"email":"admin@tundra.local","password":"admin123!"}' \
   | python3 -m json.tool
 ```
 
