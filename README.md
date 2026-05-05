@@ -68,6 +68,7 @@ tundra acceptance run --url https://panel.example.com --section all
 | Guide | Audience |
 |-------|---------|
 | [Getting Started](guidelines/getting-started.md) | Operators — install, first server, first site, plugins, upgrade |
+| [Local Development](guidelines/local-development.md) | Running from source, Docker Compose, port map, config reference |
 | [Developer Guide](guidelines/developer-guide.md) | Contributors — workspace setup, architecture, conventions, hard constraints |
 | [MCP Guide](guidelines/mcp-guide.md) | AI integration — Claude Desktop, Claude Code, Cursor, Zed |
 | [Plugin Development](guidelines/plugin-development.md) | Plugin authors — core plugins, templates, WASM sandbox |

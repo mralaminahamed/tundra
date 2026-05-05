@@ -5,6 +5,7 @@ Practical guides for every audience. Pick the one that fits your role.
 | Guide                                       | Who it's for                                 |
 |---------------------------------------------|----------------------------------------------|
 | [Getting Started](getting-started.md)       | Operators installing and running Tundra      |
+| [Local Development](local-development.md)   | Running Tundra from source, ports, config    |
 | [Developer Guide](developer-guide.md)       | Contributors building or modifying Tundra    |
 | [MCP Guide](mcp-guide.md)                   | AI agents and Claude/Cursor/Zed integrations |
 | [Plugin Development](plugin-development.md) | Authors writing Tundra plugins               |
