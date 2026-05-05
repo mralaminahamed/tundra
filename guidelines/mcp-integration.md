@@ -1,6 +1,6 @@
-# MCP Guide
+# Tundra — MCP Integration
 
-Connect AI agents — Claude Desktop, Claude Code, Cursor, Zed, and others — to your Tundra panel via the Model Context Protocol.
+Integration guide: connect AI agents (Claude Desktop, Claude Code, Cursor, Zed) to your Tundra panel via the Model Context Protocol.
 
 ---
 

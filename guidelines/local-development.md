@@ -1,18 +1,18 @@
-# Local Development
+# Tundra — Local Development
 
-How to run Tundra from source, configure it, and verify everything is wired up.
+Developer setup guide: run the full stack from source using Docker Compose or natively, configure the dev environment, and verify everything is wired up.
 
 ---
 
 ## Prerequisites
 
-| Tool | Minimum version | Install |
-|------|----------------|---------|
-| Rust toolchain | 1.95 (pinned in `rust-toolchain.toml`) | `rustup` — auto-applied on first `cargo` call |
-| Node.js | 22 | [nodejs.org](https://nodejs.org) or `nvm install 22` |
-| pnpm | 10+ | `npm install -g pnpm` or `corepack enable` |
-| Docker + Compose v2 | Compose v2.30+ | Docker Desktop or `docker compose` plugin |
-| `sqlx-cli` | any recent | `cargo install sqlx-cli --locked` |
+| Tool                | Minimum version                        | Install                                              |
+|---------------------|----------------------------------------|------------------------------------------------------|
+| Rust toolchain      | 1.95 (pinned in `rust-toolchain.toml`) | `rustup` — auto-applied on first `cargo` call        |
+| Node.js             | 22                                     | [nodejs.org](https://nodejs.org) or `nvm install 22` |
+| pnpm                | 10+                                    | `npm install -g pnpm` or `corepack enable`           |
+| Docker + Compose v2 | Compose v2.30+                         | Docker Desktop or `docker compose` plugin            |
+| `sqlx-cli`          | any recent                             | `cargo install sqlx-cli --locked`                    |
 
 Optional but useful:
 - `cargo-watch` — hot-reload Rust on save: `cargo install cargo-watch --locked`
@@ -155,15 +155,15 @@ Open `http://localhost:5173`.
 
 ## Port map
 
-| Service | Default port | Env override | What uses it |
-|---------|-------------|-------------|-------------|
-| Panel UI (Vite) | `5173` | `PANEL_UI_PORT` | Browser |
-| tundrad HTTP | `7400` | `TUNDRAD_HTTP_PORT` | Panel, CLI, API clients |
-| tundrad gRPC | `7447` | `TUNDRAD_GRPC_PORT` | tundra-agent (mTLS) |
-| PostgreSQL | `5432` | `POSTGRES_PORT` | tundrad |
-| Valkey | `6379` | `VALKEY_PORT` | tundrad |
-| Workload HTTP | `8080` | `WORKLOAD_HTTP_PORT` | Site traffic (compose only) |
-| Workload HTTPS | `8443` | `WORKLOAD_HTTPS_PORT` | Site TLS traffic (compose only) |
+| Service         | Default port | Env override          | What uses it                    |
+|-----------------|--------------|-----------------------|---------------------------------|
+| Panel UI (Vite) | `5173`       | `PANEL_UI_PORT`       | Browser                         |
+| tundrad HTTP    | `7400`       | `TUNDRAD_HTTP_PORT`   | Panel, CLI, API clients         |
+| tundrad gRPC    | `7447`       | `TUNDRAD_GRPC_PORT`   | tundra-agent (mTLS)             |
+| PostgreSQL      | `5432`       | `POSTGRES_PORT`       | tundrad                         |
+| Valkey          | `6379`       | `VALKEY_PORT`         | tundrad                         |
+| Workload HTTP   | `8080`       | `WORKLOAD_HTTP_PORT`  | Site traffic (compose only)     |
+| Workload HTTPS  | `8443`       | `WORKLOAD_HTTPS_PORT` | Site TLS traffic (compose only) |
 
 ### Check what's occupying a port
 

@@ -1,6 +1,6 @@
-# Getting Started
+# Tundra — Getting Started
 
-Tundra is a self-hosted server management platform — a modern alternative to Plesk and cPanel. Single binary, PostgreSQL 18, no licensing fees.
+Operator guide: install Tundra, add your first server, deploy your first site, and go to production.
 
 ---
 

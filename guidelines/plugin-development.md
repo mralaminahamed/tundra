@@ -1,6 +1,6 @@
-# Plugin Development
+# Tundra — Plugin Development
 
-Write plugins that extend Tundra without forking the core. Templates, runtime providers, DNS integrations, alert channels — all plugin-shaped.
+Plugin author guide: write core plugins (native Rust) or third-party plugins (WebAssembly), register templates, contribute source badges, and add management UI.
 
 ---
 

@@ -1,6 +1,6 @@
-# Developer Guide
+# Tundra — Developer Guide
 
-For contributors building or modifying Tundra. Covers workspace setup, architecture orientation, testing conventions, and hard constraints.
+Contributor reference: workspace setup, codebase architecture, testing conventions, hard constraints, and the PR checklist.
 
 ---
 

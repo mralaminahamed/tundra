@@ -1,6 +1,6 @@
-# API Reference
+# Tundra — API Reference
 
-Quick reference for Tundra's REST API. For the full OpenAPI spec, see `proto/openapi.yaml`.
+REST API quick reference for integrators. Covers auth, errors, pagination, all endpoints, and WebSocket events. Full spec: `proto/openapi.yaml`.
 
 ---
 
