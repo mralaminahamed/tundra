@@ -1,11 +1,39 @@
-# Override: fix PATH loss caused by `bash -lc` on Debian trixie slim.
-# /etc/profile resets PATH and drops /usr/local/cargo/bin.
-# This override replaces the tundrad command with `bash -c` (no login shell)
-# and explicitly prepends the cargo bin dir.
+# Dev compose overrides — applied automatically when running docker compose
+# from this directory.
+#
+# Fixes:
+#   1. PATH: bash -lc (login shell) on Debian trixie drops /usr/local/cargo/bin
+#   2. TUNDRA_CONFIG: base compose sets TUNDRAD_CONFIG (wrong name) pointing to
+#      /src/dev/config/... (wrong path). Correct name is TUNDRA_CONFIG and the
+#      path under the source mount is /src/docs/09-deployment-bundle/dev/config/.
+#   3. TUNDRA_VALKEY__URL: Figment config needs this when TOML fails to load.
+#   4. TUNDRA_MASTER_KEY__PATH: explicit Figment mapping for master key path.
+#   5. TUNDRA_SERVER__PORT / TUNDRA_SERVER__GRPC_PORT: explicit port config.
+#   6. TUNDRA_LOG__LEVEL / TUNDRA_LOG__JSON: Figment log config.
+#   7. TUNDRA_PUBLIC_URL: used by tundra CLI for webhook/email callbacks.
+
 services:
   tundrad:
     environment:
       PATH: /usr/local/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      # Fix: correct env var name (was TUNDRAD_CONFIG) and correct path
+      TUNDRA_CONFIG: /src/docs/09-deployment-bundle/dev/config/tundrad.dev.toml
+      # Figment valkey config (VALKEY_URL is the bare direct read in ws.rs)
+      TUNDRA_VALKEY__URL: redis://valkey:6379
+      # Figment master key path
+      TUNDRA_MASTER_KEY__PATH: /tmp/tundra/data/master.key
+      # Figment server config
+      TUNDRA_SERVER__LISTEN_ADDR: "0.0.0.0"
+      TUNDRA_SERVER__PORT: "7400"
+      TUNDRA_SERVER__GRPC_PORT: "7447"
+      # Public URL for CLI + callbacks
+      TUNDRA_PUBLIC_URL: http://localhost:7400
+      # Figment log config
+      TUNDRA_LOG__LEVEL: debug
+      TUNDRA_LOG__JSON: "false"
+      # Telemetry — disabled in dev
+      TUNDRA_TELEMETRY__OTLP_ENDPOINT: ""
+      TUNDRA_TELEMETRY__SERVICE_NAME: tundrad
     command:
       - bash
       - -c
