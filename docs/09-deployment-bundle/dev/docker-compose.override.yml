@@ -11,6 +11,8 @@
 #   5. TUNDRA_SERVER__PORT / TUNDRA_SERVER__GRPC_PORT: explicit port config.
 #   6. TUNDRA_LOG__LEVEL / TUNDRA_LOG__JSON: Figment log config.
 #   7. TUNDRA_PUBLIC_URL: used by tundra CLI for webhook/email callbacks.
+#   8. panel-ui Vite proxy: inside Docker localhost:7400 is wrong — must use
+#      the tundrad service name so Vite can reach it over the Docker network.
 
 services:
   tundrad:
@@ -51,3 +53,9 @@ services:
             --watch Cargo.toml \
             --watch Cargo.lock \
             --shell 'cargo run --bin tundrad -- serve'
+
+  panel-ui:
+    environment:
+      # Vite proxy targets must use Docker service names, not localhost
+      VITE_PROXY_TARGET: http://tundrad:7400
+      VITE_WS_TARGET: ws://tundrad:7400
