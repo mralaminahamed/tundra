@@ -22,6 +22,8 @@ panel/playwright-report/
 panel/test-results/
 panel/tsconfig.tsbuildinfo
 panel/tsconfig.node.tsbuildinfo
+panel/vite.config.js
+panel/vite.config.d.ts
 
 # OS
 .DS_Store
@@ -50,3 +52,6 @@ tundra-backup-*.tar.gpg
 
 # AI Agent
 .claude/worktrees
+/.pnpm-store/
+/.remember/
+docs/superpowers/
