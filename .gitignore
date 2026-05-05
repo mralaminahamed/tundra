@@ -1,3 +1,12 @@
+# Environment files — never commit secrets
+.env
+.env.dev
+.env.local
+.env.*.local
+panel/.env
+panel/.env.local
+panel/.env.*.local
+
 # Rust
 target/
 Cargo.lock.bak

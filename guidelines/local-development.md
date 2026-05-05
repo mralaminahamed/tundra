@@ -113,15 +113,24 @@ chmod 0400 /tmp/tundra/data/master.key
 
 ### 3. Set environment variables
 
+Copy the example file and edit:
+
 ```bash
-export DATABASE_URL="postgres://tundra:devsecret@localhost:5432/tundra"
-export VALKEY_URL="redis://localhost:6379"
-export TUNDRAD_PROFILE=development
-export RUST_LOG="tundrad=debug,tundra_agent=debug,tower_http=info,sqlx=warn"
-export RUST_BACKTRACE=1
+cp .env.example .env
+# edit DATABASE_URL, VALKEY_URL, TUNDRAD_MASTER_KEY_PATH as needed
 ```
 
-Add these to your shell profile or a `.envrc` (direnv).
+Then source it, or use [direnv](https://direnv.net) (recommended):
+
+```bash
+# manual source
+set -a && source .env && set +a
+
+# direnv: create .envrc pointing at .env
+echo 'dotenv' > .envrc && direnv allow
+```
+
+All variables and their purpose are documented in `.env.example`.
 
 ### 4. Run migrations
 
