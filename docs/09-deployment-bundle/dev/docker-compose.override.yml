@@ -1,0 +1,25 @@
+# Override: fix PATH loss caused by `bash -lc` on Debian trixie slim.
+# /etc/profile resets PATH and drops /usr/local/cargo/bin.
+# This override replaces the tundrad command with `bash -c` (no login shell)
+# and explicitly prepends the cargo bin dir.
+services:
+  tundrad:
+    environment:
+      PATH: /usr/local/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    command:
+      - bash
+      - -c
+      - |
+        set -euo pipefail
+        apt-get update >/dev/null
+        apt-get install -y --no-install-recommends \
+            pkg-config libssl-dev protobuf-compiler ca-certificates >/dev/null
+        cargo install --locked cargo-watch sqlx-cli || true
+        sqlx migrate run --source migrations || true
+        exec cargo watch \
+            --why \
+            --watch crates/ \
+            --watch migrations/ \
+            --watch Cargo.toml \
+            --watch Cargo.lock \
+            --shell 'cargo run --bin tundrad -- serve'
