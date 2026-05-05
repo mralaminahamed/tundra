@@ -22,54 +22,99 @@ Optional but useful:
 
 ## Option A — Docker Compose (recommended)
 
-Runs everything in containers: PostgreSQL, Valkey, tundrad (with cargo-watch), the Vite panel, and a simulated workload node.
+Runs PostgreSQL, Valkey, tundrad (with cargo-watch hot-reload), and the Vite panel in containers. All compose files live in `docs/09-deployment-bundle/dev/` — run everything from there, no copying needed.
 
-### 1. Copy the dev compose file
+> **Workload container:** The `workload` service (simulated managed server) requires a locally-built `tundra-agent:latest` image. Skip it for panel/API development — the core four services are sufficient.
 
-```bash
-cp docs/09-deployment-bundle/dev/docker-compose.yml docker-compose.dev.yml
-```
-
-### 2. Create the env file
+### 1. Enter the dev compose directory
 
 ```bash
-cat > .env.dev <<'EOF'
-POSTGRES_PASSWORD=devsecret
-POSTGRES_PORT=5432
-VALKEY_PORT=6379
-TUNDRAD_HTTP_PORT=7400
-TUNDRAD_GRPC_PORT=7447
-PANEL_UI_PORT=5173
-WORKLOAD_HTTP_PORT=8080
-WORKLOAD_HTTPS_PORT=8443
-TUNDRA_REPO=.
-EOF
+cd docs/09-deployment-bundle/dev
 ```
 
-Adjust any port that clashes with something already running (see "Check open ports" below).
+All commands below assume this working directory.
 
-### 3. Start the stack
+### 2. Check the env file
+
+The default `.env.example` works out of the box for local dev. Copy it if you need to customise ports:
 
 ```bash
-docker compose -f docker-compose.dev.yml --env-file .env.dev up
+cp .env.example .env.local
+# edit ports in .env.local if defaults clash
 ```
 
-First run is slow (~5 min) — Rust compiles from scratch inside the container.  
-Subsequent starts reuse the `cargo-target` volume and are much faster.
+### 3. Set DOCKER_HOST (macOS only)
 
-### 4. Verify
+On macOS, Docker Desktop may use a non-standard socket. Export once (or add to shell profile):
+
+```bash
+export DOCKER_HOST=unix:///var/run/docker.sock
+```
+
+### 4. Start core services
+
+```bash
+docker compose --env-file .env.example up -d postgres valkey tundrad panel-ui
+```
+
+Skip `workload` unless you have the agent image built (see "Workload container" below).  
+First run is slow (~5 min) — Rust compiles from scratch. Subsequent starts use the `cargo-target` volume.
+
+### 5. Watch tundrad start
+
+```bash
+docker compose logs -f tundrad
+```
+
+Ready when you see: `tundrad listening addr=0.0.0.0:7400`
+
+### 6. Verify
 
 ```bash
 # Control plane health
 curl http://localhost:7400/api/v1/healthz
 
-# Panel UI (opens browser)
+# Panel UI
 open http://localhost:5173
 ```
 
 Default dev credentials (auto-created — dev profile only):
 - **Email:** `owner@example.test`
 - **Password:** `developmentonly`
+
+### Stop / restart
+
+```bash
+# Stop (keep volumes)
+docker compose --env-file .env.example down
+
+# Stop and wipe all data (full reset)
+docker compose --env-file .env.example down -v
+
+# Restart a single service
+docker compose --env-file .env.example restart tundrad
+```
+
+### Workload container (optional)
+
+The `workload` service simulates a managed VPS. It requires `tundra-agent:latest` built locally first:
+
+```bash
+# From project root — takes ~10 min (compiles tundra-agent in Docker)
+cd ../../..
+docker build \
+  -f docs/09-deployment-bundle/dockerfiles/Dockerfile.tundra-agent \
+  -t tundra-agent:latest \
+  .
+
+# Then start the full stack
+cd docs/09-deployment-bundle/dev
+docker compose --env-file .env.example up -d
+```
+
+### PATH fix (applied automatically)
+
+`docker-compose.override.yml` is already present in the dev directory. It fixes a Debian trixie issue where `bash -lc` (login shell) drops `/usr/local/cargo/bin` from PATH. It applies automatically whenever you run `docker compose` from this directory — no action needed.
 
 ---
 
@@ -344,14 +389,14 @@ cargo clippy --workspace --all-targets -- -D warnings
 ## Reset the dev database
 
 ```bash
-# Drop and recreate (loses all data)
+# Native — drop and recreate
 dropdb -U tundra tundra
 createdb -U tundra -E UTF8 tundra
 sqlx migrate run
 
-# Or with Docker Compose
-docker compose -f docker-compose.dev.yml --env-file .env.dev down -v
-docker compose -f docker-compose.dev.yml --env-file .env.dev up
+# Docker Compose — wipe volumes and restart (run from docs/09-deployment-bundle/dev/)
+docker compose --env-file .env.example down -v
+docker compose --env-file .env.example up -d postgres valkey tundrad panel-ui
 ```
 
 ---
