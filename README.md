@@ -63,6 +63,18 @@ tundra acceptance run --url https://panel.example.com --section all
 
 ## Documentation
 
+### Guides (`guidelines/`)
+
+| Guide | Audience |
+|-------|---------|
+| [Getting Started](guidelines/getting-started.md) | Operators — install, first server, first site, plugins, upgrade |
+| [Developer Guide](guidelines/developer-guide.md) | Contributors — workspace setup, architecture, conventions, hard constraints |
+| [MCP Guide](guidelines/mcp-guide.md) | AI integration — Claude Desktop, Claude Code, Cursor, Zed |
+| [Plugin Development](guidelines/plugin-development.md) | Plugin authors — core plugins, templates, WASM sandbox |
+| [API Reference](guidelines/api-reference.md) | Integrators — REST endpoints, auth, pagination, WebSocket |
+
+### Deep reference (`docs/`)
+
 | Document | Purpose |
 |----------|---------|
 | [Architecture](docs/01-architecture/tundra-technical-implementation-plan-v3.md) | Component topology, technology stack, roadmap |
@@ -73,8 +85,8 @@ tundra acceptance run --url https://panel.example.com --section all
 | [Test Plan](docs/04-quality/tundra-test-plan-v1.md) | Test pyramid, harnesses, CI gates |
 | [Plugin Architecture](docs/05-extensibility/tundra-plugin-architecture-plan-v1.md) | Wasm sandbox, capability system, WIT contracts |
 | [MCP Server Spec](docs/06-mcp-server/tundra-mcp-server-spec-v1.md) | MCP server engineering reference |
-| [Getting Started](docs/getting-started.md) | Install, first server, first site |
 | [Security Overview](docs/security.md) | Hardening checklist, trust model |
+| [Upgrade Guide](docs/UPGRADING.md) | Migration policy, major-version upgrade notes |
 
 ## Status
 
@@ -89,6 +101,7 @@ tundra acceptance run --url https://panel.example.com --section all
 | P6 — Multi-server | Done | SSH installer wizard, cross-server site move, fleet panel |
 | P7 — Templates & Plugins | Done | Wasmtime plugin host, MCP server, 13 templates, alert evaluator |
 | P8 — Production hardening | Done | Nginx/PHP-FPM provisioning, ACME, billing, acceptance CLI |
+| P9 — General Availability | Done | Beta feedback triage, contract tests, SLSA provenance, v1.0.0 GA |
 
 ## License
 
