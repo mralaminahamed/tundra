@@ -13,11 +13,14 @@
 #   7. TUNDRA_PUBLIC_URL: used by tundra CLI for webhook/email callbacks.
 #   8. panel-ui Vite proxy: inside Docker localhost:7400 is wrong — must use
 #      the tundrad service name so Vite can reach it over the Docker network.
+#   9. workload-srv: share the workload's /srv/sites volume into tundrad so
+#      the file-manager REST API (GET/PUT /api/v1/sites/{id}/files/*) can
+#      read and write site files directly in dev without a gRPC agent call.
 
 services:
   tundrad:
     environment:
-      PATH: /usr/local/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /cargo/bin:/usr/local/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       # Fix: correct env var name (was TUNDRAD_CONFIG) and correct path
       TUNDRA_CONFIG: /src/docs/09-deployment-bundle/dev/config/tundrad.dev.toml
       # Figment valkey config (VALKEY_URL is the bare direct read in ws.rs)
@@ -36,15 +39,28 @@ services:
       # Telemetry — disabled in dev
       TUNDRA_TELEMETRY__OTLP_ENDPOINT: ""
       TUNDRA_TELEMETRY__SERVICE_NAME: tundrad
+    volumes:
+      - workload-srv:/srv/sites   # file-manager API reads/writes site files
     command:
       - bash
       - -c
       - |
         set -euo pipefail
+        mkdir -p /tmp/tundra/data
         apt-get update >/dev/null
         apt-get install -y --no-install-recommends \
-            pkg-config libssl-dev protobuf-compiler ca-certificates >/dev/null
+            pkg-config libssl-dev protobuf-compiler ca-certificates \
+            php-cli php-mysql php-xml php-curl php-mbstring curl >/dev/null
+        # Install WP-CLI
+        if ! command -v wp &>/dev/null; then
+          curl -sL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+            -o /usr/local/bin/wp && chmod +x /usr/local/bin/wp
+        fi
         cargo install --locked cargo-watch sqlx-cli || true
+        # Generate master key using the built binary (proper BLAKE3-keyed format)
+        cargo build --bin tundrad -q 2>/dev/null || true
+        [ -f /tmp/tundra/data/master.key ] || \
+            /target/debug/tundrad master-key generate --path /tmp/tundra/data/master.key || true
         sqlx migrate run --source migrations || true
         exec cargo watch \
             --why \
