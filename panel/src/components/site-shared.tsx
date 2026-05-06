@@ -1,33 +1,24 @@
 // Shared types and components for the site detail sub-routes.
 import { toast } from 'sonner'
 import type { Site, Deployment } from '@/lib/api-types'
+import { Badge, type BadgeVariant } from '@/components/ui/badge'
 
 export type { Site, Deployment }
 
 // ── Status pills ──────────────────────────────────────────────────────────────
 
-const SITE_STATUS_MAP: Record<string, string> = {
-  active:       'border-tundra-lichen-300 bg-tundra-lichen-50 text-tundra-lichen-800',
-  provisioning: 'border-tundra-aurora-300 bg-tundra-aurora-50 text-tundra-aurora-800',
-  suspended:    'border-yellow-300 bg-yellow-50 text-yellow-800',
-  migrating:    'border-tundra-aurora-300 bg-tundra-aurora-50 text-tundra-aurora-700',
-  archived:     'border-tundra-ink-200 bg-tundra-ink-50 text-tundra-ink-400',
-}
-const SITE_DOT_MAP: Record<string, string> = {
-  active:       'bg-tundra-lichen',
-  provisioning: 'bg-tundra-aurora animate-pulse',
-  suspended:    'bg-yellow-400',
-  migrating:    'bg-tundra-aurora animate-pulse',
-  archived:     'bg-tundra-ink-300',
+const SITE_STATUS_VARIANT: Record<string, BadgeVariant> = {
+  active:       'success',
+  provisioning: 'info',
+  suspended:    'warning',
+  migrating:    'info',
+  archived:     'muted',
 }
 
 export function SiteStatusPill({ status }: { status: Site['status'] }) {
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${SITE_STATUS_MAP[status] ?? ''}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${SITE_DOT_MAP[status] ?? ''}`} />
-      {status}
-    </span>
-  )
+  const variant = SITE_STATUS_VARIANT[status] ?? 'default'
+  const pulse = status === 'provisioning' || status === 'migrating'
+  return <Badge variant={variant} dot pulse={pulse}>{status}</Badge>
 }
 
 const DEPLOY_MAP: Record<string, string> = {

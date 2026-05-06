@@ -1,4 +1,5 @@
 // Shared types and components for the WordPress detail sub-routes.
+import { Switch } from '@/components/ui/switch'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -117,18 +118,7 @@ export function Toggle({
         <p className="text-sm font-medium text-tundra-ink">{label}</p>
         {description && <p className="mt-0.5 text-xs text-tundra-ink-400">{description}</p>}
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition-colors disabled:opacity-50 ${
-          checked ? 'border-tundra-lichen bg-tundra-lichen' : 'border-tundra-ink-300 bg-tundra-ink-100'
-        }`}
-      >
-        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
-      </button>
+      <Switch checked={checked} onChange={onChange} disabled={disabled} />
     </div>
   )
 }
