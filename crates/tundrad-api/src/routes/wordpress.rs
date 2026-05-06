@@ -65,12 +65,19 @@ struct WpThemeRow {
 #[derive(Deserialize)]
 pub struct InstallWordPressRequest {
     pub site_id: Uuid,
-    pub wp_path: Option<String>,
+    pub wp_version: Option<String>,    // "6.7.2" | "latest" (default)
+    pub wp_path: Option<String>,       // subdir within document_root; "/" = root
     pub db_name: Option<String>,
     pub db_user: Option<String>,
+    pub db_password: Option<String>,   // used by WP-CLI, never stored
     pub db_host: Option<String>,
+    pub db_prefix: Option<String>,     // default "wp_"
+    pub admin_user: Option<String>,    // default "admin"
     pub admin_email: Option<String>,
+    pub admin_password: Option<String>, // used by WP-CLI, never stored
     pub site_title: Option<String>,
+    pub language: Option<String>,      // default "en_US"
+    pub multisite: Option<bool>,
 }
 
 #[derive(Deserialize)]
@@ -198,21 +205,43 @@ pub async fn install_wordpress(
         ));
     }
 
-    let wp_path = body.wp_path.unwrap_or_else(|| "/var/www/html".to_owned());
-    let db_host = body.db_host.unwrap_or_else(|| "localhost".to_owned());
+    let wp_subpath = body.wp_path.clone().unwrap_or_else(|| "/".to_owned());
+    let db_host = body.db_host.clone().unwrap_or_else(|| "localhost".to_owned());
+    let db_prefix = body.db_prefix.clone().unwrap_or_else(|| "wp_".to_owned());
+    let language = body.language.clone().unwrap_or_else(|| "en_US".to_owned());
+    let admin_user = body.admin_user.clone().unwrap_or_else(|| "admin".to_owned());
+    let wp_version = body.wp_version.clone().unwrap_or_else(|| "latest".to_owned());
+    let multisite = body.multisite.unwrap_or(false);
+
+    // Fetch site document_root + primary_domain for the provisioner
+    let (document_root, primary_domain): (String, String) =
+        sqlx::query_as("SELECT document_root, primary_domain FROM sites WHERE id = $1")
+            .bind(body.site_id)
+            .fetch_one(&pool)
+            .await
+            .map_err(|e| {
+                tracing::error!(error = %e, "fetch site for provisioner");
+                ApiError::internal()
+            })?;
 
     let id: Uuid = sqlx::query_scalar(
         "INSERT INTO plugin_wordpress_installations
-             (site_id, wp_path, db_name, db_host, admin_email, site_title, installed_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+             (site_id, wp_path, db_name, db_user, db_host, db_prefix,
+              admin_email, admin_user, site_title, language, multisite, installed_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING id",
     )
     .bind(body.site_id)
-    .bind(&wp_path)
+    .bind(&wp_subpath)
     .bind(&body.db_name)
+    .bind(&body.db_user)
     .bind(&db_host)
+    .bind(&db_prefix)
     .bind(&body.admin_email)
+    .bind(&admin_user)
     .bind(&body.site_title)
+    .bind(&language)
+    .bind(multisite)
     .bind(session.operator_id)
     .fetch_one(&pool)
     .await
@@ -221,13 +250,35 @@ pub async fn install_wordpress(
         ApiError::internal()
     })?;
 
+    // Spawn provisioner — runs WP-CLI in background, updates state when done
+    tokio::spawn(crate::routes::wp_provisioner::provision(
+        pool.clone(),
+        crate::routes::wp_provisioner::ProvisionRequest {
+            installation_id: id,
+            document_root,
+            primary_domain,
+            wp_subpath,
+            wp_version,
+            db_name: body.db_name.clone().unwrap_or_else(|| "wordpress".to_owned()),
+            db_user: body.db_user.clone().unwrap_or_else(|| "wordpress".to_owned()),
+            db_password: body.db_password.clone().unwrap_or_default(),
+            db_host,
+            db_prefix,
+            admin_user,
+            admin_email: body.admin_email.clone().unwrap_or_else(|| "admin@example.com".to_owned()),
+            admin_password: body.admin_password.clone().unwrap_or_else(|| "admin123".to_owned()),
+            site_title: body.site_title.clone().unwrap_or_else(|| "WordPress Site".to_owned()),
+            language,
+        },
+    ));
+
     Ok((
         StatusCode::CREATED,
         Json(serde_json::json!({
             "id": id,
             "site_id": body.site_id,
             "state": "provisioning",
-            "wp_path": wp_path,
+            "wp_path": body.wp_path.as_deref().unwrap_or("/"),
         })),
     ))
 }
@@ -500,4 +551,144 @@ pub async fn activate_wp_theme(
         return Err(ApiError::not_found("wordpress theme"));
     }
     Ok(StatusCode::NO_CONTENT)
+}
+
+// ── State patch ───────────────────────────────────────────────────────────────
+
+#[derive(Deserialize)]
+pub struct PatchInstallationRequest {
+    pub state: Option<String>,
+    pub error_message: Option<String>,
+}
+
+pub async fn patch_installation(
+    AuthSession(_session): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+    Json(body): Json<PatchInstallationRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let valid_states = ["provisioning", "active", "error", "removing"];
+    if let Some(ref s) = body.state {
+        if !valid_states.contains(&s.as_str()) {
+            return Err(ApiError::bad_request("invalid state"));
+        }
+    }
+
+    let affected = sqlx::query(
+        "UPDATE plugin_wordpress_installations
+         SET state         = COALESCE($1, state),
+             error_message = COALESCE($2, error_message),
+             updated_at    = now()
+         WHERE id = $3",
+    )
+    .bind(&body.state)
+    .bind(&body.error_message)
+    .bind(id)
+    .execute(&pool)
+    .await
+    .map_err(|e| {
+        tracing::error!(error = %e, "patch wp installation");
+        ApiError::internal()
+    })?;
+
+    if affected.rows_affected() == 0 {
+        return Err(ApiError::not_found("wordpress installation"));
+    }
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ── Reprovision ───────────────────────────────────────────────────────────────
+
+#[derive(Deserialize)]
+pub struct ReprovisionRequest {
+    pub wp_version: Option<String>,
+    pub db_name: Option<String>,
+    pub db_user: Option<String>,
+    pub db_password: Option<String>,
+    pub db_host: Option<String>,
+    pub admin_user: Option<String>,
+    pub admin_email: Option<String>,
+    pub admin_password: Option<String>,
+    pub site_title: Option<String>,
+}
+
+pub async fn reprovision_installation(
+    AuthSession(_session): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+    Json(body): Json<ReprovisionRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    #[derive(sqlx::FromRow)]
+    struct Row {
+        wp_path: String,
+        db_name: Option<String>,
+        db_user: Option<String>,
+        db_host: String,
+        db_prefix: String,
+        admin_email: Option<String>,
+        admin_user: Option<String>,
+        site_title: Option<String>,
+        language: String,
+        document_root: String,
+        primary_domain: String,
+    }
+
+    let row = sqlx::query_as::<_, Row>(
+        "SELECT i.wp_path, i.db_name, i.db_user, i.db_host,
+                COALESCE(i.db_prefix, 'wp_') AS db_prefix,
+                i.admin_email, i.admin_user, i.site_title,
+                COALESCE(i.language, 'en_US') AS language,
+                s.document_root, s.primary_domain
+         FROM plugin_wordpress_installations i
+         JOIN sites s ON s.id = i.site_id
+         WHERE i.id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| {
+        tracing::error!(error = %e, "fetch install for reprovision");
+        ApiError::internal()
+    })?
+    .ok_or_else(|| ApiError::not_found("wordpress installation"))?;
+
+    // Reset to provisioning
+    sqlx::query(
+        "UPDATE plugin_wordpress_installations
+         SET state = 'provisioning', error_message = NULL, updated_at = now()
+         WHERE id = $1",
+    )
+    .bind(id)
+    .execute(&pool)
+    .await
+    .map_err(|e| {
+        tracing::error!(error = %e, "reset state for reprovision");
+        ApiError::internal()
+    })?;
+
+    tokio::spawn(crate::routes::wp_provisioner::provision(
+        pool.clone(),
+        crate::routes::wp_provisioner::ProvisionRequest {
+            installation_id: id,
+            document_root: row.document_root,
+            primary_domain: row.primary_domain,
+            wp_subpath: row.wp_path,
+            wp_version: body.wp_version.unwrap_or_else(|| "latest".to_owned()),
+            db_name: body.db_name.or(row.db_name).unwrap_or_else(|| "wordpress".to_owned()),
+            db_user: body.db_user.or(row.db_user).unwrap_or_else(|| "wordpress".to_owned()),
+            db_password: body.db_password.unwrap_or_default(),
+            db_host: body.db_host.unwrap_or(row.db_host),
+            db_prefix: row.db_prefix,
+            admin_user: body.admin_user.or(row.admin_user).unwrap_or_else(|| "admin".to_owned()),
+            admin_email: body.admin_email.or(row.admin_email).unwrap_or_else(|| "admin@example.com".to_owned()),
+            admin_password: body.admin_password.unwrap_or_default(),
+            site_title: body.site_title.or(row.site_title).unwrap_or_else(|| "WordPress Site".to_owned()),
+            language: row.language,
+        },
+    ));
+
+    Ok((
+        StatusCode::ACCEPTED,
+        Json(serde_json::json!({ "state": "provisioning" })),
+    ))
 }

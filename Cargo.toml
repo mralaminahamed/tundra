@@ -137,6 +137,9 @@ anyhow = "1"
 # HTTP client — rustls-tls only
 reqwest = { version = "0.13.3", features = ["rustls", "json"], default-features = false }
 
+# ZIP extraction (WordPress provisioner)
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
 # Encoding
 base64 = "0.22"
 
