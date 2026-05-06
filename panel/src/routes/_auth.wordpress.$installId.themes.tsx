@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import { UpdateBadge, type WpTheme } from '@/lib/wp-shared'
+import { UpdateBadge, type WpTheme } from '@/components/wp-shared'
 
 export const Route = createFileRoute('/_auth/wordpress/$installId/themes')({
   component: WpThemesTab,

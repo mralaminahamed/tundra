@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { StatePill, type WpInstallation, type WpPlugin, type WpTheme } from '@/lib/wp-shared'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { StatePill, type WpInstallation, type WpPlugin, type WpTheme } from '@/components/wp-shared'
 
 export const Route = createFileRoute('/_auth/wordpress/$installId')({
   component: WpInstallLayout,
@@ -9,10 +10,29 @@ export const Route = createFileRoute('/_auth/wordpress/$installId')({
 function WpInstallLayout() {
   const { installId } = Route.useParams()
 
+  const qc = useQueryClient()
+
   const { data: install } = useQuery<WpInstallation>({
     queryKey: ['wp-installation', installId],
     queryFn: () =>
       fetch(`/api/v1/wordpress/installations/${installId}`).then((r) => r.json()),
+    // Poll every 3s while provisioning so state auto-updates
+    refetchInterval: (q) =>
+      q.state.data?.state === 'provisioning' ? 3000 : false,
+  })
+
+  const reprovisionMut = useMutation({
+    mutationFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/reprovision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      }).then((r) => r.json()),
+    onSuccess: () => {
+      toast.success('Re-provisioning started')
+      void qc.invalidateQueries({ queryKey: ['wp-installation', installId] })
+    },
+    onError: () => toast.error('Failed to start re-provisioning'),
   })
 
   const { data: plugins = [] } = useQuery<WpPlugin[]>({
@@ -99,7 +119,26 @@ function WpInstallLayout() {
         </div>
 
         {/* Hero actions */}
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {install?.state === 'error' && (
+            <button
+              type="button"
+              onClick={() => reprovisionMut.mutate()}
+              disabled={reprovisionMut.isPending}
+              className="flex items-center gap-1.5 rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2 text-xs font-medium text-yellow-800 hover:bg-yellow-100 disabled:opacity-50 transition-colors"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              {reprovisionMut.isPending ? 'Reprovisioning…' : 'Retry provisioning'}
+            </button>
+          )}
+          {install?.state === 'provisioning' && (
+            <span className="flex items-center gap-1.5 rounded-lg border border-tundra-aurora-200 bg-tundra-aurora-50 px-3 py-2 text-xs font-medium text-tundra-aurora-700">
+              <span className="h-2 w-2 rounded-full bg-tundra-aurora animate-pulse" />
+              Installing…
+            </span>
+          )}
           {install?.site_url && (
             <a href={`${install.site_url}/wp-admin`} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 rounded-lg bg-[#21759B] px-3 py-2 text-xs font-medium text-white hover:bg-[#1a6284] transition-colors">

@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { type WpUser } from '@/lib/wp-shared'
+import { type WpUser } from '@/components/wp-shared'
 
 export const Route = createFileRoute('/_auth/wordpress/$installId/users')({
   component: WpUsersTab,

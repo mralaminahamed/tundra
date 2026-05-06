@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
+import { Switch } from '@/components/ui/switch'
+import { Dialog } from '@/components/ui/dialog'
 
 export const Route = createFileRoute('/_auth/wordpress/')({
   component: WordPressPage,
@@ -346,17 +348,10 @@ function Step2({
               <p className="text-sm font-medium text-tundra-ink">WordPress Multisite</p>
               <p className="text-xs text-tundra-ink-400">Enable network of sites (WPMU)</p>
             </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={form.multisite ?? false}
-              onClick={() => { setForm({ ...form, multisite: !form.multisite }) }}
-              className={`relative h-5 w-9 rounded-full border transition-colors ${
-                form.multisite ? 'border-[#21759B] bg-[#21759B]' : 'border-tundra-ink-300 bg-tundra-ink-100'
-              }`}
-            >
-              <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.multisite ? 'translate-x-4' : 'translate-x-0'}`} />
-            </button>
+            <Switch
+              checked={form.multisite ?? false}
+              onChange={(v) => { setForm({ ...form, multisite: v }) }}
+            />
           </div>
           <div className="py-3">
             <p className="mb-2 text-sm font-medium text-tundra-ink">WordPress Core Auto-Updates</p>
@@ -557,87 +552,85 @@ function InstallModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-tundra-ink-200 bg-white shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-tundra-ink-100 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#21759B]">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="white">
-                <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm-1.5 14.5l-3-8.5c.5.1.9.1 1.3.1.5 0 1-.05 1-.05l1.2 3.5 1.3-3.6c.5.05.9.1 1.4.1.1 0 .2 0 .3-.01l-3 8.5-1.5-.05zm4.5 0l-1.3-3.8 2.8-7.7c.5 1.1.8 2.4.8 3.7 0 3.05-1.65 5.7-4 7l1.7.8z"/>
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-tundra-ink">Install WordPress</h2>
-              <p className="text-xs text-tundra-ink-400">Step {step} of 3</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M18 6L6 18M6 6l12 12"/>
+    <Dialog open onClose={onClose} maxWidth="max-w-2xl" className="rounded-2xl border border-tundra-ink-200 p-0 shadow-2xl">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-tundra-ink-100 px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#21759B]">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="white">
+              <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm-1.5 14.5l-3-8.5c.5.1.9.1 1.3.1.5 0 1-.05 1-.05l1.2 3.5 1.3-3.6c.5.05.9.1 1.4.1.1 0 .2 0 .3-.01l-3 8.5-1.5-.05zm4.5 0l-1.3-3.8 2.8-7.7c.5 1.1.8 2.4.8 3.7 0 3.05-1.65 5.7-4 7l1.7.8z"/>
             </svg>
-          </button>
-        </div>
-
-        {/* Step indicator */}
-        <div className="border-b border-tundra-ink-100 px-6 py-4">
-          <StepIndicator step={step} total={3} />
-        </div>
-
-        {/* Body */}
-        <div className="max-h-[60vh] overflow-y-auto px-6 py-5">
-          {step === 1 && <Step1 sites={sites} form={form} setForm={setForm} />}
-          {step === 2 && <Step2 form={form} setForm={setForm} />}
-          {step === 3 && <Step3 form={form} setForm={setForm} />}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between border-t border-tundra-ink-100 px-6 py-4">
-          <button
-            type="button"
-            onClick={step === 1 ? onClose : () => { setStep(step - 1) }}
-            className="rounded-lg border border-tundra-ink-200 px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors"
-          >
-            {step === 1 ? 'Cancel' : '← Back'}
-          </button>
-
-          <div className="flex items-center gap-2">
-            {/* Dot progress */}
-            <div className="flex gap-1.5 mr-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className={`h-1.5 rounded-full transition-all ${
-                  i === step ? 'w-4 bg-[#21759B]' : i < step ? 'w-1.5 bg-tundra-lichen' : 'w-1.5 bg-tundra-ink-200'
-                }`} />
-              ))}
-            </div>
-
-            {step < 3 ? (
-              <button
-                type="button"
-                disabled={step === 1 ? !canNext1 : !canNext2}
-                onClick={() => { setStep(step + 1) }}
-                className="rounded-lg bg-[#21759B] px-5 py-2 text-sm font-medium text-white hover:bg-[#1a6284] disabled:opacity-40 transition-colors"
-              >
-                Next →
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={!canSubmit || isPending}
-                onClick={handleSubmit}
-                className="rounded-lg bg-[#21759B] px-5 py-2 text-sm font-medium text-white hover:bg-[#1a6284] disabled:opacity-40 transition-colors"
-              >
-                {isPending ? 'Installing…' : 'Install WordPress'}
-              </button>
-            )}
           </div>
+          <div>
+            <h2 className="text-base font-semibold text-tundra-ink">Install WordPress</h2>
+            <p className="text-xs text-tundra-ink-400">Step {step} of 3</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg p-1.5 text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Step indicator */}
+      <div className="border-b border-tundra-ink-100 px-6 py-4">
+        <StepIndicator step={step} total={3} />
+      </div>
+
+      {/* Body */}
+      <div className="max-h-[60vh] overflow-y-auto px-6 py-5">
+        {step === 1 && <Step1 sites={sites} form={form} setForm={setForm} />}
+        {step === 2 && <Step2 form={form} setForm={setForm} />}
+        {step === 3 && <Step3 form={form} setForm={setForm} />}
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between border-t border-tundra-ink-100 px-6 py-4">
+        <button
+          type="button"
+          onClick={step === 1 ? onClose : () => { setStep(step - 1) }}
+          className="rounded-lg border border-tundra-ink-200 px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors"
+        >
+          {step === 1 ? 'Cancel' : '← Back'}
+        </button>
+
+        <div className="flex items-center gap-2">
+          {/* Dot progress */}
+          <div className="flex gap-1.5 mr-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className={`h-1.5 rounded-full transition-all ${
+                i === step ? 'w-4 bg-[#21759B]' : i < step ? 'w-1.5 bg-tundra-lichen' : 'w-1.5 bg-tundra-ink-200'
+              }`} />
+            ))}
+          </div>
+
+          {step < 3 ? (
+            <button
+              type="button"
+              disabled={step === 1 ? !canNext1 : !canNext2}
+              onClick={() => { setStep(step + 1) }}
+              className="rounded-lg bg-[#21759B] px-5 py-2 text-sm font-medium text-white hover:bg-[#1a6284] disabled:opacity-40 transition-colors"
+            >
+              Next →
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={!canSubmit || isPending}
+              onClick={handleSubmit}
+              className="rounded-lg bg-[#21759B] px-5 py-2 text-sm font-medium text-white hover:bg-[#1a6284] disabled:opacity-40 transition-colors"
+            >
+              {isPending ? 'Installing…' : 'Install WordPress'}
+            </button>
+          )}
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }
 

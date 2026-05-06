@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import { Toggle } from '@/lib/wp-shared'
+import { Toggle } from '@/components/wp-shared'
 
 export const Route = createFileRoute('/_auth/wordpress/$installId/security')({
   component: WpSecurityTab,

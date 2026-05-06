@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import { Toggle, type WpInstallation } from '@/lib/wp-shared'
+import { Toggle, type WpInstallation } from '@/components/wp-shared'
 
 export const Route = createFileRoute('/_auth/wordpress/$installId/settings')({
   component: WpSettingsTab,

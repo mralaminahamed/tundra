@@ -1,10 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   SitePreview, UpdateBadge,
   type WpInstallation, type WpPlugin, type WpTheme,
-} from '@/lib/wp-shared'
+} from '@/components/wp-shared'
 
 export const Route = createFileRoute('/_auth/wordpress/$installId/')({
   component: WpOverviewTab,
@@ -79,9 +79,15 @@ function WpOverviewTab() {
         <QuickActionBtn href={phpMyAdminUrl} label="phpMyAdmin"
           icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5"/><path d="M3 12c0 1.657 4.03 3 9 3s9-1.343 9-3"/></svg>}
         />
-        <QuickActionBtn href={`/sites/${install.site_id}/files`} label="File Manager"
-          icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>}
-        />
+        <Link
+          to="/files/$siteId"
+          params={{ siteId: install.site_id }}
+          search={{ path: '/' }}
+          className="flex flex-col items-center gap-1.5 rounded-xl border border-tundra-ink-200 bg-white py-3 px-2 text-xs font-medium text-tundra-ink-600 transition-colors hover:bg-tundra-ink-50 hover:text-tundra-ink"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          File Manager
+        </Link>
         <QuickActionBtn href={install.site_url ?? '#'} label="View Site"
           icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>}
         />
