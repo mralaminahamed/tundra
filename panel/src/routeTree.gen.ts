@@ -62,6 +62,9 @@ import { Route as AuthSitesSiteIdFilesRouteImport } from './routes/_auth.sites.$
 import { Route as AuthSitesSiteIdEmailRouteImport } from './routes/_auth.sites.$siteId.email'
 import { Route as AuthSitesSiteIdAnalyticsRouteImport } from './routes/_auth.sites.$siteId.analytics'
 import { Route as AuthFilesRouteImport } from './routes/_auth.files'
+import { Route as AuthFilesIndexRouteImport } from './routes/_auth.files.index'
+import { Route as AuthFilesSiteIdRouteImport } from './routes/_auth.files.$siteId'
+import { Route as AuthEditorSiteIdRouteImport } from './routes/_auth.editor.$siteId'
 import { Route as AuthSettingsSecurityRouteImport } from './routes/_auth.settings.security'
 import { Route as AuthSettingsMcpRouteImport } from './routes/_auth.settings.mcp'
 import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
@@ -345,10 +348,25 @@ const AuthSitesSiteIdAnalyticsRoute = AuthSitesSiteIdAnalyticsRouteImport.update
   path: '/analytics',
   getParentRoute: () => AuthSitesSiteIdRoute,
 } as any)
+const AuthEditorSiteIdRoute = AuthEditorSiteIdRouteImport.update({
+  id: '/editor/$siteId',
+  path: '/editor/$siteId',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthFilesRoute = AuthFilesRouteImport.update({
   id: '/files',
   path: '/files',
   getParentRoute: () => AuthRoute,
+} as any)
+const AuthFilesIndexRoute = AuthFilesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthFilesRoute,
+} as any)
+const AuthFilesSiteIdRoute = AuthFilesSiteIdRouteImport.update({
+  id: '/$siteId',
+  path: '/$siteId',
+  getParentRoute: () => AuthFilesRoute,
 } as any)
 const AuthSettingsSecurityRoute = AuthSettingsSecurityRouteImport.update({
   id: '/security',
@@ -527,7 +545,10 @@ export interface FileRoutesByFullPath {
   '/sites/$siteId/files': typeof AuthSitesSiteIdFilesRoute
   '/sites/$siteId/email': typeof AuthSitesSiteIdEmailRoute
   '/sites/$siteId/analytics': typeof AuthSitesSiteIdAnalyticsRoute
-  '/files': typeof AuthFilesRoute
+  '/files': typeof AuthFilesRouteWithChildren
+  '/files/': typeof AuthFilesIndexRoute
+  '/files/$siteId': typeof AuthFilesSiteIdRoute
+  '/editor/$siteId': typeof AuthEditorSiteIdRoute
   '/servers/': typeof AuthServersIndexRoute
   '/sites/': typeof AuthSitesIndexRoute
   '/wordpress/': typeof AuthWordpressIndexRoute
@@ -600,7 +621,9 @@ export interface FileRoutesByTo {
   '/sites/$siteId/files': typeof AuthSitesSiteIdFilesRoute
   '/sites/$siteId/email': typeof AuthSitesSiteIdEmailRoute
   '/sites/$siteId/analytics': typeof AuthSitesSiteIdAnalyticsRoute
-  '/files': typeof AuthFilesRoute
+  '/files': typeof AuthFilesIndexRoute
+  '/files/$siteId': typeof AuthFilesSiteIdRoute
+  '/editor/$siteId': typeof AuthEditorSiteIdRoute
   '/servers': typeof AuthServersIndexRoute
   '/sites': typeof AuthSitesIndexRoute
   '/wordpress': typeof AuthWordpressIndexRoute
@@ -678,7 +701,10 @@ export interface FileRoutesById {
   '/_auth/sites/$siteId/files': typeof AuthSitesSiteIdFilesRoute
   '/_auth/sites/$siteId/email': typeof AuthSitesSiteIdEmailRoute
   '/_auth/sites/$siteId/analytics': typeof AuthSitesSiteIdAnalyticsRoute
-  '/_auth/files': typeof AuthFilesRoute
+  '/_auth/files': typeof AuthFilesRouteWithChildren
+  '/_auth/files/': typeof AuthFilesIndexRoute
+  '/_auth/files/$siteId': typeof AuthFilesSiteIdRoute
+  '/_auth/editor/$siteId': typeof AuthEditorSiteIdRoute
   '/_auth/plugins/': typeof AuthPluginsIndexRoute
   '/_auth/servers/': typeof AuthServersIndexRoute
   '/_auth/sites/': typeof AuthSitesIndexRoute
@@ -759,6 +785,9 @@ export interface FileRouteTypes {
     | '/sites/$siteId/email'
     | '/sites/$siteId/analytics'
     | '/files'
+    | '/files/'
+    | '/files/$siteId'
+    | '/editor/$siteId'
     | '/servers/'
     | '/sites/'
     | '/wordpress/'
@@ -832,6 +861,8 @@ export interface FileRouteTypes {
     | '/sites/$siteId/email'
     | '/sites/$siteId/analytics'
     | '/files'
+    | '/files/$siteId'
+    | '/editor/$siteId'
     | '/servers'
     | '/sites'
     | '/wordpress'
@@ -909,6 +940,9 @@ export interface FileRouteTypes {
     | '/_auth/sites/$siteId/email'
     | '/_auth/sites/$siteId/analytics'
     | '/_auth/files'
+    | '/_auth/files/'
+    | '/_auth/files/$siteId'
+    | '/_auth/editor/$siteId'
     | '/_auth/plugins/'
     | '/_auth/servers/'
     | '/_auth/sites/'
@@ -1307,6 +1341,27 @@ declare module '@tanstack/react-router' {
       path: '/files'
       fullPath: '/files'
       preLoaderRoute: typeof AuthFilesRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/files/': {
+      id: '/_auth/files/'
+      path: '/'
+      fullPath: '/files/'
+      preLoaderRoute: typeof AuthFilesIndexRouteImport
+      parentRoute: typeof AuthFilesRoute
+    }
+    '/_auth/files/$siteId': {
+      id: '/_auth/files/$siteId'
+      path: '/$siteId'
+      fullPath: '/files/$siteId'
+      preLoaderRoute: typeof AuthFilesSiteIdRouteImport
+      parentRoute: typeof AuthFilesRoute
+    }
+    '/_auth/editor/$siteId': {
+      id: '/_auth/editor/$siteId'
+      path: '/editor/$siteId'
+      fullPath: '/editor/$siteId'
+      preLoaderRoute: typeof AuthEditorSiteIdRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/settings/security': {
@@ -1752,6 +1807,20 @@ const AuthWordpressRouteWithChildren = AuthWordpressRoute._addFileChildren(
   AuthWordpressRouteChildren,
 )
 
+interface AuthFilesRouteChildren {
+  AuthFilesIndexRoute: typeof AuthFilesIndexRoute
+  AuthFilesSiteIdRoute: typeof AuthFilesSiteIdRoute
+}
+
+const AuthFilesRouteChildren: AuthFilesRouteChildren = {
+  AuthFilesIndexRoute: AuthFilesIndexRoute,
+  AuthFilesSiteIdRoute: AuthFilesSiteIdRoute,
+}
+
+const AuthFilesRouteWithChildren = AuthFilesRoute._addFileChildren(
+  AuthFilesRouteChildren,
+)
+
 interface AuthRouteChildren {
   AuthAlertsRoute: typeof AuthAlertsRoute
   AuthAuditLogRoute: typeof AuthAuditLogRoute
@@ -1761,7 +1830,8 @@ interface AuthRouteChildren {
   AuthDatabaseServersRoute: typeof AuthDatabaseServersRouteWithChildren
   AuthDatabasesRoute: typeof AuthDatabasesRouteWithChildren
   AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
-  AuthFilesRoute: typeof AuthFilesRoute
+  AuthEditorSiteIdRoute: typeof AuthEditorSiteIdRoute
+  AuthFilesRoute: typeof AuthFilesRouteWithChildren
   AuthMailRoute: typeof AuthMailRouteWithChildren
   AuthOperatorsRoute: typeof AuthOperatorsRoute
   AuthPluginsRoute: typeof AuthPluginsRouteWithChildren
@@ -1782,7 +1852,8 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDatabaseServersRoute: AuthDatabaseServersRouteWithChildren,
   AuthDatabasesRoute: AuthDatabasesRouteWithChildren,
   AuthDomainsRoute: AuthDomainsRouteWithChildren,
-  AuthFilesRoute: AuthFilesRoute,
+  AuthEditorSiteIdRoute: AuthEditorSiteIdRoute,
+  AuthFilesRoute: AuthFilesRouteWithChildren,
   AuthMailRoute: AuthMailRouteWithChildren,
   AuthOperatorsRoute: AuthOperatorsRoute,
   AuthPluginsRoute: AuthPluginsRouteWithChildren,

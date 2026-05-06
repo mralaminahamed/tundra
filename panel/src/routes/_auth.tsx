@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, redirect, useRouterState } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth'
@@ -141,6 +141,11 @@ function AuthLayout() {
     return { ...group, items }
   })
 
+  const { location } = useRouterState()
+  const isFullscreen =
+    location.pathname.startsWith('/editor/') ||
+    /^\/files\/[^/]+/.test(location.pathname)
+
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem('tundra-sidebar-collapsed') === 'true'
@@ -223,7 +228,7 @@ function AuthLayout() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto p-6">
+      <main className={`flex-1 ${isFullscreen ? 'overflow-hidden h-screen' : 'overflow-auto p-6'}`}>
         <Outlet />
       </main>
     </div>
