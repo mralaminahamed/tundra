@@ -165,16 +165,22 @@ function SiteDetailLayout() {
 
       {/* Tabs */}
       <div className="mb-6 flex gap-0.5 overflow-x-auto border-b border-tundra-ink-200">
-        {tabLink('/sites/$siteId',             'Overview')}
-        {tabLink('/sites/$siteId/deployments', 'Deployments')}
-        {tabLink('/sites/$siteId/domains',     'Domains')}
-        {tabLink('/sites/$siteId/ssl',         'SSL')}
-        {tabLink('/sites/$siteId/databases',   'Databases')}
-        {tabLink('/sites/$siteId/daemons',     'Daemons')}
-        {tabLink('/sites/$siteId/cron',        'Cron')}
-        {tabLink('/sites/$siteId/logs',        'Logs')}
-        {tabLink('/sites/$siteId/settings',    'Settings')}
-        {tabLink('/sites/$siteId/danger',      'Danger Zone', true)}
+        {tabLink('/sites/$siteId',              'Overview')}
+        {tabLink('/sites/$siteId/deployments',  'Deployments')}
+        {tabLink('/sites/$siteId/files',        'Files')}
+        {tabLink('/sites/$siteId/domains',      'Domains')}
+        {tabLink('/sites/$siteId/dns',          'DNS')}
+        {tabLink('/sites/$siteId/ssl',          'SSL')}
+        {tabLink('/sites/$siteId/email',        'Email')}
+        {tabLink('/sites/$siteId/databases',    'Databases')}
+        {tabLink('/sites/$siteId/backups',      'Backups')}
+        {tabLink('/sites/$siteId/php',          'PHP')}
+        {tabLink('/sites/$siteId/daemons',      'Daemons')}
+        {tabLink('/sites/$siteId/cron',         'Cron')}
+        {tabLink('/sites/$siteId/logs',         'Logs')}
+        {tabLink('/sites/$siteId/analytics',    'Analytics')}
+        {tabLink('/sites/$siteId/settings',     'Settings')}
+        {tabLink('/sites/$siteId/danger',       'Danger Zone', true)}
       </div>
 
       <Outlet />

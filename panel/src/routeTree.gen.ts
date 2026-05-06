@@ -55,6 +55,13 @@ import { Route as AuthSitesSiteIdCronRouteImport } from './routes/_auth.sites.$s
 import { Route as AuthSitesSiteIdLogsRouteImport } from './routes/_auth.sites.$siteId.logs'
 import { Route as AuthSitesSiteIdSettingsRouteImport } from './routes/_auth.sites.$siteId.settings'
 import { Route as AuthSitesSiteIdDangerRouteImport } from './routes/_auth.sites.$siteId.danger'
+import { Route as AuthSitesSiteIdBackupsRouteImport } from './routes/_auth.sites.$siteId.backups'
+import { Route as AuthSitesSiteIdDnsRouteImport } from './routes/_auth.sites.$siteId.dns'
+import { Route as AuthSitesSiteIdPhpRouteImport } from './routes/_auth.sites.$siteId.php'
+import { Route as AuthSitesSiteIdFilesRouteImport } from './routes/_auth.sites.$siteId.files'
+import { Route as AuthSitesSiteIdEmailRouteImport } from './routes/_auth.sites.$siteId.email'
+import { Route as AuthSitesSiteIdAnalyticsRouteImport } from './routes/_auth.sites.$siteId.analytics'
+import { Route as AuthFilesRouteImport } from './routes/_auth.files'
 import { Route as AuthSettingsSecurityRouteImport } from './routes/_auth.settings.security'
 import { Route as AuthSettingsMcpRouteImport } from './routes/_auth.settings.mcp'
 import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
@@ -308,6 +315,41 @@ const AuthSitesSiteIdDangerRoute = AuthSitesSiteIdDangerRouteImport.update({
   path: '/danger',
   getParentRoute: () => AuthSitesSiteIdRoute,
 } as any)
+const AuthSitesSiteIdBackupsRoute = AuthSitesSiteIdBackupsRouteImport.update({
+  id: '/backups',
+  path: '/backups',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdDnsRoute = AuthSitesSiteIdDnsRouteImport.update({
+  id: '/dns',
+  path: '/dns',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdPhpRoute = AuthSitesSiteIdPhpRouteImport.update({
+  id: '/php',
+  path: '/php',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdFilesRoute = AuthSitesSiteIdFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdEmailRoute = AuthSitesSiteIdEmailRouteImport.update({
+  id: '/email',
+  path: '/email',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdAnalyticsRoute = AuthSitesSiteIdAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthFilesRoute = AuthFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthSettingsSecurityRoute = AuthSettingsSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -479,6 +521,13 @@ export interface FileRoutesByFullPath {
   '/sites/$siteId/logs': typeof AuthSitesSiteIdLogsRoute
   '/sites/$siteId/settings': typeof AuthSitesSiteIdSettingsRoute
   '/sites/$siteId/danger': typeof AuthSitesSiteIdDangerRoute
+  '/sites/$siteId/backups': typeof AuthSitesSiteIdBackupsRoute
+  '/sites/$siteId/dns': typeof AuthSitesSiteIdDnsRoute
+  '/sites/$siteId/php': typeof AuthSitesSiteIdPhpRoute
+  '/sites/$siteId/files': typeof AuthSitesSiteIdFilesRoute
+  '/sites/$siteId/email': typeof AuthSitesSiteIdEmailRoute
+  '/sites/$siteId/analytics': typeof AuthSitesSiteIdAnalyticsRoute
+  '/files': typeof AuthFilesRoute
   '/servers/': typeof AuthServersIndexRoute
   '/sites/': typeof AuthSitesIndexRoute
   '/wordpress/': typeof AuthWordpressIndexRoute
@@ -545,6 +594,13 @@ export interface FileRoutesByTo {
   '/sites/$siteId/logs': typeof AuthSitesSiteIdLogsRoute
   '/sites/$siteId/settings': typeof AuthSitesSiteIdSettingsRoute
   '/sites/$siteId/danger': typeof AuthSitesSiteIdDangerRoute
+  '/sites/$siteId/backups': typeof AuthSitesSiteIdBackupsRoute
+  '/sites/$siteId/dns': typeof AuthSitesSiteIdDnsRoute
+  '/sites/$siteId/php': typeof AuthSitesSiteIdPhpRoute
+  '/sites/$siteId/files': typeof AuthSitesSiteIdFilesRoute
+  '/sites/$siteId/email': typeof AuthSitesSiteIdEmailRoute
+  '/sites/$siteId/analytics': typeof AuthSitesSiteIdAnalyticsRoute
+  '/files': typeof AuthFilesRoute
   '/servers': typeof AuthServersIndexRoute
   '/sites': typeof AuthSitesIndexRoute
   '/wordpress': typeof AuthWordpressIndexRoute
@@ -616,6 +672,13 @@ export interface FileRoutesById {
   '/_auth/sites/$siteId/logs': typeof AuthSitesSiteIdLogsRoute
   '/_auth/sites/$siteId/settings': typeof AuthSitesSiteIdSettingsRoute
   '/_auth/sites/$siteId/danger': typeof AuthSitesSiteIdDangerRoute
+  '/_auth/sites/$siteId/backups': typeof AuthSitesSiteIdBackupsRoute
+  '/_auth/sites/$siteId/dns': typeof AuthSitesSiteIdDnsRoute
+  '/_auth/sites/$siteId/php': typeof AuthSitesSiteIdPhpRoute
+  '/_auth/sites/$siteId/files': typeof AuthSitesSiteIdFilesRoute
+  '/_auth/sites/$siteId/email': typeof AuthSitesSiteIdEmailRoute
+  '/_auth/sites/$siteId/analytics': typeof AuthSitesSiteIdAnalyticsRoute
+  '/_auth/files': typeof AuthFilesRoute
   '/_auth/plugins/': typeof AuthPluginsIndexRoute
   '/_auth/servers/': typeof AuthServersIndexRoute
   '/_auth/sites/': typeof AuthSitesIndexRoute
@@ -689,6 +752,13 @@ export interface FileRouteTypes {
     | '/sites/$siteId/logs'
     | '/sites/$siteId/settings'
     | '/sites/$siteId/danger'
+    | '/sites/$siteId/backups'
+    | '/sites/$siteId/dns'
+    | '/sites/$siteId/php'
+    | '/sites/$siteId/files'
+    | '/sites/$siteId/email'
+    | '/sites/$siteId/analytics'
+    | '/files'
     | '/servers/'
     | '/sites/'
     | '/wordpress/'
@@ -755,6 +825,13 @@ export interface FileRouteTypes {
     | '/sites/$siteId/logs'
     | '/sites/$siteId/settings'
     | '/sites/$siteId/danger'
+    | '/sites/$siteId/backups'
+    | '/sites/$siteId/dns'
+    | '/sites/$siteId/php'
+    | '/sites/$siteId/files'
+    | '/sites/$siteId/email'
+    | '/sites/$siteId/analytics'
+    | '/files'
     | '/servers'
     | '/sites'
     | '/wordpress'
@@ -825,6 +902,13 @@ export interface FileRouteTypes {
     | '/_auth/sites/$siteId/logs'
     | '/_auth/sites/$siteId/settings'
     | '/_auth/sites/$siteId/danger'
+    | '/_auth/sites/$siteId/backups'
+    | '/_auth/sites/$siteId/dns'
+    | '/_auth/sites/$siteId/php'
+    | '/_auth/sites/$siteId/files'
+    | '/_auth/sites/$siteId/email'
+    | '/_auth/sites/$siteId/analytics'
+    | '/_auth/files'
     | '/_auth/plugins/'
     | '/_auth/servers/'
     | '/_auth/sites/'
@@ -1175,6 +1259,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/sites/$siteId/danger'
       preLoaderRoute: typeof AuthSitesSiteIdDangerRouteImport
       parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/backups': {
+      id: '/_auth/sites/$siteId/backups'
+      path: '/backups'
+      fullPath: '/sites/$siteId/backups'
+      preLoaderRoute: typeof AuthSitesSiteIdBackupsRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/dns': {
+      id: '/_auth/sites/$siteId/dns'
+      path: '/dns'
+      fullPath: '/sites/$siteId/dns'
+      preLoaderRoute: typeof AuthSitesSiteIdDnsRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/php': {
+      id: '/_auth/sites/$siteId/php'
+      path: '/php'
+      fullPath: '/sites/$siteId/php'
+      preLoaderRoute: typeof AuthSitesSiteIdPhpRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/files': {
+      id: '/_auth/sites/$siteId/files'
+      path: '/files'
+      fullPath: '/sites/$siteId/files'
+      preLoaderRoute: typeof AuthSitesSiteIdFilesRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/email': {
+      id: '/_auth/sites/$siteId/email'
+      path: '/email'
+      fullPath: '/sites/$siteId/email'
+      preLoaderRoute: typeof AuthSitesSiteIdEmailRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/analytics': {
+      id: '/_auth/sites/$siteId/analytics'
+      path: '/analytics'
+      fullPath: '/sites/$siteId/analytics'
+      preLoaderRoute: typeof AuthSitesSiteIdAnalyticsRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/files': {
+      id: '/_auth/files'
+      path: '/files'
+      fullPath: '/files'
+      preLoaderRoute: typeof AuthFilesRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_auth/settings/security': {
       id: '/_auth/settings/security'
@@ -1532,6 +1665,12 @@ interface AuthSitesSiteIdRouteChildren {
   AuthSitesSiteIdLogsRoute: typeof AuthSitesSiteIdLogsRoute
   AuthSitesSiteIdSettingsRoute: typeof AuthSitesSiteIdSettingsRoute
   AuthSitesSiteIdDangerRoute: typeof AuthSitesSiteIdDangerRoute
+  AuthSitesSiteIdBackupsRoute: typeof AuthSitesSiteIdBackupsRoute
+  AuthSitesSiteIdDnsRoute: typeof AuthSitesSiteIdDnsRoute
+  AuthSitesSiteIdPhpRoute: typeof AuthSitesSiteIdPhpRoute
+  AuthSitesSiteIdFilesRoute: typeof AuthSitesSiteIdFilesRoute
+  AuthSitesSiteIdEmailRoute: typeof AuthSitesSiteIdEmailRoute
+  AuthSitesSiteIdAnalyticsRoute: typeof AuthSitesSiteIdAnalyticsRoute
 }
 
 const AuthSitesSiteIdRouteChildren: AuthSitesSiteIdRouteChildren = {
@@ -1545,6 +1684,12 @@ const AuthSitesSiteIdRouteChildren: AuthSitesSiteIdRouteChildren = {
   AuthSitesSiteIdLogsRoute: AuthSitesSiteIdLogsRoute,
   AuthSitesSiteIdSettingsRoute: AuthSitesSiteIdSettingsRoute,
   AuthSitesSiteIdDangerRoute: AuthSitesSiteIdDangerRoute,
+  AuthSitesSiteIdBackupsRoute: AuthSitesSiteIdBackupsRoute,
+  AuthSitesSiteIdDnsRoute: AuthSitesSiteIdDnsRoute,
+  AuthSitesSiteIdPhpRoute: AuthSitesSiteIdPhpRoute,
+  AuthSitesSiteIdFilesRoute: AuthSitesSiteIdFilesRoute,
+  AuthSitesSiteIdEmailRoute: AuthSitesSiteIdEmailRoute,
+  AuthSitesSiteIdAnalyticsRoute: AuthSitesSiteIdAnalyticsRoute,
 }
 
 const AuthSitesSiteIdRouteWithChildren =
@@ -1616,6 +1761,7 @@ interface AuthRouteChildren {
   AuthDatabaseServersRoute: typeof AuthDatabaseServersRouteWithChildren
   AuthDatabasesRoute: typeof AuthDatabasesRouteWithChildren
   AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
+  AuthFilesRoute: typeof AuthFilesRoute
   AuthMailRoute: typeof AuthMailRouteWithChildren
   AuthOperatorsRoute: typeof AuthOperatorsRoute
   AuthPluginsRoute: typeof AuthPluginsRouteWithChildren
@@ -1636,6 +1782,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDatabaseServersRoute: AuthDatabaseServersRouteWithChildren,
   AuthDatabasesRoute: AuthDatabasesRouteWithChildren,
   AuthDomainsRoute: AuthDomainsRouteWithChildren,
+  AuthFilesRoute: AuthFilesRoute,
   AuthMailRoute: AuthMailRouteWithChildren,
   AuthOperatorsRoute: AuthOperatorsRoute,
   AuthPluginsRoute: AuthPluginsRouteWithChildren,
