@@ -29,10 +29,20 @@ import { Route as AuthDaemonsRouteImport } from './routes/_auth.daemons'
 import { Route as AuthBackupsRouteImport } from './routes/_auth.backups'
 import { Route as AuthAuditLogRouteImport } from './routes/_auth.audit-log'
 import { Route as AuthAlertsRouteImport } from './routes/_auth.alerts'
+import { Route as AuthWordpressIndexRouteImport } from './routes/_auth.wordpress.index'
 import { Route as AuthSitesIndexRouteImport } from './routes/_auth.sites.index'
 import { Route as AuthServersIndexRouteImport } from './routes/_auth.servers.index'
 import { Route as AuthPluginsIndexRouteImport } from './routes/_auth.plugins.index'
 import { Route as AuthWordpressInstallIdRouteImport } from './routes/_auth.wordpress.$installId'
+import { Route as AuthWordpressInstallIdIndexRouteImport } from './routes/_auth.wordpress.$installId.index'
+import { Route as AuthWordpressInstallIdPluginsRouteImport } from './routes/_auth.wordpress.$installId.plugins'
+import { Route as AuthWordpressInstallIdThemesRouteImport } from './routes/_auth.wordpress.$installId.themes'
+import { Route as AuthWordpressInstallIdDatabaseRouteImport } from './routes/_auth.wordpress.$installId.database'
+import { Route as AuthWordpressInstallIdSecurityRouteImport } from './routes/_auth.wordpress.$installId.security'
+import { Route as AuthWordpressInstallIdUsersRouteImport } from './routes/_auth.wordpress.$installId.users'
+import { Route as AuthWordpressInstallIdBackupsRouteImport } from './routes/_auth.wordpress.$installId.backups'
+import { Route as AuthWordpressInstallIdSettingsRouteImport } from './routes/_auth.wordpress.$installId.settings'
+import { Route as AuthWordpressInstallIdDangerRouteImport } from './routes/_auth.wordpress.$installId.danger'
 import { Route as AuthSitesNewRouteImport } from './routes/_auth.sites.new'
 import { Route as AuthSitesSiteIdRouteImport } from './routes/_auth.sites.$siteId'
 import { Route as AuthSettingsSecurityRouteImport } from './routes/_auth.settings.security'
@@ -158,6 +168,11 @@ const AuthAlertsRoute = AuthAlertsRouteImport.update({
   path: '/alerts',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthWordpressIndexRoute = AuthWordpressIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthWordpressRoute,
+} as any)
 const AuthSitesIndexRoute = AuthSitesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -177,6 +192,51 @@ const AuthWordpressInstallIdRoute = AuthWordpressInstallIdRouteImport.update({
   id: '/$installId',
   path: '/$installId',
   getParentRoute: () => AuthWordpressRoute,
+} as any)
+const AuthWordpressInstallIdIndexRoute = AuthWordpressInstallIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdPluginsRoute = AuthWordpressInstallIdPluginsRouteImport.update({
+  id: '/plugins',
+  path: '/plugins',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdThemesRoute = AuthWordpressInstallIdThemesRouteImport.update({
+  id: '/themes',
+  path: '/themes',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdDatabaseRoute = AuthWordpressInstallIdDatabaseRouteImport.update({
+  id: '/database',
+  path: '/database',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdSecurityRoute = AuthWordpressInstallIdSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdUsersRoute = AuthWordpressInstallIdUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdBackupsRoute = AuthWordpressInstallIdBackupsRouteImport.update({
+  id: '/backups',
+  path: '/backups',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdSettingsRoute = AuthWordpressInstallIdSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdDangerRoute = AuthWordpressInstallIdDangerRouteImport.update({
+  id: '/danger',
+  path: '/danger',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
 } as any)
 const AuthSitesNewRoute = AuthSitesNewRouteImport.update({
   id: '/new',
@@ -347,10 +407,20 @@ export interface FileRoutesByFullPath {
   '/settings/security': typeof AuthSettingsSecurityRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/sites/new': typeof AuthSitesNewRoute
-  '/wordpress/$installId': typeof AuthWordpressInstallIdRoute
+  '/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
   '/plugins/': typeof AuthPluginsIndexRoute
   '/servers/': typeof AuthServersIndexRoute
   '/sites/': typeof AuthSitesIndexRoute
+  '/wordpress/': typeof AuthWordpressIndexRoute
+  '/wordpress/$installId/': typeof AuthWordpressInstallIdIndexRoute
+  '/wordpress/$installId/plugins': typeof AuthWordpressInstallIdPluginsRoute
+  '/wordpress/$installId/themes': typeof AuthWordpressInstallIdThemesRoute
+  '/wordpress/$installId/database': typeof AuthWordpressInstallIdDatabaseRoute
+  '/wordpress/$installId/security': typeof AuthWordpressInstallIdSecurityRoute
+  '/wordpress/$installId/users': typeof AuthWordpressInstallIdUsersRoute
+  '/wordpress/$installId/backups': typeof AuthWordpressInstallIdBackupsRoute
+  '/wordpress/$installId/settings': typeof AuthWordpressInstallIdSettingsRoute
+  '/wordpress/$installId/danger': typeof AuthWordpressInstallIdDangerRoute
   '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
   '/mail/domains/$mailDomainId': typeof AuthMailDomainsMailDomainIdRouteWithChildren
@@ -374,7 +444,6 @@ export interface FileRoutesByTo {
   '/scheduled-tasks': typeof AuthScheduledTasksRoute
   '/settings': typeof AuthSettingsRouteWithChildren
   '/templates': typeof AuthTemplatesRoute
-  '/wordpress': typeof AuthWordpressRouteWithChildren
   '/backups/jobs': typeof AuthBackupsJobsRouteWithChildren
   '/backups/snapshots': typeof AuthBackupsSnapshotsRoute
   '/backups/targets': typeof AuthBackupsTargetsRouteWithChildren
@@ -394,10 +463,20 @@ export interface FileRoutesByTo {
   '/settings/security': typeof AuthSettingsSecurityRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/sites/new': typeof AuthSitesNewRoute
-  '/wordpress/$installId': typeof AuthWordpressInstallIdRoute
+  '/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
   '/plugins': typeof AuthPluginsIndexRoute
   '/servers': typeof AuthServersIndexRoute
   '/sites': typeof AuthSitesIndexRoute
+  '/wordpress': typeof AuthWordpressIndexRoute
+  '/wordpress/$installId/': typeof AuthWordpressInstallIdIndexRoute
+  '/wordpress/$installId/plugins': typeof AuthWordpressInstallIdPluginsRoute
+  '/wordpress/$installId/themes': typeof AuthWordpressInstallIdThemesRoute
+  '/wordpress/$installId/database': typeof AuthWordpressInstallIdDatabaseRoute
+  '/wordpress/$installId/security': typeof AuthWordpressInstallIdSecurityRoute
+  '/wordpress/$installId/users': typeof AuthWordpressInstallIdUsersRoute
+  '/wordpress/$installId/backups': typeof AuthWordpressInstallIdBackupsRoute
+  '/wordpress/$installId/settings': typeof AuthWordpressInstallIdSettingsRoute
+  '/wordpress/$installId/danger': typeof AuthWordpressInstallIdDangerRoute
   '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
   '/mail/domains/$mailDomainId': typeof AuthMailDomainsMailDomainIdRouteWithChildren
@@ -446,10 +525,20 @@ export interface FileRoutesById {
   '/_auth/settings/security': typeof AuthSettingsSecurityRoute
   '/_auth/sites/$siteId': typeof AuthSitesSiteIdRoute
   '/_auth/sites/new': typeof AuthSitesNewRoute
-  '/_auth/wordpress/$installId': typeof AuthWordpressInstallIdRoute
+  '/_auth/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
   '/_auth/plugins/': typeof AuthPluginsIndexRoute
   '/_auth/servers/': typeof AuthServersIndexRoute
   '/_auth/sites/': typeof AuthSitesIndexRoute
+  '/_auth/wordpress/': typeof AuthWordpressIndexRoute
+  '/_auth/wordpress/$installId/': typeof AuthWordpressInstallIdIndexRoute
+  '/_auth/wordpress/$installId/plugins': typeof AuthWordpressInstallIdPluginsRoute
+  '/_auth/wordpress/$installId/themes': typeof AuthWordpressInstallIdThemesRoute
+  '/_auth/wordpress/$installId/database': typeof AuthWordpressInstallIdDatabaseRoute
+  '/_auth/wordpress/$installId/security': typeof AuthWordpressInstallIdSecurityRoute
+  '/_auth/wordpress/$installId/users': typeof AuthWordpressInstallIdUsersRoute
+  '/_auth/wordpress/$installId/backups': typeof AuthWordpressInstallIdBackupsRoute
+  '/_auth/wordpress/$installId/settings': typeof AuthWordpressInstallIdSettingsRoute
+  '/_auth/wordpress/$installId/danger': typeof AuthWordpressInstallIdDangerRoute
   '/_auth/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/_auth/backups/targets/new': typeof AuthBackupsTargetsNewRoute
   '/_auth/mail/domains/$mailDomainId': typeof AuthMailDomainsMailDomainIdRouteWithChildren
@@ -502,6 +591,16 @@ export interface FileRouteTypes {
     | '/plugins/'
     | '/servers/'
     | '/sites/'
+    | '/wordpress/'
+    | '/wordpress/$installId/'
+    | '/wordpress/$installId/plugins'
+    | '/wordpress/$installId/themes'
+    | '/wordpress/$installId/database'
+    | '/wordpress/$installId/security'
+    | '/wordpress/$installId/users'
+    | '/wordpress/$installId/backups'
+    | '/wordpress/$installId/settings'
+    | '/wordpress/$installId/danger'
     | '/backups/jobs/new'
     | '/backups/targets/new'
     | '/mail/domains/$mailDomainId'
@@ -525,7 +624,6 @@ export interface FileRouteTypes {
     | '/scheduled-tasks'
     | '/settings'
     | '/templates'
-    | '/wordpress'
     | '/backups/jobs'
     | '/backups/snapshots'
     | '/backups/targets'
@@ -549,6 +647,16 @@ export interface FileRouteTypes {
     | '/plugins'
     | '/servers'
     | '/sites'
+    | '/wordpress'
+    | '/wordpress/$installId/'
+    | '/wordpress/$installId/plugins'
+    | '/wordpress/$installId/themes'
+    | '/wordpress/$installId/database'
+    | '/wordpress/$installId/security'
+    | '/wordpress/$installId/users'
+    | '/wordpress/$installId/backups'
+    | '/wordpress/$installId/settings'
+    | '/wordpress/$installId/danger'
     | '/backups/jobs/new'
     | '/backups/targets/new'
     | '/mail/domains/$mailDomainId'
@@ -600,6 +708,16 @@ export interface FileRouteTypes {
     | '/_auth/plugins/'
     | '/_auth/servers/'
     | '/_auth/sites/'
+    | '/_auth/wordpress/'
+    | '/_auth/wordpress/$installId/'
+    | '/_auth/wordpress/$installId/plugins'
+    | '/_auth/wordpress/$installId/themes'
+    | '/_auth/wordpress/$installId/database'
+    | '/_auth/wordpress/$installId/security'
+    | '/_auth/wordpress/$installId/users'
+    | '/_auth/wordpress/$installId/backups'
+    | '/_auth/wordpress/$installId/settings'
+    | '/_auth/wordpress/$installId/danger'
     | '/_auth/backups/jobs/new'
     | '/_auth/backups/targets/new'
     | '/_auth/mail/domains/$mailDomainId'
@@ -756,6 +874,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAlertsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/wordpress/': {
+      id: '/_auth/wordpress/'
+      path: '/'
+      fullPath: '/wordpress/'
+      preLoaderRoute: typeof AuthWordpressIndexRouteImport
+      parentRoute: typeof AuthWordpressRoute
+    }
     '/_auth/sites/': {
       id: '/_auth/sites/'
       path: '/'
@@ -783,6 +908,69 @@ declare module '@tanstack/react-router' {
       fullPath: '/wordpress/$installId'
       preLoaderRoute: typeof AuthWordpressInstallIdRouteImport
       parentRoute: typeof AuthWordpressRoute
+    }
+    '/_auth/wordpress/$installId/': {
+      id: '/_auth/wordpress/$installId/'
+      path: '/'
+      fullPath: '/wordpress/$installId/'
+      preLoaderRoute: typeof AuthWordpressInstallIdIndexRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/plugins': {
+      id: '/_auth/wordpress/$installId/plugins'
+      path: '/plugins'
+      fullPath: '/wordpress/$installId/plugins'
+      preLoaderRoute: typeof AuthWordpressInstallIdPluginsRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/themes': {
+      id: '/_auth/wordpress/$installId/themes'
+      path: '/themes'
+      fullPath: '/wordpress/$installId/themes'
+      preLoaderRoute: typeof AuthWordpressInstallIdThemesRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/database': {
+      id: '/_auth/wordpress/$installId/database'
+      path: '/database'
+      fullPath: '/wordpress/$installId/database'
+      preLoaderRoute: typeof AuthWordpressInstallIdDatabaseRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/security': {
+      id: '/_auth/wordpress/$installId/security'
+      path: '/security'
+      fullPath: '/wordpress/$installId/security'
+      preLoaderRoute: typeof AuthWordpressInstallIdSecurityRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/users': {
+      id: '/_auth/wordpress/$installId/users'
+      path: '/users'
+      fullPath: '/wordpress/$installId/users'
+      preLoaderRoute: typeof AuthWordpressInstallIdUsersRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/backups': {
+      id: '/_auth/wordpress/$installId/backups'
+      path: '/backups'
+      fullPath: '/wordpress/$installId/backups'
+      preLoaderRoute: typeof AuthWordpressInstallIdBackupsRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/settings': {
+      id: '/_auth/wordpress/$installId/settings'
+      path: '/settings'
+      fullPath: '/wordpress/$installId/settings'
+      preLoaderRoute: typeof AuthWordpressInstallIdSettingsRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/danger': {
+      id: '/_auth/wordpress/$installId/danger'
+      path: '/danger'
+      fullPath: '/wordpress/$installId/danger'
+      preLoaderRoute: typeof AuthWordpressInstallIdDangerRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
     }
     '/_auth/sites/new': {
       id: '/_auth/sites/new'
@@ -1159,12 +1347,41 @@ const AuthSitesRouteWithChildren = AuthSitesRoute._addFileChildren(
   AuthSitesRouteChildren,
 )
 
+interface AuthWordpressInstallIdRouteChildren {
+  AuthWordpressInstallIdIndexRoute: typeof AuthWordpressInstallIdIndexRoute
+  AuthWordpressInstallIdPluginsRoute: typeof AuthWordpressInstallIdPluginsRoute
+  AuthWordpressInstallIdThemesRoute: typeof AuthWordpressInstallIdThemesRoute
+  AuthWordpressInstallIdDatabaseRoute: typeof AuthWordpressInstallIdDatabaseRoute
+  AuthWordpressInstallIdSecurityRoute: typeof AuthWordpressInstallIdSecurityRoute
+  AuthWordpressInstallIdUsersRoute: typeof AuthWordpressInstallIdUsersRoute
+  AuthWordpressInstallIdBackupsRoute: typeof AuthWordpressInstallIdBackupsRoute
+  AuthWordpressInstallIdSettingsRoute: typeof AuthWordpressInstallIdSettingsRoute
+  AuthWordpressInstallIdDangerRoute: typeof AuthWordpressInstallIdDangerRoute
+}
+
+const AuthWordpressInstallIdRouteChildren: AuthWordpressInstallIdRouteChildren = {
+  AuthWordpressInstallIdIndexRoute: AuthWordpressInstallIdIndexRoute,
+  AuthWordpressInstallIdPluginsRoute: AuthWordpressInstallIdPluginsRoute,
+  AuthWordpressInstallIdThemesRoute: AuthWordpressInstallIdThemesRoute,
+  AuthWordpressInstallIdDatabaseRoute: AuthWordpressInstallIdDatabaseRoute,
+  AuthWordpressInstallIdSecurityRoute: AuthWordpressInstallIdSecurityRoute,
+  AuthWordpressInstallIdUsersRoute: AuthWordpressInstallIdUsersRoute,
+  AuthWordpressInstallIdBackupsRoute: AuthWordpressInstallIdBackupsRoute,
+  AuthWordpressInstallIdSettingsRoute: AuthWordpressInstallIdSettingsRoute,
+  AuthWordpressInstallIdDangerRoute: AuthWordpressInstallIdDangerRoute,
+}
+
+const AuthWordpressInstallIdRouteWithChildren =
+  AuthWordpressInstallIdRoute._addFileChildren(AuthWordpressInstallIdRouteChildren)
+
 interface AuthWordpressRouteChildren {
-  AuthWordpressInstallIdRoute: typeof AuthWordpressInstallIdRoute
+  AuthWordpressInstallIdRoute: typeof AuthWordpressInstallIdRouteWithChildren
+  AuthWordpressIndexRoute: typeof AuthWordpressIndexRoute
 }
 
 const AuthWordpressRouteChildren: AuthWordpressRouteChildren = {
-  AuthWordpressInstallIdRoute: AuthWordpressInstallIdRoute,
+  AuthWordpressInstallIdRoute: AuthWordpressInstallIdRouteWithChildren,
+  AuthWordpressIndexRoute: AuthWordpressIndexRoute,
 }
 
 const AuthWordpressRouteWithChildren = AuthWordpressRoute._addFileChildren(
