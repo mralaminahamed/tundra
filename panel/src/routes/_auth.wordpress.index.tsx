@@ -641,9 +641,152 @@ function InstallModal({
   )
 }
 
+type SortKey = 'site_title' | 'wp_version' | 'state' | 'created_at'
+type SortDir = 'asc' | 'desc'
+type ViewMode = 'list' | 'grid'
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const
+
+function WpLogo({ size = 32 }: { size?: number }) {
+  return (
+    <div
+      style={{ width: size, height: size }}
+      className="flex shrink-0 items-center justify-center rounded-lg bg-[#21759B]"
+    >
+      <svg viewBox="0 0 24 24" style={{ width: size * 0.57, height: size * 0.57 }} fill="white">
+        <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm-1.5 14.5l-3-8.5c.5.1.9.1 1.3.1.5 0 1-.05 1-.05l1.2 3.5 1.3-3.6c.5.05.9.1 1.4.1.1 0 .2 0 .3-.01l-3 8.5-1.5-.05zm4.5 0l-1.3-3.8 2.8-7.7c.5 1.1.8 2.4.8 3.7 0 3.05-1.65 5.7-4 7l1.7.8z" />
+      </svg>
+    </div>
+  )
+}
+
+function Pagination({
+  total,
+  page,
+  pageSize,
+  onPage,
+  onPageSize,
+}: {
+  total: number
+  page: number
+  pageSize: number
+  onPage: (p: number) => void
+  onPageSize: (n: number) => void
+}) {
+  const totalPages = Math.ceil(total / pageSize)
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1
+  const to = Math.min(page * pageSize, total)
+
+  const pages = useMemo(() => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1)
+    if (page <= 4) return [1, 2, 3, 4, 5, '…', totalPages]
+    if (page >= totalPages - 3) return [1, '…', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+    return [1, '…', page - 1, page, page + 1, '…', totalPages]
+  }, [page, totalPages])
+
+  if (total === 0) return null
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-tundra-ink-100 bg-tundra-ink-50 px-4 py-3">
+      {/* Count + page size */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-tundra-ink-500">
+          Showing <span className="font-medium text-tundra-ink">{from}–{to}</span> of{' '}
+          <span className="font-medium text-tundra-ink">{total}</span>
+        </span>
+        <div className="flex items-center gap-1.5 text-xs text-tundra-ink-400">
+          <span>Show:</span>
+          {PAGE_SIZE_OPTIONS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => { onPageSize(n); onPage(1) }}
+              className={`rounded px-2 py-0.5 font-medium transition-colors ${
+                pageSize === n
+                  ? 'bg-[#21759B] text-white'
+                  : 'text-tundra-ink-500 hover:bg-tundra-ink-200'
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Page navigation */}
+      {totalPages > 1 && (
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            disabled={page === 1}
+            onClick={() => { onPage(1) }}
+            className="rounded border border-tundra-ink-200 px-2 py-1 text-xs font-medium text-tundra-ink-500 hover:bg-tundra-ink-100 disabled:opacity-40 transition-colors"
+            title="First page"
+          >
+            «
+          </button>
+          <button
+            type="button"
+            disabled={page === 1}
+            onClick={() => { onPage(page - 1) }}
+            className="rounded border border-tundra-ink-200 px-2.5 py-1 text-xs font-medium text-tundra-ink-500 hover:bg-tundra-ink-100 disabled:opacity-40 transition-colors"
+          >
+            ‹ Prev
+          </button>
+
+          {pages.map((p, i) =>
+            p === '…' ? (
+              <span key={`e${i}`} className="px-1.5 text-xs text-tundra-ink-300">…</span>
+            ) : (
+              <button
+                key={p}
+                type="button"
+                onClick={() => { onPage(p as number) }}
+                className={`min-w-[28px] rounded border px-2 py-1 text-xs font-medium transition-colors ${
+                  p === page
+                    ? 'border-[#21759B] bg-[#21759B] text-white'
+                    : 'border-tundra-ink-200 text-tundra-ink-500 hover:bg-tundra-ink-100'
+                }`}
+              >
+                {p}
+              </button>
+            ),
+          )}
+
+          <button
+            type="button"
+            disabled={page === totalPages}
+            onClick={() => { onPage(page + 1) }}
+            className="rounded border border-tundra-ink-200 px-2.5 py-1 text-xs font-medium text-tundra-ink-500 hover:bg-tundra-ink-100 disabled:opacity-40 transition-colors"
+          >
+            Next ›
+          </button>
+          <button
+            type="button"
+            disabled={page === totalPages}
+            onClick={() => { onPage(totalPages) }}
+            className="rounded border border-tundra-ink-200 px-2 py-1 text-xs font-medium text-tundra-ink-500 hover:bg-tundra-ink-100 disabled:opacity-40 transition-colors"
+            title="Last page"
+          >
+            »
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function WordPressPage() {
   const qc = useQueryClient()
   const [showModal, setShowModal] = useState(false)
+  const [search, setSearch] = useState('')
+  const [filterState, setFilterState] = useState<string>('')
+  const [sortKey, setSortKey] = useState<SortKey>('created_at')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [view, setView] = useState<ViewMode>('list')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const { data: installs = [], isLoading } = useQuery<WpInstallation[]>({
     queryKey: ['wp-installations'],
@@ -683,6 +826,65 @@ function WordPressPage() {
     },
   })
 
+  // derive filtered + sorted + paginated list
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase()
+    return installs
+      .filter((i) => {
+        if (filterState && i.state !== filterState) return false
+        if (q && !(i.site_title ?? '').toLowerCase().includes(q) && !(i.site_url ?? '').toLowerCase().includes(q) && !i.wp_path.toLowerCase().includes(q)) return false
+        return true
+      })
+      .sort((a, b) => {
+        const aVal = a[sortKey] ?? ''
+        const bVal = b[sortKey] ?? ''
+        const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true })
+        return sortDir === 'asc' ? cmp : -cmp
+      })
+  }, [installs, search, filterState, sortKey, sortDir])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const paginated = filtered.slice((safePage - 1) * pageSize, safePage * pageSize)
+
+  const allOnPageSelected = paginated.length > 0 && paginated.every((i) => selected.has(i.id))
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSortDir((d) => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('asc') }
+    setPage(1)
+  }
+
+  function toggleAll() {
+    if (allOnPageSelected) {
+      setSelected((s) => { const n = new Set(s); paginated.forEach((i) => n.delete(i.id)); return n })
+    } else {
+      setSelected((s) => { const n = new Set(s); paginated.forEach((i) => n.add(i.id)); return n })
+    }
+  }
+
+  const SortIcon = ({ k }: { k: SortKey }) =>
+    sortKey !== k ? (
+      <svg className="h-3 w-3 text-tundra-ink-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path d="M8 9l4-4 4 4M8 15l4 4 4-4"/>
+      </svg>
+    ) : sortDir === 'asc' ? (
+      <svg className="h-3 w-3 text-[#21759B]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path d="M12 5l-7 7h14z"/>
+      </svg>
+    ) : (
+      <svg className="h-3 w-3 text-[#21759B]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path d="M12 19l7-7H5z"/>
+      </svg>
+    )
+
+  const counts = {
+    total: installs.length,
+    active: installs.filter((i) => i.state === 'active').length,
+    provisioning: installs.filter((i) => i.state === 'provisioning').length,
+    error: installs.filter((i) => i.state === 'error').length,
+  }
+
   return (
     <div className="p-6">
       {showModal && (
@@ -694,11 +896,12 @@ function WordPressPage() {
         />
       )}
 
-      <div className="mb-6 flex items-center justify-between">
+      {/* Header */}
+      <div className="mb-5 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-tundra-ink">WordPress</h1>
-          <p className="mt-1 text-sm text-tundra-ink-400">
-            {String(installs.length)} installation{installs.length !== 1 ? 's' : ''}
+          <p className="mt-0.5 text-sm text-tundra-ink-400">
+            Manage all WordPress installations across your sites
           </p>
         </div>
         <button
@@ -712,11 +915,35 @@ function WordPressPage() {
         </button>
       </div>
 
+      {/* Stat pills */}
+      {installs.length > 0 && (
+        <div className="mb-5 flex flex-wrap gap-2">
+          {[
+            { label: 'Total', value: counts.total, active: !filterState, onClick: () => { setFilterState(''); setPage(1) } },
+            { label: 'Active', value: counts.active, active: filterState === 'active', onClick: () => { setFilterState(filterState === 'active' ? '' : 'active'); setPage(1) } },
+            { label: 'Provisioning', value: counts.provisioning, active: filterState === 'provisioning', onClick: () => { setFilterState(filterState === 'provisioning' ? '' : 'provisioning'); setPage(1) }, hidden: counts.provisioning === 0 },
+            { label: 'Error', value: counts.error, active: filterState === 'error', onClick: () => { setFilterState(filterState === 'error' ? '' : 'error'); setPage(1) }, hidden: counts.error === 0, danger: true },
+          ].filter((c) => !c.hidden).map(({ label, value, active, onClick, danger }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={onClick}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-left transition-colors ${
+                active
+                  ? danger ? 'border-red-300 bg-red-50' : 'border-[#21759B]/30 bg-[#21759B]/5'
+                  : 'border-tundra-ink-200 bg-white hover:bg-tundra-ink-50'
+              }`}
+            >
+              <span className={`text-xl font-bold tabular-nums ${danger ? 'text-red-600' : active ? 'text-[#21759B]' : 'text-tundra-ink'}`}>{value}</span>
+              <span className="text-xs text-tundra-ink-400">{label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {isLoading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-tundra-ink-100" />
-          ))}
+          {[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-16 animate-pulse rounded-xl bg-tundra-ink-100" />)}
         </div>
       ) : installs.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-tundra-ink-200 p-16 text-center">
@@ -727,73 +954,374 @@ function WordPressPage() {
           </div>
           <p className="text-base font-semibold text-tundra-ink">No WordPress installations yet</p>
           <p className="mt-1 text-sm text-tundra-ink-400">Install WordPress on any of your sites in under a minute.</p>
-          <button
-            onClick={() => { setShowModal(true) }}
-            className="mt-4 rounded-lg bg-[#21759B] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1a6284] transition-colors"
-          >
+          <button onClick={() => { setShowModal(true) }}
+            className="mt-4 rounded-lg bg-[#21759B] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1a6284] transition-colors">
             Install WordPress
           </button>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="border-b border-tundra-ink-100 bg-tundra-ink-50 text-xs font-semibold uppercase tracking-wide text-tundra-ink-400">
-              <tr>
-                <th className="px-4 py-3 text-left">Site / URL</th>
-                <th className="px-4 py-3 text-left">WP Version</th>
-                <th className="px-4 py-3 text-left">Path</th>
-                <th className="px-4 py-3 text-left">State</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-tundra-ink-100">
-              {installs.map((inst) => (
-                <tr key={inst.id} className="group hover:bg-tundra-ink-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-tundra-ink">
-                      {inst.site_title ?? inst.site_id}
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-tundra-ink-100 bg-tundra-ink-50 px-4 py-2.5">
+            {/* Search */}
+            <div className="relative">
+              <svg className="pointer-events-none absolute left-2.5 top-2 h-3.5 w-3.5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+              <input
+                type="search"
+                placeholder="Search sites, URLs, paths…"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                className="h-8 w-52 rounded-lg border border-tundra-ink-200 bg-white pl-8 pr-3 text-xs focus:border-[#21759B] focus:outline-none focus:ring-1 focus:ring-[#21759B]"
+              />
+            </div>
+
+            {/* State filter chips */}
+            <div className="flex gap-1">
+              {(['active', 'provisioning', 'error', 'removing'] as const).map((st) => {
+                const cnt = installs.filter((i) => i.state === st).length
+                if (cnt === 0) return null
+                return (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => { setFilterState(filterState === st ? '' : st); setPage(1) }}
+                    className={`rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize transition-colors ${
+                      filterState === st
+                        ? 'border-[#21759B] bg-[#21759B] text-white'
+                        : 'border-tundra-ink-200 text-tundra-ink-500 hover:border-[#21759B] hover:text-[#21759B]'
+                    }`}
+                  >
+                    {st} ({cnt})
+                  </button>
+                )
+              })}
+              {filterState && (
+                <button
+                  type="button"
+                  onClick={() => { setFilterState(''); setPage(1) }}
+                  className="rounded-full border border-tundra-ink-200 px-2.5 py-0.5 text-xs text-tundra-ink-400 hover:bg-tundra-ink-100 transition-colors"
+                >
+                  Clear ×
+                </button>
+              )}
+            </div>
+
+            <div className="ml-auto flex items-center gap-2">
+              {/* Sort */}
+              <select
+                value={`${sortKey}:${sortDir}`}
+                onChange={(e) => {
+                  const [k, d] = e.target.value.split(':') as [SortKey, SortDir]
+                  setSortKey(k); setSortDir(d); setPage(1)
+                }}
+                className="h-8 rounded-lg border border-tundra-ink-200 bg-white px-2 text-xs text-tundra-ink-600 focus:outline-none"
+              >
+                <option value="created_at:desc">Newest first</option>
+                <option value="created_at:asc">Oldest first</option>
+                <option value="site_title:asc">Title A→Z</option>
+                <option value="site_title:desc">Title Z→A</option>
+                <option value="wp_version:desc">WP version ↓</option>
+                <option value="state:asc">State</option>
+              </select>
+
+              {/* View toggle */}
+              <div className="flex rounded-lg border border-tundra-ink-200 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => { setView('list') }}
+                  title="List view"
+                  className={`px-2.5 py-1.5 transition-colors ${view === 'list' ? 'bg-[#21759B] text-white' : 'bg-white text-tundra-ink-400 hover:bg-tundra-ink-50'}`}
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setView('grid') }}
+                  title="Grid view"
+                  className={`border-l border-tundra-ink-200 px-2.5 py-1.5 transition-colors ${view === 'grid' ? 'bg-[#21759B] text-white' : 'bg-white text-tundra-ink-400 hover:bg-tundra-ink-50'}`}
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bulk action bar */}
+          {selected.size > 0 && (
+            <div className="flex items-center gap-3 border-b border-tundra-ink-100 bg-[#21759B]/5 px-4 py-2">
+              <span className="text-sm font-medium text-tundra-ink">{selected.size} selected</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(`Remove ${selected.size} installation(s)?`)) {
+                    selected.forEach((id) => { removeMutation.mutate(id) })
+                    setSelected(new Set())
+                  }
+                }}
+                className="rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                Remove selected
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSelected(new Set()) }}
+                className="ml-auto text-xs text-tundra-ink-400 hover:text-tundra-ink"
+              >
+                Clear selection
+              </button>
+            </div>
+          )}
+
+          {filtered.length === 0 ? (
+            <div className="py-16 text-center text-sm text-tundra-ink-400">
+              No installations match the current filters.{' '}
+              <button type="button" onClick={() => { setSearch(''); setFilterState(''); setPage(1) }}
+                className="font-medium text-[#21759B] hover:underline">
+                Clear filters
+              </button>
+            </div>
+          ) : view === 'list' ? (
+            <>
+              <table className="w-full text-sm">
+                <thead className="border-b border-tundra-ink-100 text-xs text-tundra-ink-400">
+                  <tr>
+                    <th className="w-10 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={allOnPageSelected}
+                        onChange={toggleAll}
+                        className="h-3.5 w-3.5 rounded border-tundra-ink-300 accent-[#21759B]"
+                      />
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <button type="button" onClick={() => { toggleSort('site_title') }}
+                        className="flex items-center gap-1 font-semibold uppercase tracking-wide hover:text-tundra-ink transition-colors">
+                        Site / URL <SortIcon k="site_title" />
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <button type="button" onClick={() => { toggleSort('wp_version') }}
+                        className="flex items-center gap-1 font-semibold uppercase tracking-wide hover:text-tundra-ink transition-colors">
+                        WP Version <SortIcon k="wp_version" />
+                      </button>
+                    </th>
+                    <th className="hidden px-4 py-3 text-left font-semibold uppercase tracking-wide md:table-cell">Path</th>
+                    <th className="px-4 py-3 text-left">
+                      <button type="button" onClick={() => { toggleSort('state') }}
+                        className="flex items-center gap-1 font-semibold uppercase tracking-wide hover:text-tundra-ink transition-colors">
+                        State <SortIcon k="state" />
+                      </button>
+                    </th>
+                    <th className="hidden px-4 py-3 text-left font-semibold uppercase tracking-wide lg:table-cell">
+                      <button type="button" onClick={() => { toggleSort('created_at') }}
+                        className="flex items-center gap-1 hover:text-tundra-ink transition-colors">
+                        Installed <SortIcon k="created_at" />
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-right font-semibold uppercase tracking-wide">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-tundra-ink-100">
+                  {paginated.map((inst) => (
+                    <tr key={inst.id}
+                      className={`group transition-colors ${selected.has(inst.id) ? 'bg-[#21759B]/5' : 'hover:bg-tundra-ink-50'}`}>
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(inst.id)}
+                          onChange={() => {
+                            setSelected((s) => {
+                              const n = new Set(s)
+                              n.has(inst.id) ? n.delete(inst.id) : n.add(inst.id)
+                              return n
+                            })
+                          }}
+                          className="h-3.5 w-3.5 rounded border-tundra-ink-300 accent-[#21759B]"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <WpLogo size={32} />
+                          <div className="min-w-0">
+                            <Link
+                              to="/wordpress/$installId"
+                              params={{ installId: inst.id }}
+                              className="block truncate font-semibold text-tundra-ink hover:text-[#21759B] transition-colors"
+                            >
+                              {inst.site_title ?? inst.site_id.slice(0, 16)}
+                            </Link>
+                            {inst.site_url && (
+                              <a href={inst.site_url} target="_blank" rel="noopener noreferrer"
+                                className="truncate text-xs text-tundra-aurora hover:underline">
+                                {inst.site_url} ↗
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-tundra-ink-500">
+                        {inst.wp_version ? (
+                          <span className="rounded-full border border-tundra-ink-100 bg-tundra-ink-50 px-2 py-0.5 font-mono text-xs">
+                            {inst.wp_version}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="hidden px-4 py-3 font-mono text-xs text-tundra-ink-400 md:table-cell">
+                        {inst.wp_path}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatePill state={inst.state} />
+                        {inst.error_message && (
+                          <p className="mt-0.5 max-w-[12rem] truncate text-xs text-red-500" title={inst.error_message}>
+                            {inst.error_message}
+                          </p>
+                        )}
+                      </td>
+                      <td className="hidden px-4 py-3 text-xs text-tundra-ink-400 lg:table-cell whitespace-nowrap">
+                        {new Date(inst.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {inst.site_url && (
+                            <a href={`${inst.site_url}/wp-admin`} target="_blank" rel="noopener noreferrer"
+                              title="Open WP Admin"
+                              className="rounded-lg border border-[#21759B]/30 px-2.5 py-1 text-xs font-medium text-[#21759B] hover:bg-[#21759B]/5 transition-colors">
+                              WP Admin
+                            </a>
+                          )}
+                          <Link
+                            to="/wordpress/$installId"
+                            params={{ installId: inst.id }}
+                            className="rounded-lg border border-tundra-ink-200 px-2.5 py-1 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors"
+                          >
+                            Manage →
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm('Mark this installation for removal? Files and database will be deleted on the next agent sync.')) {
+                                removeMutation.mutate(inst.id)
+                              }
+                            }}
+                            title="Remove"
+                            className="rounded-lg border border-red-200 px-2 py-1 text-xs text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <Pagination
+                total={filtered.length}
+                page={safePage}
+                pageSize={pageSize}
+                onPage={(p) => { setPage(p) }}
+                onPageSize={(n) => { setPageSize(n); setPage(1) }}
+              />
+            </>
+          ) : (
+            /* Grid view */
+            <>
+              <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {paginated.map((inst) => (
+                  <div key={inst.id}
+                    className={`relative overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-md ${
+                      selected.has(inst.id) ? 'border-[#21759B]' : 'border-tundra-ink-200'
+                    }`}>
+                    {/* Checkbox */}
+                    <div className="absolute left-3 top-3 z-10">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(inst.id)}
+                        onChange={() => {
+                          setSelected((s) => {
+                            const n = new Set(s)
+                            n.has(inst.id) ? n.delete(inst.id) : n.add(inst.id)
+                            return n
+                          })
+                        }}
+                        className="h-4 w-4 rounded border-tundra-ink-300 accent-[#21759B] shadow"
+                      />
                     </div>
-                    {inst.site_url && (
-                      <a href={inst.site_url} target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-tundra-aurora hover:underline">
-                        {inst.site_url} ↗
-                      </a>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-tundra-ink-500">
-                    {inst.wp_version ?? '—'}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-tundra-ink-400">
-                    {inst.wp_path}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatePill state={inst.state} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
+
+                    {/* Card header */}
+                    <div className="flex items-start gap-3 p-4 pb-3">
+                      <WpLogo size={40} />
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          to="/wordpress/$installId"
+                          params={{ installId: inst.id }}
+                          className="block truncate font-semibold text-tundra-ink hover:text-[#21759B] transition-colors"
+                        >
+                          {inst.site_title ?? inst.site_id.slice(0, 14)}
+                        </Link>
+                        {inst.site_url && (
+                          <a href={inst.site_url} target="_blank" rel="noopener noreferrer"
+                            className="block truncate text-xs text-tundra-aurora hover:underline">
+                            {inst.site_url.replace(/^https?:\/\//, '')} ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Meta */}
+                    <div className="divide-y divide-tundra-ink-100 border-t border-tundra-ink-100">
+                      <div className="flex items-center justify-between px-4 py-2 text-xs">
+                        <span className="text-tundra-ink-400">Status</span>
+                        <StatePill state={inst.state} />
+                      </div>
+                      <div className="flex items-center justify-between px-4 py-2 text-xs">
+                        <span className="text-tundra-ink-400">Version</span>
+                        <span className="font-mono text-tundra-ink-500">{inst.wp_version ?? '—'}</span>
+                      </div>
+                      <div className="flex items-center justify-between px-4 py-2 text-xs">
+                        <span className="text-tundra-ink-400">Installed</span>
+                        <span className="text-tundra-ink-500">
+                          {new Date(inst.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-1.5 border-t border-tundra-ink-100 p-3">
+                      {inst.site_url && (
+                        <a href={`${inst.site_url}/wp-admin`} target="_blank" rel="noopener noreferrer"
+                          className="flex-1 rounded-lg border border-[#21759B]/30 py-1.5 text-center text-xs font-medium text-[#21759B] hover:bg-[#21759B]/5 transition-colors">
+                          WP Admin
+                        </a>
+                      )}
                       <Link
                         to="/wordpress/$installId"
                         params={{ installId: inst.id }}
-                        className="rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors"
+                        className="flex-1 rounded-lg border border-tundra-ink-200 py-1.5 text-center text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors"
                       >
-                        Manage →
+                        Manage
                       </Link>
-                      <button
-                        onClick={() => {
-                          if (confirm('Mark this WordPress installation for removal? Files will be deleted on next agent sync.')) {
-                            removeMutation.mutate(inst.id)
-                          }
-                        }}
-                        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
-                      >
-                        Remove
-                      </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                ))}
+              </div>
+              <Pagination
+                total={filtered.length}
+                page={safePage}
+                pageSize={pageSize}
+                onPage={(p) => { setPage(p) }}
+                onPageSize={(n) => { setPageSize(n); setPage(1) }}
+              />
+            </>
+          )}
         </div>
       )}
     </div>
