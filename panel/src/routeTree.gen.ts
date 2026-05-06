@@ -45,6 +45,16 @@ import { Route as AuthWordpressInstallIdSettingsRouteImport } from './routes/_au
 import { Route as AuthWordpressInstallIdDangerRouteImport } from './routes/_auth.wordpress.$installId.danger'
 import { Route as AuthSitesNewRouteImport } from './routes/_auth.sites.new'
 import { Route as AuthSitesSiteIdRouteImport } from './routes/_auth.sites.$siteId'
+import { Route as AuthSitesSiteIdIndexRouteImport } from './routes/_auth.sites.$siteId.index'
+import { Route as AuthSitesSiteIdDeploymentsRouteImport } from './routes/_auth.sites.$siteId.deployments'
+import { Route as AuthSitesSiteIdDomainsRouteImport } from './routes/_auth.sites.$siteId.domains'
+import { Route as AuthSitesSiteIdSslRouteImport } from './routes/_auth.sites.$siteId.ssl'
+import { Route as AuthSitesSiteIdDatabasesRouteImport } from './routes/_auth.sites.$siteId.databases'
+import { Route as AuthSitesSiteIdDaemonsRouteImport } from './routes/_auth.sites.$siteId.daemons'
+import { Route as AuthSitesSiteIdCronRouteImport } from './routes/_auth.sites.$siteId.cron'
+import { Route as AuthSitesSiteIdLogsRouteImport } from './routes/_auth.sites.$siteId.logs'
+import { Route as AuthSitesSiteIdSettingsRouteImport } from './routes/_auth.sites.$siteId.settings'
+import { Route as AuthSitesSiteIdDangerRouteImport } from './routes/_auth.sites.$siteId.danger'
 import { Route as AuthSettingsSecurityRouteImport } from './routes/_auth.settings.security'
 import { Route as AuthSettingsMcpRouteImport } from './routes/_auth.settings.mcp'
 import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
@@ -248,6 +258,56 @@ const AuthSitesSiteIdRoute = AuthSitesSiteIdRouteImport.update({
   path: '/$siteId',
   getParentRoute: () => AuthSitesRoute,
 } as any)
+const AuthSitesSiteIdIndexRoute = AuthSitesSiteIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdDeploymentsRoute = AuthSitesSiteIdDeploymentsRouteImport.update({
+  id: '/deployments',
+  path: '/deployments',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdDomainsRoute = AuthSitesSiteIdDomainsRouteImport.update({
+  id: '/domains',
+  path: '/domains',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdSslRoute = AuthSitesSiteIdSslRouteImport.update({
+  id: '/ssl',
+  path: '/ssl',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdDatabasesRoute = AuthSitesSiteIdDatabasesRouteImport.update({
+  id: '/databases',
+  path: '/databases',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdDaemonsRoute = AuthSitesSiteIdDaemonsRouteImport.update({
+  id: '/daemons',
+  path: '/daemons',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdCronRoute = AuthSitesSiteIdCronRouteImport.update({
+  id: '/cron',
+  path: '/cron',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdLogsRoute = AuthSitesSiteIdLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdSettingsRoute = AuthSitesSiteIdSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
+const AuthSitesSiteIdDangerRoute = AuthSitesSiteIdDangerRouteImport.update({
+  id: '/danger',
+  path: '/danger',
+  getParentRoute: () => AuthSitesSiteIdRoute,
+} as any)
 const AuthSettingsSecurityRoute = AuthSettingsSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -405,10 +465,20 @@ export interface FileRoutesByFullPath {
   '/servers/new': typeof AuthServersNewRoute
   '/settings/mcp': typeof AuthSettingsMcpRoute
   '/settings/security': typeof AuthSettingsSecurityRoute
-  '/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/sites/$siteId': typeof AuthSitesSiteIdRouteWithChildren
   '/sites/new': typeof AuthSitesNewRoute
   '/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
   '/plugins/': typeof AuthPluginsIndexRoute
+  '/sites/$siteId/': typeof AuthSitesSiteIdIndexRoute
+  '/sites/$siteId/deployments': typeof AuthSitesSiteIdDeploymentsRoute
+  '/sites/$siteId/domains': typeof AuthSitesSiteIdDomainsRoute
+  '/sites/$siteId/ssl': typeof AuthSitesSiteIdSslRoute
+  '/sites/$siteId/databases': typeof AuthSitesSiteIdDatabasesRoute
+  '/sites/$siteId/daemons': typeof AuthSitesSiteIdDaemonsRoute
+  '/sites/$siteId/cron': typeof AuthSitesSiteIdCronRoute
+  '/sites/$siteId/logs': typeof AuthSitesSiteIdLogsRoute
+  '/sites/$siteId/settings': typeof AuthSitesSiteIdSettingsRoute
+  '/sites/$siteId/danger': typeof AuthSitesSiteIdDangerRoute
   '/servers/': typeof AuthServersIndexRoute
   '/sites/': typeof AuthSitesIndexRoute
   '/wordpress/': typeof AuthWordpressIndexRoute
@@ -461,10 +531,20 @@ export interface FileRoutesByTo {
   '/servers/new': typeof AuthServersNewRoute
   '/settings/mcp': typeof AuthSettingsMcpRoute
   '/settings/security': typeof AuthSettingsSecurityRoute
-  '/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/sites/$siteId': typeof AuthSitesSiteIdRouteWithChildren
   '/sites/new': typeof AuthSitesNewRoute
   '/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
   '/plugins': typeof AuthPluginsIndexRoute
+  '/sites/$siteId/': typeof AuthSitesSiteIdIndexRoute
+  '/sites/$siteId/deployments': typeof AuthSitesSiteIdDeploymentsRoute
+  '/sites/$siteId/domains': typeof AuthSitesSiteIdDomainsRoute
+  '/sites/$siteId/ssl': typeof AuthSitesSiteIdSslRoute
+  '/sites/$siteId/databases': typeof AuthSitesSiteIdDatabasesRoute
+  '/sites/$siteId/daemons': typeof AuthSitesSiteIdDaemonsRoute
+  '/sites/$siteId/cron': typeof AuthSitesSiteIdCronRoute
+  '/sites/$siteId/logs': typeof AuthSitesSiteIdLogsRoute
+  '/sites/$siteId/settings': typeof AuthSitesSiteIdSettingsRoute
+  '/sites/$siteId/danger': typeof AuthSitesSiteIdDangerRoute
   '/servers': typeof AuthServersIndexRoute
   '/sites': typeof AuthSitesIndexRoute
   '/wordpress': typeof AuthWordpressIndexRoute
@@ -523,9 +603,19 @@ export interface FileRoutesById {
   '/_auth/servers/new': typeof AuthServersNewRoute
   '/_auth/settings/mcp': typeof AuthSettingsMcpRoute
   '/_auth/settings/security': typeof AuthSettingsSecurityRoute
-  '/_auth/sites/$siteId': typeof AuthSitesSiteIdRoute
+  '/_auth/sites/$siteId': typeof AuthSitesSiteIdRouteWithChildren
   '/_auth/sites/new': typeof AuthSitesNewRoute
   '/_auth/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
+  '/_auth/sites/$siteId/': typeof AuthSitesSiteIdIndexRoute
+  '/_auth/sites/$siteId/deployments': typeof AuthSitesSiteIdDeploymentsRoute
+  '/_auth/sites/$siteId/domains': typeof AuthSitesSiteIdDomainsRoute
+  '/_auth/sites/$siteId/ssl': typeof AuthSitesSiteIdSslRoute
+  '/_auth/sites/$siteId/databases': typeof AuthSitesSiteIdDatabasesRoute
+  '/_auth/sites/$siteId/daemons': typeof AuthSitesSiteIdDaemonsRoute
+  '/_auth/sites/$siteId/cron': typeof AuthSitesSiteIdCronRoute
+  '/_auth/sites/$siteId/logs': typeof AuthSitesSiteIdLogsRoute
+  '/_auth/sites/$siteId/settings': typeof AuthSitesSiteIdSettingsRoute
+  '/_auth/sites/$siteId/danger': typeof AuthSitesSiteIdDangerRoute
   '/_auth/plugins/': typeof AuthPluginsIndexRoute
   '/_auth/servers/': typeof AuthServersIndexRoute
   '/_auth/sites/': typeof AuthSitesIndexRoute
@@ -589,6 +679,16 @@ export interface FileRouteTypes {
     | '/sites/new'
     | '/wordpress/$installId'
     | '/plugins/'
+    | '/sites/$siteId/'
+    | '/sites/$siteId/deployments'
+    | '/sites/$siteId/domains'
+    | '/sites/$siteId/ssl'
+    | '/sites/$siteId/databases'
+    | '/sites/$siteId/daemons'
+    | '/sites/$siteId/cron'
+    | '/sites/$siteId/logs'
+    | '/sites/$siteId/settings'
+    | '/sites/$siteId/danger'
     | '/servers/'
     | '/sites/'
     | '/wordpress/'
@@ -645,6 +745,16 @@ export interface FileRouteTypes {
     | '/sites/new'
     | '/wordpress/$installId'
     | '/plugins'
+    | '/sites/$siteId/'
+    | '/sites/$siteId/deployments'
+    | '/sites/$siteId/domains'
+    | '/sites/$siteId/ssl'
+    | '/sites/$siteId/databases'
+    | '/sites/$siteId/daemons'
+    | '/sites/$siteId/cron'
+    | '/sites/$siteId/logs'
+    | '/sites/$siteId/settings'
+    | '/sites/$siteId/danger'
     | '/servers'
     | '/sites'
     | '/wordpress'
@@ -705,6 +815,16 @@ export interface FileRouteTypes {
     | '/_auth/sites/$siteId'
     | '/_auth/sites/new'
     | '/_auth/wordpress/$installId'
+    | '/_auth/sites/$siteId/'
+    | '/_auth/sites/$siteId/deployments'
+    | '/_auth/sites/$siteId/domains'
+    | '/_auth/sites/$siteId/ssl'
+    | '/_auth/sites/$siteId/databases'
+    | '/_auth/sites/$siteId/daemons'
+    | '/_auth/sites/$siteId/cron'
+    | '/_auth/sites/$siteId/logs'
+    | '/_auth/sites/$siteId/settings'
+    | '/_auth/sites/$siteId/danger'
     | '/_auth/plugins/'
     | '/_auth/servers/'
     | '/_auth/sites/'
@@ -985,6 +1105,76 @@ declare module '@tanstack/react-router' {
       fullPath: '/sites/$siteId'
       preLoaderRoute: typeof AuthSitesSiteIdRouteImport
       parentRoute: typeof AuthSitesRoute
+    }
+    '/_auth/sites/$siteId/': {
+      id: '/_auth/sites/$siteId/'
+      path: '/'
+      fullPath: '/sites/$siteId/'
+      preLoaderRoute: typeof AuthSitesSiteIdIndexRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/deployments': {
+      id: '/_auth/sites/$siteId/deployments'
+      path: '/deployments'
+      fullPath: '/sites/$siteId/deployments'
+      preLoaderRoute: typeof AuthSitesSiteIdDeploymentsRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/domains': {
+      id: '/_auth/sites/$siteId/domains'
+      path: '/domains'
+      fullPath: '/sites/$siteId/domains'
+      preLoaderRoute: typeof AuthSitesSiteIdDomainsRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/ssl': {
+      id: '/_auth/sites/$siteId/ssl'
+      path: '/ssl'
+      fullPath: '/sites/$siteId/ssl'
+      preLoaderRoute: typeof AuthSitesSiteIdSslRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/databases': {
+      id: '/_auth/sites/$siteId/databases'
+      path: '/databases'
+      fullPath: '/sites/$siteId/databases'
+      preLoaderRoute: typeof AuthSitesSiteIdDatabasesRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/daemons': {
+      id: '/_auth/sites/$siteId/daemons'
+      path: '/daemons'
+      fullPath: '/sites/$siteId/daemons'
+      preLoaderRoute: typeof AuthSitesSiteIdDaemonsRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/cron': {
+      id: '/_auth/sites/$siteId/cron'
+      path: '/cron'
+      fullPath: '/sites/$siteId/cron'
+      preLoaderRoute: typeof AuthSitesSiteIdCronRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/logs': {
+      id: '/_auth/sites/$siteId/logs'
+      path: '/logs'
+      fullPath: '/sites/$siteId/logs'
+      preLoaderRoute: typeof AuthSitesSiteIdLogsRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/settings': {
+      id: '/_auth/sites/$siteId/settings'
+      path: '/settings'
+      fullPath: '/sites/$siteId/settings'
+      preLoaderRoute: typeof AuthSitesSiteIdSettingsRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
+    }
+    '/_auth/sites/$siteId/danger': {
+      id: '/_auth/sites/$siteId/danger'
+      path: '/danger'
+      fullPath: '/sites/$siteId/danger'
+      preLoaderRoute: typeof AuthSitesSiteIdDangerRouteImport
+      parentRoute: typeof AuthSitesSiteIdRoute
     }
     '/_auth/settings/security': {
       id: '/_auth/settings/security'
@@ -1331,14 +1521,43 @@ const AuthSettingsRouteWithChildren = AuthSettingsRoute._addFileChildren(
   AuthSettingsRouteChildren,
 )
 
+interface AuthSitesSiteIdRouteChildren {
+  AuthSitesSiteIdIndexRoute: typeof AuthSitesSiteIdIndexRoute
+  AuthSitesSiteIdDeploymentsRoute: typeof AuthSitesSiteIdDeploymentsRoute
+  AuthSitesSiteIdDomainsRoute: typeof AuthSitesSiteIdDomainsRoute
+  AuthSitesSiteIdSslRoute: typeof AuthSitesSiteIdSslRoute
+  AuthSitesSiteIdDatabasesRoute: typeof AuthSitesSiteIdDatabasesRoute
+  AuthSitesSiteIdDaemonsRoute: typeof AuthSitesSiteIdDaemonsRoute
+  AuthSitesSiteIdCronRoute: typeof AuthSitesSiteIdCronRoute
+  AuthSitesSiteIdLogsRoute: typeof AuthSitesSiteIdLogsRoute
+  AuthSitesSiteIdSettingsRoute: typeof AuthSitesSiteIdSettingsRoute
+  AuthSitesSiteIdDangerRoute: typeof AuthSitesSiteIdDangerRoute
+}
+
+const AuthSitesSiteIdRouteChildren: AuthSitesSiteIdRouteChildren = {
+  AuthSitesSiteIdIndexRoute: AuthSitesSiteIdIndexRoute,
+  AuthSitesSiteIdDeploymentsRoute: AuthSitesSiteIdDeploymentsRoute,
+  AuthSitesSiteIdDomainsRoute: AuthSitesSiteIdDomainsRoute,
+  AuthSitesSiteIdSslRoute: AuthSitesSiteIdSslRoute,
+  AuthSitesSiteIdDatabasesRoute: AuthSitesSiteIdDatabasesRoute,
+  AuthSitesSiteIdDaemonsRoute: AuthSitesSiteIdDaemonsRoute,
+  AuthSitesSiteIdCronRoute: AuthSitesSiteIdCronRoute,
+  AuthSitesSiteIdLogsRoute: AuthSitesSiteIdLogsRoute,
+  AuthSitesSiteIdSettingsRoute: AuthSitesSiteIdSettingsRoute,
+  AuthSitesSiteIdDangerRoute: AuthSitesSiteIdDangerRoute,
+}
+
+const AuthSitesSiteIdRouteWithChildren =
+  AuthSitesSiteIdRoute._addFileChildren(AuthSitesSiteIdRouteChildren)
+
 interface AuthSitesRouteChildren {
-  AuthSitesSiteIdRoute: typeof AuthSitesSiteIdRoute
+  AuthSitesSiteIdRoute: typeof AuthSitesSiteIdRouteWithChildren
   AuthSitesNewRoute: typeof AuthSitesNewRoute
   AuthSitesIndexRoute: typeof AuthSitesIndexRoute
 }
 
 const AuthSitesRouteChildren: AuthSitesRouteChildren = {
-  AuthSitesSiteIdRoute: AuthSitesSiteIdRoute,
+  AuthSitesSiteIdRoute: AuthSitesSiteIdRouteWithChildren,
   AuthSitesNewRoute: AuthSitesNewRoute,
   AuthSitesIndexRoute: AuthSitesIndexRoute,
 }
