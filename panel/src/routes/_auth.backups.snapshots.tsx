@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { BackupSnapshot, ListResponse, RestorePreview } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 
 export const Route = createFileRoute('/_auth/backups/snapshots')({
   component: BackupSnapshotsPage,
@@ -45,31 +46,31 @@ function RestoreDialog({
   confirming: boolean
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md rounded-lg border border-tundra-ink-200 bg-white p-6 shadow-lg">
-        <h2 className="mb-4 text-lg font-semibold">Confirm restore</h2>
-        <dl className="mb-6 grid grid-cols-2 gap-3 text-sm rounded-lg border border-tundra-ink-100 p-4">
-          <dt className="font-medium text-tundra-ink-500">Snapshot ID</dt>
-          <dd>{preview.preview.snapshot_id.slice(0, 12)}</dd>
-          <dt className="font-medium text-tundra-ink-500">Job ID</dt>
-          <dd>{preview.preview.job_id.slice(0, 12)}</dd>
-          <dt className="font-medium text-tundra-ink-500">Size</dt>
-          <dd>{formatMB(preview.preview.size_bytes)}</dd>
-          <dt className="font-medium text-tundra-ink-500">Created</dt>
-          <dd>{new Date(preview.preview.created_at).toLocaleString()}</dd>
-          <dt className="font-medium text-tundra-ink-500">Expires</dt>
-          <dd>{new Date(preview.expires_at).toLocaleString()}</dd>
-        </dl>
-        <div className="flex gap-3">
-          <Button onClick={onConfirm} loading={confirming}>
-            Confirm restore
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        </div>
-      </div>
-    </div>
+    <Dialog open onClose={onCancel}>
+      <DialogHeader>
+        <DialogTitle>Confirm restore</DialogTitle>
+      </DialogHeader>
+      <dl className="mb-6 grid grid-cols-2 gap-3 text-sm rounded-lg border border-tundra-ink-100 p-4">
+        <dt className="font-medium text-tundra-ink-500">Snapshot ID</dt>
+        <dd>{preview.preview.snapshot_id.slice(0, 12)}</dd>
+        <dt className="font-medium text-tundra-ink-500">Job ID</dt>
+        <dd>{preview.preview.job_id.slice(0, 12)}</dd>
+        <dt className="font-medium text-tundra-ink-500">Size</dt>
+        <dd>{formatMB(preview.preview.size_bytes)}</dd>
+        <dt className="font-medium text-tundra-ink-500">Created</dt>
+        <dd>{new Date(preview.preview.created_at).toLocaleString()}</dd>
+        <dt className="font-medium text-tundra-ink-500">Expires</dt>
+        <dd>{new Date(preview.expires_at).toLocaleString()}</dd>
+      </dl>
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={onConfirm} loading={confirming}>
+          Confirm restore
+        </Button>
+      </DialogFooter>
+    </Dialog>
   )
 }
 

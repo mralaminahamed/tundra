@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { ListResponse, Server, Site } from '@/lib/api-types'
 import { resolveBadge } from '@/lib/source-badge'
-import { SiteStatusPill } from '@/lib/site-shared'
+import { SiteStatusPill } from '@/components/site-shared'
 
 export const Route = createFileRoute('/_auth/sites/$siteId')({
   component: SiteDetailLayout,

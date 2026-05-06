@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/stores/auth'
+import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 
 export const Route = createFileRoute('/_auth/operators')({
   component: OperatorsPage,
@@ -187,46 +188,46 @@ function CreateOperatorDialog({ onClose, onCreated }: { onClose: () => void; onC
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold">Create operator</h2>
-        <form onSubmit={(e) => { void handleSubmit(e) }} className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            Full name
-            <input required value={fullName} onChange={(e) => { setFullName(e.target.value) }}
-              className="rounded border border-tundra-ink-200 px-3 py-2" />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Email
-            <input required type="email" value={email} onChange={(e) => { setEmail(e.target.value) }}
-              className="rounded border border-tundra-ink-200 px-3 py-2" />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Role
-            <select value={role} onChange={(e) => { setRole(e.target.value) }}
-              className="rounded border border-tundra-ink-200 px-3 py-2">
-              <option value="superadmin">superadmin</option>
-              <option value="admin">admin</option>
-              <option value="viewer">viewer</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Temporary password
-            <input required type="password" value={password} onChange={(e) => { setPassword(e.target.value) }}
-              className="rounded border border-tundra-ink-200 px-3 py-2" />
-          </label>
-          <div className="mt-2 flex justify-end gap-3">
-            <button type="button" onClick={onClose}
-              className="rounded border border-tundra-ink-200 px-4 py-2 text-sm hover:bg-tundra-ink-50">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving}
-              className="rounded bg-tundra-lichen px-4 py-2 text-sm text-white hover:bg-tundra-lichen-600 disabled:opacity-50">
-              {saving ? 'Creating…' : 'Create'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <Dialog open onClose={onClose}>
+      <DialogHeader>
+        <DialogTitle>Create operator</DialogTitle>
+      </DialogHeader>
+      <form onSubmit={(e) => { void handleSubmit(e) }} className="flex flex-col gap-3">
+        <label className="flex flex-col gap-1 text-sm">
+          Full name
+          <input required value={fullName} onChange={(e) => { setFullName(e.target.value) }}
+            className="rounded border border-tundra-ink-200 px-3 py-2" />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Email
+          <input required type="email" value={email} onChange={(e) => { setEmail(e.target.value) }}
+            className="rounded border border-tundra-ink-200 px-3 py-2" />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Role
+          <select value={role} onChange={(e) => { setRole(e.target.value) }}
+            className="rounded border border-tundra-ink-200 px-3 py-2">
+            <option value="superadmin">superadmin</option>
+            <option value="admin">admin</option>
+            <option value="viewer">viewer</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Temporary password
+          <input required type="password" value={password} onChange={(e) => { setPassword(e.target.value) }}
+            className="rounded border border-tundra-ink-200 px-3 py-2" />
+        </label>
+        <DialogFooter>
+          <button type="button" onClick={onClose}
+            className="rounded border border-tundra-ink-200 px-4 py-2 text-sm hover:bg-tundra-ink-50">
+            Cancel
+          </button>
+          <button type="submit" disabled={saving}
+            className="rounded bg-tundra-lichen px-4 py-2 text-sm text-white hover:bg-tundra-lichen-600 disabled:opacity-50">
+            {saving ? 'Creating…' : 'Create'}
+          </button>
+        </DialogFooter>
+      </form>
+    </Dialog>
   )
 }

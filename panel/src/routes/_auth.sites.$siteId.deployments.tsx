@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Deployment, ListResponse } from '@/lib/api-types'
-import { DeployStatusBadge, EmptyState } from '@/lib/site-shared'
+import { DeployStatusBadge, EmptyState } from '@/components/site-shared'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/deployments')({
   component: SiteDeploymentsTab,

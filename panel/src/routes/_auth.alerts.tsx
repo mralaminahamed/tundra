@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { SkeletonTable } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 
 export const Route = createFileRoute('/_auth/alerts')({
   component: AlertsPage,
@@ -224,59 +225,59 @@ function CreateRuleDialog({ onClose, onCreated }: { onClose: () => void; onCreat
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold">Create alert rule</h2>
-        <form onSubmit={(e) => { void handleSubmit(e) }} className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            Name
-            <input required value={name} onChange={(e) => { setName(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2" />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Scope type
-            <select value={scopeType} onChange={(e) => { setScopeType(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2">
-              <option value="server">server</option>
-              <option value="site">site</option>
-              <option value="database">database</option>
+    <Dialog open onClose={onClose}>
+      <DialogHeader>
+        <DialogTitle>Create alert rule</DialogTitle>
+      </DialogHeader>
+      <form onSubmit={(e) => { void handleSubmit(e) }} className="flex flex-col gap-3">
+        <label className="flex flex-col gap-1 text-sm">
+          Name
+          <input required value={name} onChange={(e) => { setName(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2" />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Scope type
+          <select value={scopeType} onChange={(e) => { setScopeType(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2">
+            <option value="server">server</option>
+            <option value="site">site</option>
+            <option value="database">database</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Metric
+          <input required value={metric} onChange={(e) => { setMetric(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2" placeholder="cpu_pct" />
+        </label>
+        <div className="flex gap-3">
+          <label className="flex flex-1 flex-col gap-1 text-sm">
+            Condition
+            <select value={condition} onChange={(e) => { setCondition(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2">
+              <option value="gt">&gt;</option>
+              <option value="lt">&lt;</option>
+              <option value="gte">&gt;=</option>
+              <option value="lte">&lt;=</option>
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Metric
-            <input required value={metric} onChange={(e) => { setMetric(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2" placeholder="cpu_pct" />
+          <label className="flex flex-1 flex-col gap-1 text-sm">
+            Threshold
+            <input required type="number" value={threshold} onChange={(e) => { setThreshold(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2" />
           </label>
-          <div className="flex gap-3">
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              Condition
-              <select value={condition} onChange={(e) => { setCondition(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2">
-                <option value="gt">&gt;</option>
-                <option value="lt">&lt;</option>
-                <option value="gte">&gt;=</option>
-                <option value="lte">&lt;=</option>
-              </select>
-            </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              Threshold
-              <input required type="number" value={threshold} onChange={(e) => { setThreshold(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2" />
-            </label>
-          </div>
-          <label className="flex flex-col gap-1 text-sm">
-            Duration (seconds)
-            <input required type="number" value={durationSecs} onChange={(e) => { setDurationSecs(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2" />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Severity
-            <select value={severity} onChange={(e) => { setSeverity(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2">
-              <option value="info">info</option>
-              <option value="warning">warning</option>
-              <option value="critical">critical</option>
-            </select>
-          </label>
-          <div className="mt-2 flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" loading={saving}>Create</Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+        <label className="flex flex-col gap-1 text-sm">
+          Duration (seconds)
+          <input required type="number" value={durationSecs} onChange={(e) => { setDurationSecs(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2" />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Severity
+          <select value={severity} onChange={(e) => { setSeverity(e.target.value) }} className="rounded border border-tundra-ink-200 px-3 py-2">
+            <option value="info">info</option>
+            <option value="warning">warning</option>
+            <option value="critical">critical</option>
+          </select>
+        </label>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="submit" loading={saving}>Create</Button>
+        </DialogFooter>
+      </form>
+    </Dialog>
   )
 }

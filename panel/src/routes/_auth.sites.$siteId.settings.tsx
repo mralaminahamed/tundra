@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { ListResponse, Server, Site } from '@/lib/api-types'
-import { SectionCard } from '@/lib/site-shared'
+import { SectionCard } from '@/components/site-shared'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/settings')({
   component: SiteSettingsTab,

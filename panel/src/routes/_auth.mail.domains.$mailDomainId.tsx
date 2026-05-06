@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { MailDomain, Mailbox, Alias, DkimKey, ListResponse } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 export const Route = createFileRoute('/_auth/mail/domains/$mailDomainId')({
   component: MailDomainDetailPage,
@@ -310,27 +311,20 @@ function MailDomainDetailPage() {
       </section>
 
       {/* DKIM modal */}
-      {showDkimModal && dkimKey && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-xl rounded-lg border border-tundra-ink-200 bg-white p-6 shadow-lg">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">New DKIM public key</h2>
-              <button
-                type="button"
-                onClick={() => { setShowDkimModal(false) }}
-                className="text-tundra-ink-400 hover:text-tundra-ink"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="mb-3 text-sm text-tundra-ink-500">
-              Publish this as a DNS TXT record at{' '}
-              <code className="font-mono">{dkimKey.selector}._domainkey.{domain.domain}</code>
-            </p>
+      <Dialog open={showDkimModal && !!dkimKey} onClose={() => { setShowDkimModal(false) }} maxWidth="max-w-xl">
+        {dkimKey && (
+          <>
+            <DialogHeader>
+              <DialogTitle>New DKIM public key</DialogTitle>
+              <DialogDescription>
+                Publish this as a DNS TXT record at{' '}
+                <code className="font-mono">{dkimKey.selector}._domainkey.{domain.domain}</code>
+              </DialogDescription>
+            </DialogHeader>
             <pre className="overflow-x-auto rounded bg-tundra-ink-50 p-4 text-xs font-mono whitespace-pre-wrap break-all">
               {dkimKey.public_key_pem}
             </pre>
-            <div className="mt-4 flex justify-end">
+            <DialogFooter>
               <Button
                 type="button"
                 onClick={() => {
@@ -341,10 +335,10 @@ function MailDomainDetailPage() {
               >
                 Copy key
               </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogFooter>
+          </>
+        )}
+      </Dialog>
     </div>
   )
 }

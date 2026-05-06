@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Deployment, ListResponse, Server, Site } from '@/lib/api-types'
 import { resolveBadge } from '@/lib/source-badge'
-import { CopyButton, DeployStatusBadge, InfoRow, SectionCard } from '@/lib/site-shared'
+import { CopyButton, DeployStatusBadge, InfoRow, SectionCard } from '@/components/site-shared'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/')({
   component: SiteOverviewTab,
@@ -133,27 +133,27 @@ function SiteOverviewTab() {
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:col-span-2">
-        {[
-          { label: 'File Manager', route: 'href', href: `/sites/${siteId}/files` },
-          { label: 'Domains',      route: 'domains' as const },
-          { label: 'SSL',          route: 'ssl' as const },
-          { label: 'Databases',    route: 'databases' as const },
-        ].map(({ label, route, href }) => {
+        {(() => {
           const cls = 'flex flex-col items-center gap-2 rounded-xl border border-tundra-ink-200 bg-white py-4 text-xs font-medium text-tundra-ink-500 transition-colors hover:border-tundra-lichen hover:text-tundra-lichen-700'
-          const iconMap: Record<string, React.ReactNode> = {
-            'File Manager': <svg className="h-5 w-5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>,
-            Domains: <svg className="h-5 w-5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>,
-            SSL: <svg className="h-5 w-5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-            Databases: <svg className="h-5 w-5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5"/><path d="M3 12c0 1.657 4.03 3 9 3s9-1.343 9-3"/></svg>,
-          }
-          if (route === 'href') return (
-            <a key={label} href={href!} className={cls}>{iconMap[label]}{label}</a>
-          )
-          const to = `/sites/$siteId/${route}` as '/sites/$siteId/domains'
-          return (
-            <Link key={label} to={to} params={{ siteId }} className={cls}>{iconMap[label]}{label}</Link>
-          )
-        })}
+          return (<>
+            <Link to="/files/$siteId" params={{ siteId }} search={{ path: '/' }} className={cls}>
+              <svg className="h-5 w-5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              File Manager
+            </Link>
+            <Link to="/sites/$siteId/domains" params={{ siteId }} className={cls}>
+              <svg className="h-5 w-5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+              Domains
+            </Link>
+            <Link to="/sites/$siteId/ssl" params={{ siteId }} className={cls}>
+              <svg className="h-5 w-5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              SSL
+            </Link>
+            <Link to="/sites/$siteId/databases" params={{ siteId }} className={cls}>
+              <svg className="h-5 w-5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5"/><path d="M3 12c0 1.657 4.03 3 9 3s9-1.343 9-3"/></svg>
+              Databases
+            </Link>
+          </>)
+        })()}
       </div>
 
       {/* Deploy trigger */}

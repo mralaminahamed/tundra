@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Database, ListResponse } from '@/lib/api-types'
-import { EmptyState } from '@/lib/site-shared'
+import { EmptyState } from '@/components/site-shared'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/databases')({
   component: SiteDatabasesTab,

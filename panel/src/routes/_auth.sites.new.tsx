@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { CreateSiteResponse, ListResponse, Server, TemplateManifest } from '@/lib/api-types'
+import { Switch } from '@/components/ui/switch'
 
 interface SitesNewSearch { template?: string }
 
@@ -489,17 +490,10 @@ function DomainStep({
           <p className="text-sm font-medium text-tundra-ink">Enable SSL / HTTPS</p>
           <p className="text-xs text-tundra-ink-400">Automatically issues a Let's Encrypt certificate after provisioning</p>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={values.enableSsl}
-          onClick={() => { void setFieldValue('enableSsl', !values.enableSsl) }}
-          className={`relative h-5 w-9 rounded-full border transition-colors ${
-            values.enableSsl ? 'border-tundra-lichen bg-tundra-lichen' : 'border-tundra-ink-300 bg-tundra-ink-100'
-          }`}
-        >
-          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${values.enableSsl ? 'translate-x-4' : 'translate-x-0'}`} />
-        </button>
+        <Switch
+          checked={values.enableSsl}
+          onChange={(v) => { void setFieldValue('enableSsl', v) }}
+        />
       </div>
 
       {/* Server selection */}

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { Switch } from '@/components/ui/switch'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/ssl')({
   component: SiteSslTab,
@@ -17,11 +18,7 @@ function SiteSslTab() {
           <p className="text-sm font-medium text-tundra-ink">{label}</p>
           {desc && <p className="text-xs text-tundra-ink-400">{desc}</p>}
         </div>
-        <button type="button" role="switch" aria-checked={checked}
-          onClick={() => { onChange(!checked) }}
-          className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition-colors ${checked ? 'border-tundra-lichen bg-tundra-lichen' : 'border-tundra-ink-300 bg-tundra-ink-100'}`}>
-          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
-        </button>
+        <Switch checked={checked} onChange={onChange} />
       </div>
     )
   }
