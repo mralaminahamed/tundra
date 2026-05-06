@@ -110,6 +110,31 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/sites/{id}/deployments",
             get(routes::sites::list_deployments).post(routes::sites::trigger_deploy),
         )
+        // ── Site file manager ──────────────────────────────────────────────
+        .route(
+            "/api/v1/sites/{site_id}/files",
+            get(routes::files::list_dir).delete(routes::files::delete_entry),
+        )
+        .route(
+            "/api/v1/sites/{site_id}/files/content",
+            get(routes::files::read_file).put(routes::files::write_file),
+        )
+        .route(
+            "/api/v1/sites/{site_id}/files/mkdir",
+            post(routes::files::mkdir),
+        )
+        .route(
+            "/api/v1/sites/{site_id}/files/touch",
+            post(routes::files::touch),
+        )
+        .route(
+            "/api/v1/sites/{site_id}/files/rename",
+            post(routes::files::rename_entry),
+        )
+        .route(
+            "/api/v1/sites/{site_id}/files/chmod",
+            post(routes::files::chmod_entry),
+        )
         // ── Database servers ───────────────────────────────────────────────
         .route(
             "/api/v1/database-servers",
@@ -327,7 +352,13 @@ pub fn router(pool: PgPool) -> Router {
         )
         .route(
             "/api/v1/wordpress/installations/{id}",
-            get(routes::wordpress::get_installation).delete(routes::wordpress::remove_installation),
+            get(routes::wordpress::get_installation)
+                .patch(routes::wordpress::patch_installation)
+                .delete(routes::wordpress::remove_installation),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/reprovision",
+            post(routes::wordpress::reprovision_installation),
         )
         .route(
             "/api/v1/wordpress/installations/{id}/plugins",
