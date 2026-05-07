@@ -6,6 +6,20 @@ import { api } from '@/lib/api'
 import type { Site } from '@/lib/api-types'
 import { Dialog } from '@/components/ui/dialog'
 import { fmtBytes } from '@/lib/utils'
+import {
+  FolderIcon as FolderIconBase,
+  FileIcon as FileIconBase,
+  ChevronRightIcon,
+  CloseIcon,
+  UploadIcon,
+  ListIcon,
+  LayoutGridIcon,
+  SearchIcon,
+  ArrowLeftIcon,
+  PencilIcon,
+  DownloadIcon,
+  TrashIcon,
+} from '@/components/icons'
 
 export const Route = createFileRoute('/_auth/files/$siteId')({
   validateSearch: (s: Record<string, unknown>): { path: string } => ({
@@ -117,9 +131,7 @@ function FileIcon({ type, name, large = false }: { type: string; name: string; l
 
   if (type === 'dir') return (
     <div className={`${sz} flex items-center justify-center rounded-lg bg-tundra-aurora/15`}>
-      <svg className={large ? 'h-5 w-5 text-tundra-aurora' : 'h-4 w-4 text-tundra-aurora'} fill="currentColor" viewBox="0 0 20 20">
-        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-      </svg>
+      <FolderIconBase className={large ? 'h-5 w-5 text-tundra-aurora' : 'h-4 w-4 text-tundra-aurora'} />
     </div>
   )
 
@@ -134,9 +146,7 @@ function FileIcon({ type, name, large = false }: { type: string; name: string; l
 
   return (
     <div className={`${sz} flex items-center justify-center rounded-lg bg-tundra-ink-100`}>
-      <svg className={large ? 'h-5 w-5 text-tundra-ink-400' : 'h-4 w-4 text-tundra-ink-400'} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-      </svg>
+      <FileIconBase className={large ? 'h-5 w-5 text-tundra-ink-400' : 'h-4 w-4 text-tundra-ink-400'} />
     </div>
   )
 }
@@ -193,13 +203,9 @@ function TreeNodeRow({ name, nodePath, depth, currentPath, expanded, dirCache, o
           className={`h-4 w-4 shrink-0 flex items-center justify-center rounded transition-transform ${!hasKids ? 'invisible' : ''}`}
           style={{ transform: isExpanded ? 'rotate(90deg)' : undefined }}
         >
-          <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path d="M9 18l6-6-6-6" strokeLinecap="round" />
-          </svg>
+          <ChevronRightIcon className="h-2.5 w-2.5" />
         </button>
-        <svg className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-        </svg>
+        <FolderIconBase className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" />
         <span className="truncate text-xs">{name}</span>
       </div>
       {isExpanded && cachedKids && cachedKids.map((child) => {
@@ -222,9 +228,7 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
       <div className="flex items-center justify-between border-b border-tundra-ink-100 px-5 py-4">
         <p className="text-sm font-semibold text-tundra-ink">{title}</p>
         <button type="button" onClick={onClose} className="rounded-lg p-1 text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <CloseIcon className="h-4 w-4" />
         </button>
       </div>
       <div className="p-5">{children}</div>
@@ -315,9 +319,7 @@ function UploadModal({ path, onClose }: {
         ].join(' ')}
       >
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
-          <svg className="h-7 w-7 text-tundra-ink-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.508 11.095" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <UploadIcon className="h-7 w-7 text-tundra-ink-400" />
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-tundra-ink">Drop files here</p>
@@ -523,9 +525,7 @@ function FileBrowser() {
                 path === '/' ? 'bg-tundra-lichen/10 text-tundra-lichen-700' : 'text-tundra-ink-600 hover:bg-tundra-ink-100 hover:text-tundra-ink',
               ].join(' ')}
             >
-              <svg className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-              </svg>
+              <FolderIconBase className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" />
               <span className="text-xs font-medium">/ root</span>
             </div>
             {(dirCache['/'] ?? []).map((d) => (
@@ -560,9 +560,7 @@ function FileBrowser() {
                 : 'border-tundra-ink-200 text-tundra-ink-400 hover:bg-tundra-ink-50',
             ].join(' ')}
           >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M3 7h18M3 12h12M3 17h8" strokeLinecap="round" />
-            </svg>
+            <ListIcon className="h-3.5 w-3.5" />
           </button>
 
           {/* Site domain */}
@@ -594,9 +592,7 @@ function FileBrowser() {
 
           {/* Filter */}
           <div className="relative shrink-0">
-            <svg className="pointer-events-none absolute left-2.5 top-1.5 h-3.5 w-3.5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-            </svg>
+            <SearchIcon className="pointer-events-none absolute left-2.5 top-1.5 h-3.5 w-3.5 text-tundra-ink-300" />
             <input type="search" placeholder="Filter…" value={filterText}
               onChange={(e) => { setFilterText(e.target.value) }}
               className="h-7 w-36 rounded-lg border border-tundra-ink-200 bg-tundra-ink-50 pl-7 pr-3 text-xs focus:border-tundra-lichen focus:outline-none focus:bg-white transition-colors" />
@@ -611,8 +607,8 @@ function FileBrowser() {
                   viewMode === m ? 'bg-tundra-lichen text-white' : 'bg-white text-tundra-ink-400 hover:bg-tundra-ink-50',
                 ].join(' ')}>
                 {m === 'list'
-                  ? <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M9 5h11M9 12h11M9 19h11M5 5h.01M5 12h.01M5 19h.01" strokeLinecap="round" /></svg>
-                  : <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  ? <ListIcon className="h-3.5 w-3.5" />
+                  : <LayoutGridIcon className="h-3.5 w-3.5" />
                 }
               </button>
             ))}
@@ -622,9 +618,7 @@ function FileBrowser() {
           <div className="flex shrink-0 gap-1">
             <button type="button" onClick={() => { setModal({ type: 'upload' }) }}
               className="flex items-center gap-1 rounded-lg border border-tundra-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <UploadIcon className="h-3.5 w-3.5" />
               Upload
             </button>
             <button type="button" onClick={() => { setNewName(''); setModal({ type: 'newFile' }) }}
@@ -633,9 +627,7 @@ function FileBrowser() {
             </button>
             <button type="button" onClick={() => { setNewName(''); setModal({ type: 'newFolder' }) }}
               className="flex items-center gap-1.5 rounded-lg bg-tundra-lichen px-2.5 py-1 text-xs font-medium text-white hover:bg-tundra-lichen-600 transition-colors">
-              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-              </svg>
+              <FolderIconBase className="h-3.5 w-3.5" />
               + Folder
             </button>
           </div>
@@ -695,9 +687,7 @@ function FileBrowser() {
                     <td className="px-3 py-2.5" colSpan={5}>
                       <button type="button" onClick={() => { goToPath(parentPath(path)) }}
                         className="flex items-center gap-2 text-xs text-tundra-ink-400 hover:text-tundra-lichen-700 transition-colors">
-                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path d="M11 17l-5-5m0 0l5-5m-5 5h12" strokeLinecap="round" />
-                        </svg>
+                        <ArrowLeftIcon className="h-3.5 w-3.5" />
                         <span className="font-mono">..</span>
                         <span className="text-tundra-ink-300">Go up</span>
                       </button>
@@ -793,30 +783,22 @@ function FileBrowser() {
                           {canEdit && (
                             <button type="button" onClick={() => { openEdit(f.name) }} title="Edit"
                               className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-lichen-700 transition-colors">
-                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
+                              <PencilIcon className="h-3.5 w-3.5" />
                             </button>
                           )}
                           <button type="button"
                             onClick={() => { setNewName(f.name); setModal({ type: 'rename', name: f.name }) }}
                             title="Rename"
                             className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors">
-                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path d="M4 6h16M4 12h16M4 18h7" strokeLinecap="round" />
-                            </svg>
+                            <ListIcon className="h-3.5 w-3.5" />
                           </button>
                           <button type="button" onClick={() => toast.info(`Downloading ${f.name}…`)} title={f.type === 'dir' ? 'Zip & download' : 'Download'}
                             className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors">
-                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
+                            <DownloadIcon className="h-3.5 w-3.5" />
                           </button>
                           <button type="button" onClick={() => { setModal({ type: 'delete', names: [f.name] }) }} title="Delete"
                             className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-red-50 hover:text-red-600 transition-colors">
-                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
+                            <TrashIcon className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </td>
@@ -834,9 +816,7 @@ function FileBrowser() {
               {path !== '/' && (
                 <button type="button" onClick={() => { goToPath(parentPath(path)) }}
                   className="mb-4 flex items-center gap-1.5 text-xs text-tundra-ink-400 hover:text-tundra-lichen-700 transition-colors">
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path d="M11 17l-5-5m0 0l5-5m-5 5h12" strokeLinecap="round" />
-                  </svg>
+                  <ArrowLeftIcon className="h-3.5 w-3.5" />
                   <span className="font-mono">..</span>
                   <span className="text-tundra-ink-300">Go up</span>
                 </button>
@@ -889,9 +869,7 @@ function FileBrowser() {
                           <div className="absolute right-1 top-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button type="button" onClick={(e) => { e.stopPropagation(); setModal({ type: 'delete', names: [f.name] }) }}
                               className="flex h-5 w-5 items-center justify-center rounded-md bg-white shadow text-tundra-ink-400 hover:text-red-600 transition-colors">
-                              <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path d="M6 18L18 6M6 6l12 12" />
-                              </svg>
+                              <CloseIcon className="h-3 w-3" />
                             </button>
                           </div>
                         )}

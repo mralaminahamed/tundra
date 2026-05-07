@@ -12,6 +12,15 @@ import { json } from '@codemirror/lang-json'
 
 import { api } from '@/lib/api'
 import type { Site } from '@/lib/api-types'
+import {
+  FolderIcon as FolderIconBase,
+  FileIcon as FileIconBase,
+  ChevronRightIcon,
+  CloseIcon,
+  PlusIcon,
+  ListIcon,
+  FolderOpenIcon,
+} from '@/components/icons'
 
 export const Route = createFileRoute('/_auth/editor/$siteId')({
   validateSearch: (s: Record<string, unknown>): { files: string[]; active: string } => {
@@ -111,9 +120,7 @@ function isTextFile(fp: string) {
 
 function FileIcon({ path: fp, isDir }: { path: string; isDir?: boolean }) {
   if (isDir) return (
-    <svg className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" fill="currentColor" viewBox="0 0 20 20">
-      <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-    </svg>
+    <FolderIconBase className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" />
   )
   const ext = fp.split('.').pop()?.toLowerCase() ?? ''
   const color =
@@ -125,9 +132,7 @@ function FileIcon({ path: fp, isDir }: { path: string; isDir?: boolean }) {
     ext === 'json' || ext === 'yaml' || ext === 'yml'   ? 'text-green-400'  :
     'text-slate-400'
   return (
-    <svg className={`h-3.5 w-3.5 shrink-0 ${color}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-    </svg>
+    <FileIconBase className={`h-3.5 w-3.5 shrink-0 ${color}`} />
   )
 }
 
@@ -159,13 +164,10 @@ function ExplorerNode({
         }}
       >
         {isDir ? (
-          <svg
+          <ChevronRightIcon
             className="h-3 w-3 shrink-0 text-[#cccccc] transition-transform"
             style={{ transform: isExpanded ? 'rotate(90deg)' : undefined }}
-            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          />
         ) : (
           <span className="w-3 shrink-0" />
         )}
@@ -324,9 +326,7 @@ function FileEditor() {
             title="Toggle explorer"
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded transition-colors hover:bg-white/10"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M3 7h18M3 12h12M3 17h8" strokeLinecap="round" />
-            </svg>
+            <ListIcon className="h-4 w-4" />
           </button>
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold" style={{ color: theme === 'dark' ? '#cccccc' : '#444' }}>
@@ -401,9 +401,7 @@ function FileEditor() {
             className="flex h-7 items-center gap-1 rounded px-2 text-xs transition-colors hover:bg-white/10"
             style={{ color: theme === 'dark' ? '#858585' : '#777' }}
           >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            </svg>
+            <FolderOpenIcon className="h-3.5 w-3.5" />
             Files
           </a>
         </div>
@@ -434,9 +432,7 @@ function FileEditor() {
                   void navigate({ to: '/files/$siteId', params: { siteId }, search: { path: '/' } })
                 }}
               >
-                <svg className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                </svg>
+                <FolderIconBase className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" />
                 <span className="font-medium">/ (document root)</span>
               </div>
               {DIR_TREE.map((node) => (
@@ -494,9 +490,7 @@ function FileEditor() {
                     onClick={(e) => { e.stopPropagation(); closeFile(fp) }}
                     className="ml-0.5 flex h-4 w-4 items-center justify-center rounded opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/20"
                   >
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <CloseIcon className="h-3 w-3" />
                   </button>
                 </div>
               )
@@ -512,9 +506,7 @@ function FileEditor() {
               className="flex h-8 w-8 shrink-0 items-center justify-center transition-colors"
               style={{ color: theme === 'dark' ? '#858585' : '#777' }}
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path d="M12 4v16m8-8H4" strokeLinecap="round" />
-              </svg>
+              <PlusIcon className="h-4 w-4" />
             </button>
           </div>
 
@@ -572,9 +564,7 @@ function FileEditor() {
                 style={{ background: theme === 'dark' ? '#1e1e1e' : '#fff' }}
               >
                 <div className="text-center">
-                  <svg className="mx-auto mb-3 h-12 w-12 opacity-20" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
-                    <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
+                  <FileIconBase className="mx-auto mb-3 h-12 w-12 opacity-20" />
                   <p className="text-sm" style={{ color: theme === 'dark' ? '#4d4d4d' : '#ccc' }}>
                     Open a file from the explorer
                   </p>

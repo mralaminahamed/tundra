@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { api } from '@/lib/api'
 import type { ListResponse, Site, Server } from '@/lib/api-types'
 import { SiteStatusPill } from '@/components/site-shared'
+import { SearchIcon, FolderIcon } from '@/components/icons'
 
 export const Route = createFileRoute('/_auth/files/')({
   component: FilesIndex,
@@ -50,9 +51,7 @@ function FilesIndex() {
             Sites — {filtered.length}
           </span>
           <div className="relative">
-            <svg className="pointer-events-none absolute left-2.5 top-2 h-3.5 w-3.5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-            </svg>
+            <SearchIcon className="pointer-events-none absolute left-2.5 top-2 h-3.5 w-3.5 text-tundra-ink-300" />
             <input
               type="search"
               placeholder="Search sites…"
@@ -75,9 +74,7 @@ function FilesIndex() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-            <svg className="h-10 w-10 text-tundra-ink-200" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            </svg>
+            <FolderIcon className="h-10 w-10 text-tundra-ink-200" />
             <p className="text-sm font-medium text-tundra-ink-400">No sites found</p>
           </div>
         ) : (
@@ -130,9 +127,7 @@ function FilesIndex() {
                           search={{ path: '/' }}
                           className="flex items-center gap-1.5 rounded-lg bg-tundra-lichen px-3 py-1.5 text-xs font-medium text-white hover:bg-tundra-lichen-600 transition-colors"
                         >
-                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                          </svg>
+                          <FolderIcon className="h-3.5 w-3.5" />
                           Manage files
                         </Link>
                       </div>
