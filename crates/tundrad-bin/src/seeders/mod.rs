@@ -2,6 +2,7 @@ pub mod alert_rules;
 pub mod domains;
 pub mod mail_domains;
 pub mod operators;
+pub mod plugins;
 pub mod servers;
 pub mod sites;
 pub mod wordpress;
@@ -9,6 +10,8 @@ pub mod wordpress;
 pub async fn run_all(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     println!("Seeding operators…");
     operators::run(pool).await?;
+    println!("Seeding plugins…");
+    plugins::run(pool).await?;
     println!("Seeding servers…");
     servers::run(pool).await?;
     println!("Seeding sites…");
