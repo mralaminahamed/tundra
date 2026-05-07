@@ -59,9 +59,7 @@ function WpDatabaseTab() {
 
   if (!install) return null
 
-  const phpMyAdminUrl = install.db_name
-    ? `/tools/phpmyadmin?db=${install.db_name}&user=${install.db_user ?? ''}`
-    : '/tools/phpmyadmin'
+  const phpMyAdminUrl = `/tools/phpmyadmin?installId=${installId}`
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">

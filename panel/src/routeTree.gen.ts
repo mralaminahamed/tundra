@@ -65,6 +65,7 @@ import { Route as AuthFilesRouteImport } from './routes/_auth.files'
 import { Route as AuthFilesIndexRouteImport } from './routes/_auth.files.index'
 import { Route as AuthFilesSiteIdRouteImport } from './routes/_auth.files.$siteId'
 import { Route as AuthEditorSiteIdRouteImport } from './routes/_auth.editor.$siteId'
+import { Route as AuthToolsPhpMyAdminRouteImport } from './routes/_auth.tools.phpmyadmin'
 import { Route as AuthSettingsSecurityRouteImport } from './routes/_auth.settings.security'
 import { Route as AuthSettingsMcpRouteImport } from './routes/_auth.settings.mcp'
 import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
@@ -358,6 +359,11 @@ const AuthFilesRoute = AuthFilesRouteImport.update({
   path: '/files',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthToolsPhpMyAdminRoute = AuthToolsPhpMyAdminRouteImport.update({
+  id: '/tools/phpmyadmin',
+  path: '/tools/phpmyadmin',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthFilesIndexRoute = AuthFilesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -549,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/files/': typeof AuthFilesIndexRoute
   '/files/$siteId': typeof AuthFilesSiteIdRoute
   '/editor/$siteId': typeof AuthEditorSiteIdRoute
+  '/tools/phpmyadmin': typeof AuthToolsPhpMyAdminRoute
   '/servers/': typeof AuthServersIndexRoute
   '/sites/': typeof AuthSitesIndexRoute
   '/wordpress/': typeof AuthWordpressIndexRoute
@@ -624,6 +631,7 @@ export interface FileRoutesByTo {
   '/files': typeof AuthFilesIndexRoute
   '/files/$siteId': typeof AuthFilesSiteIdRoute
   '/editor/$siteId': typeof AuthEditorSiteIdRoute
+  '/tools/phpmyadmin': typeof AuthToolsPhpMyAdminRoute
   '/servers': typeof AuthServersIndexRoute
   '/sites': typeof AuthSitesIndexRoute
   '/wordpress': typeof AuthWordpressIndexRoute
@@ -705,6 +713,7 @@ export interface FileRoutesById {
   '/_auth/files/': typeof AuthFilesIndexRoute
   '/_auth/files/$siteId': typeof AuthFilesSiteIdRoute
   '/_auth/editor/$siteId': typeof AuthEditorSiteIdRoute
+  '/_auth/tools/phpmyadmin': typeof AuthToolsPhpMyAdminRoute
   '/_auth/plugins/': typeof AuthPluginsIndexRoute
   '/_auth/servers/': typeof AuthServersIndexRoute
   '/_auth/sites/': typeof AuthSitesIndexRoute
@@ -788,6 +797,7 @@ export interface FileRouteTypes {
     | '/files/'
     | '/files/$siteId'
     | '/editor/$siteId'
+    | '/tools/phpmyadmin'
     | '/servers/'
     | '/sites/'
     | '/wordpress/'
@@ -863,6 +873,7 @@ export interface FileRouteTypes {
     | '/files'
     | '/files/$siteId'
     | '/editor/$siteId'
+    | '/tools/phpmyadmin'
     | '/servers'
     | '/sites'
     | '/wordpress'
@@ -943,6 +954,7 @@ export interface FileRouteTypes {
     | '/_auth/files/'
     | '/_auth/files/$siteId'
     | '/_auth/editor/$siteId'
+    | '/_auth/tools/phpmyadmin'
     | '/_auth/plugins/'
     | '/_auth/servers/'
     | '/_auth/sites/'
@@ -1362,6 +1374,13 @@ declare module '@tanstack/react-router' {
       path: '/editor/$siteId'
       fullPath: '/editor/$siteId'
       preLoaderRoute: typeof AuthEditorSiteIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/tools/phpmyadmin': {
+      id: '/_auth/tools/phpmyadmin'
+      path: '/tools/phpmyadmin'
+      fullPath: '/tools/phpmyadmin'
+      preLoaderRoute: typeof AuthToolsPhpMyAdminRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/settings/security': {
@@ -1832,6 +1851,7 @@ interface AuthRouteChildren {
   AuthDomainsRoute: typeof AuthDomainsRouteWithChildren
   AuthEditorSiteIdRoute: typeof AuthEditorSiteIdRoute
   AuthFilesRoute: typeof AuthFilesRouteWithChildren
+  AuthToolsPhpMyAdminRoute: typeof AuthToolsPhpMyAdminRoute
   AuthMailRoute: typeof AuthMailRouteWithChildren
   AuthOperatorsRoute: typeof AuthOperatorsRoute
   AuthPluginsRoute: typeof AuthPluginsRouteWithChildren
@@ -1854,6 +1874,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDomainsRoute: AuthDomainsRouteWithChildren,
   AuthEditorSiteIdRoute: AuthEditorSiteIdRoute,
   AuthFilesRoute: AuthFilesRouteWithChildren,
+  AuthToolsPhpMyAdminRoute: AuthToolsPhpMyAdminRoute,
   AuthMailRoute: AuthMailRouteWithChildren,
   AuthOperatorsRoute: AuthOperatorsRoute,
   AuthPluginsRoute: AuthPluginsRouteWithChildren,

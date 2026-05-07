@@ -144,6 +144,7 @@ function AuthLayout() {
   const { location } = useRouterState()
   const isFullscreen =
     location.pathname.startsWith('/editor/') ||
+    location.pathname.startsWith('/tools/phpmyadmin') ||
     /^\/files\/[^/]+/.test(location.pathname)
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {

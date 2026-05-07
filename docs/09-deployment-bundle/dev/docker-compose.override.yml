@@ -39,6 +39,9 @@ services:
       # Telemetry — disabled in dev
       TUNDRA_TELEMETRY__OTLP_ENDPOINT: ""
       TUNDRA_TELEMETRY__SERVICE_NAME: tundrad
+      # WP MySQL access — override localhost → mysql container, known dev password
+      TUNDRA_WP_MYSQL_HOST: mysql
+      TUNDRA_WP_MYSQL_PASSWORD: wordpress
     volumes:
       - workload-srv:/srv/sites   # file-manager API reads/writes site files
     command:
@@ -50,7 +53,8 @@ services:
         apt-get update >/dev/null
         apt-get install -y --no-install-recommends \
             pkg-config libssl-dev protobuf-compiler ca-certificates \
-            php-cli php-mysql php-xml php-curl php-mbstring curl >/dev/null
+            php-cli php-mysql php-xml php-curl php-mbstring curl \
+            default-mysql-client >/dev/null
         # Install WP-CLI
         if ! command -v wp &>/dev/null; then
           curl -sL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \

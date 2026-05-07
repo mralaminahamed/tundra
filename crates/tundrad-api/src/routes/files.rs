@@ -106,7 +106,12 @@ async fn resolve_safe(doc_root: &Path, user_path: &str) -> Result<PathBuf, ApiEr
 }
 
 /// Canonicalize `doc_root` so that `starts_with` comparisons are reliable.
+/// Creates the directory tree if it doesn't exist yet (new sites).
 async fn canonical_doc_root(raw: &str) -> Result<PathBuf, ApiError> {
+    // Ensure directory exists — provisioner may not have run yet
+    if let Err(e) = tokio::fs::create_dir_all(raw).await {
+        tracing::warn!("could not create document_root {raw}: {e}");
+    }
     tokio::fs::canonicalize(raw).await.map_err(|e| {
         tracing::error!("failed to canonicalize document_root {raw}: {e}");
         ApiError::internal()

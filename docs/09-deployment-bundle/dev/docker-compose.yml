@@ -82,6 +82,28 @@ services:
     networks: [tundra]
 
   # -------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: tundra-dev-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-devsecret}
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: ${MYSQL_WP_PASSWORD:-wordpress}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./scripts/mysql-init.sql:/docker-entrypoint-initdb.d/00-wordpress.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uwordpress", "-pwordpress"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks: [tundra]
+
+  # -------------------------------------------------------------------------
   # tundrad — control plane, source-mounted, cargo-watch
   # -------------------------------------------------------------------------
   tundrad:
@@ -126,6 +148,8 @@ services:
       postgres:
         condition: service_healthy
       valkey:
+        condition: service_healthy
+      mysql:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:7400/api/v1/healthz || exit 1"]
@@ -201,6 +225,7 @@ networks:
 volumes:
   postgres-data:
   valkey-data:
+  mysql-data:
   cargo-registry:
   cargo-target:
   panel-node-modules:

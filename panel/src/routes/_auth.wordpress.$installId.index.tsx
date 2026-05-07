@@ -82,7 +82,7 @@ function WpOverviewTab() {
   const themeUpdates = themes.filter((t) => t.update_available).length
   const totalUpdates = pluginUpdates + themeUpdates
   const wpAdminUrl = install.site_url ? `${install.site_url}/wp-admin` : null
-  const phpMyAdminUrl = install.db_name ? `/tools/phpmyadmin?db=${install.db_name}` : '/tools/phpmyadmin'
+  const phpMyAdminUrl = `/tools/phpmyadmin?installId=${installId}`
 
   return (
     <div className="space-y-6">

@@ -151,6 +151,20 @@ impl<'a> DatabaseRepo<'a> {
         Self(pool)
     }
 
+    pub async fn list_by_site(&self, site_id: Uuid) -> Result<Vec<Database>, RepoError> {
+        let rows: Vec<DatabaseRow> = sqlx::query_as::<_, DatabaseRow>(
+            "SELECT d.id, d.database_server_id, d.name, d.charset, d.\"collation\", \
+             d.size_bytes, d.application_id, d.created_at, d.updated_at \
+             FROM databases d \
+             JOIN applications a ON a.id = d.application_id \
+             WHERE a.site_id = $1 ORDER BY d.created_at DESC"
+        )
+        .bind(site_id)
+        .fetch_all(self.0)
+        .await?;
+        Ok(rows.into_iter().map(Database::from).collect())
+    }
+
     pub async fn list(&self, server_id: Option<Uuid>) -> Result<Vec<Database>, RepoError> {
         let rows: Vec<DatabaseRow> = if let Some(sid) = server_id {
             sqlx::query_as::<_, DatabaseRow>(&format!(

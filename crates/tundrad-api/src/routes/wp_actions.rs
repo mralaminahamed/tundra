@@ -569,6 +569,289 @@ pub async fn export_wp_db(
     Ok(response)
 }
 
+// ── Database browser ──────────────────────────────────────────────────────────
+
+#[derive(Serialize)]
+pub struct DbInfo {
+    pub version: String,
+    pub version_comment: String,
+    pub charset: String,
+    pub collation: String,
+}
+
+#[derive(Serialize)]
+pub struct TableMeta {
+    pub name: String,
+    pub rows: Option<u64>,
+    pub size_bytes: Option<u64>,
+    pub engine: Option<String>,
+    pub collation: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct ColumnInfo {
+    pub name: String,
+    pub col_type: String,
+    pub nullable: bool,
+    pub default: Option<String>,
+    pub key: String,
+    pub extra: String,
+    pub comment: String,
+}
+
+#[derive(Serialize)]
+pub struct IndexInfo {
+    pub name: String,
+    pub non_unique: bool,
+    pub column_name: String,
+    pub index_type: String,
+}
+
+struct DbCreds {
+    host: String,
+    user: String,
+    name: String,
+    password: String,
+}
+
+impl DbCreds {
+    async fn load(pool: &PgPool, installation_id: Uuid) -> Result<Self, ApiError> {
+        let row: Option<(String, String, String)> = sqlx::query_as(
+            "SELECT db_host, db_user, db_name FROM plugin_wordpress_installations WHERE id = $1",
+        )
+        .bind(installation_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|_| ApiError::internal())?;
+
+        let (host, user, name) = row.ok_or_else(|| ApiError::not_found("wordpress installation"))?;
+
+        // Allow docker/dev override: TUNDRA_WP_MYSQL_HOST replaces 'localhost'
+        let host = if host == "localhost" || host == "127.0.0.1" {
+            std::env::var("TUNDRA_WP_MYSQL_HOST").unwrap_or(host)
+        } else {
+            host
+        };
+
+        let password = std::env::var("TUNDRA_WP_MYSQL_PASSWORD").unwrap_or_default();
+
+        Ok(Self { host, user, name, password })
+    }
+
+    fn mysql_cmd(&self, args: &[&str]) -> Command {
+        let mut cmd = Command::new("mysql");
+        cmd.env("MYSQL_PWD", &self.password)
+            .arg("-h").arg(&self.host)
+            .arg("-u").arg(&self.user)
+            .arg(&self.name)
+            .arg("--batch")
+            .arg("--column-names")
+            .arg("--skip-ssl")
+            .args(args);
+        cmd
+    }
+}
+
+fn parse_mysql_tsv(raw: &str) -> (Vec<String>, Vec<Vec<String>>) {
+    let mut lines = raw.lines();
+    let headers: Vec<String> = lines.next().unwrap_or("").split('\t').map(|s| s.to_owned()).collect();
+    let rows: Vec<Vec<String>> = lines.map(|l| l.split('\t').map(|s| s.to_owned()).collect()).collect();
+    (headers, rows)
+}
+
+pub async fn get_wp_db_info(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let creds = DbCreds::load(&pool, id).await?;
+    let q = "SELECT VERSION(), @@version_comment, @@character_set_database, @@collation_database;";
+    let out = creds.mysql_cmd(&["-e", q]).output().await.map_err(|e| wp_cli_error(e.to_string()))?;
+    if !out.status.success() {
+        return Err(wp_cli_error(String::from_utf8_lossy(&out.stderr).trim().to_owned()));
+    }
+    let (_, rows) = parse_mysql_tsv(&String::from_utf8_lossy(&out.stdout));
+    let row = rows.into_iter().next().unwrap_or_default();
+    Ok(Json(DbInfo {
+        version:         row.first().cloned().unwrap_or_default(),
+        version_comment: row.get(1).cloned().unwrap_or_default(),
+        charset:         row.get(2).cloned().unwrap_or_default(),
+        collation:       row.get(3).cloned().unwrap_or_default(),
+    }))
+}
+
+pub async fn get_wp_db_structure(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let creds = DbCreds::load(&pool, id).await?;
+    let q = "SELECT TABLE_NAME, TABLE_ROWS, DATA_LENGTH + INDEX_LENGTH, ENGINE, TABLE_COLLATION \
+             FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME;";
+    let out = creds.mysql_cmd(&["-e", q]).output().await.map_err(|e| wp_cli_error(e.to_string()))?;
+    if !out.status.success() {
+        return Err(wp_cli_error(String::from_utf8_lossy(&out.stderr).trim().to_owned()));
+    }
+    let (_, rows) = parse_mysql_tsv(&String::from_utf8_lossy(&out.stdout));
+    let data: Vec<TableMeta> = rows.into_iter().map(|r| TableMeta {
+        name:       r.first().cloned().unwrap_or_default(),
+        rows:       r.get(1).and_then(|v| if v == "NULL" { None } else { v.parse().ok() }),
+        size_bytes: r.get(2).and_then(|v| if v == "NULL" { None } else { v.parse().ok() }),
+        engine:     r.get(3).filter(|v| *v != "NULL").cloned(),
+        collation:  r.get(4).filter(|v| *v != "NULL").cloned(),
+    }).collect();
+    Ok(Json(serde_json::json!({ "data": data })))
+}
+
+pub async fn get_wp_table_columns(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path((id, table)): Path<(Uuid, String)>,
+) -> Result<impl IntoResponse, ApiError> {
+    if !table.chars().all(|c| c.is_alphanumeric() || c == '_') {
+        return Err(ApiError::bad_request("invalid table name"));
+    }
+    let creds = DbCreds::load(&pool, id).await?;
+
+    // Columns
+    let col_q = format!(
+        "SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_KEY, EXTRA, COLUMN_COMMENT \
+         FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{}' \
+         ORDER BY ORDINAL_POSITION;",
+        table
+    );
+    let col_out = creds.mysql_cmd(&["-e", &col_q]).output().await.map_err(|e| wp_cli_error(e.to_string()))?;
+    if !col_out.status.success() {
+        return Err(wp_cli_error(String::from_utf8_lossy(&col_out.stderr).trim().to_owned()));
+    }
+    let (_, col_rows) = parse_mysql_tsv(&String::from_utf8_lossy(&col_out.stdout));
+    let columns: Vec<ColumnInfo> = col_rows.into_iter().map(|r| ColumnInfo {
+        name:     r.first().cloned().unwrap_or_default(),
+        col_type: r.get(1).cloned().unwrap_or_default(),
+        nullable: r.get(2).map(|v| v == "YES").unwrap_or(false),
+        default:  r.get(3).filter(|v| *v != "NULL").cloned(),
+        key:      r.get(4).cloned().unwrap_or_default(),
+        extra:    r.get(5).cloned().unwrap_or_default(),
+        comment:  r.get(6).cloned().unwrap_or_default(),
+    }).collect();
+
+    // Indexes
+    let idx_q = format!("SHOW INDEX FROM `{}`;", table);
+    let idx_out = creds.mysql_cmd(&["-e", &idx_q]).output().await.map_err(|e| wp_cli_error(e.to_string()))?;
+    let indexes: Vec<IndexInfo> = if idx_out.status.success() {
+        let (headers, rows) = parse_mysql_tsv(&String::from_utf8_lossy(&idx_out.stdout));
+        let non_unique_idx = headers.iter().position(|h| h == "Non_unique").unwrap_or(1);
+        let key_name_idx   = headers.iter().position(|h| h == "Key_name").unwrap_or(2);
+        let col_name_idx   = headers.iter().position(|h| h == "Column_name").unwrap_or(4);
+        let idx_type_idx   = headers.iter().position(|h| h == "Index_type").unwrap_or(10);
+        rows.into_iter().map(|r| IndexInfo {
+            non_unique:   r.get(non_unique_idx).map(|v| v == "1").unwrap_or(true),
+            name:         r.get(key_name_idx).cloned().unwrap_or_default(),
+            column_name:  r.get(col_name_idx).cloned().unwrap_or_default(),
+            index_type:   r.get(idx_type_idx).cloned().unwrap_or_default(),
+        }).collect()
+    } else { vec![] };
+
+    Ok(Json(serde_json::json!({ "columns": columns, "indexes": indexes })))
+}
+
+pub async fn list_wp_db_tables(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let creds = DbCreds::load(&pool, id).await?;
+
+    let out = creds.mysql_cmd(&["-e", "SHOW TABLES;"])
+        .output()
+        .await
+        .map_err(|e| wp_cli_error(e.to_string()))?;
+
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        return Err(wp_cli_error(err.trim().to_owned()));
+    }
+
+    // Output: first line = "Tables_in_{dbname}", rest = table names
+    let tables: Vec<String> = String::from_utf8_lossy(&out.stdout)
+        .lines()
+        .skip(1) // skip header row
+        .map(|l| l.trim().to_owned())
+        .filter(|l| !l.is_empty())
+        .collect();
+
+    Ok(Json(serde_json::json!({ "data": tables })))
+}
+
+#[derive(Deserialize)]
+pub struct DbQueryRequest {
+    pub sql: String,
+    pub write_mode: Option<bool>,
+}
+
+pub async fn run_wp_db_query(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+    Json(body): Json<DbQueryRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let write_mode = body.write_mode.unwrap_or(false);
+    if write_mode {
+        // Block operations that could cause broad irreversible damage
+        let lower = body.sql.trim().to_lowercase();
+        let first_two: String = body.sql.trim().split_whitespace().take(2)
+            .collect::<Vec<_>>().join(" ").to_uppercase();
+        let blocked_pairs = ["DROP DATABASE", "DROP SCHEMA", "DROP USER"];
+        if blocked_pairs.iter().any(|b| first_two.starts_with(b)) {
+            return Err(ApiError::bad_request("This operation is not permitted"));
+        }
+        let system_schemas = ["information_schema.", "performance_schema.", "' mysql'", "` mysql`", " mysql ", " sys "];
+        if system_schemas.iter().any(|s| lower.contains(s)) {
+            return Err(ApiError::bad_request("System schema writes are not allowed"));
+        }
+    } else {
+        let first_word = body.sql.trim().split_whitespace().next().unwrap_or("").to_uppercase();
+        let allowed = ["SELECT", "SHOW", "DESCRIBE", "DESC", "EXPLAIN"];
+        if !allowed.contains(&first_word.as_str()) {
+            return Err(ApiError::bad_request("Only SELECT/SHOW/DESCRIBE/EXPLAIN queries are allowed"));
+        }
+    }
+
+    let creds = DbCreds::load(&pool, id).await?;
+
+    let out = creds.mysql_cmd(&["-e", &body.sql])
+        .output()
+        .await
+        .map_err(|e| wp_cli_error(e.to_string()))?;
+
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        return Err(wp_cli_error(err.trim().to_owned()));
+    }
+
+    // mysql --batch --column-names outputs tab-separated; first row = column names
+    let raw = String::from_utf8_lossy(&out.stdout);
+    let mut lines = raw.lines();
+
+    let columns: Vec<String> = lines
+        .next()
+        .unwrap_or("")
+        .split('\t')
+        .map(|s| s.to_owned())
+        .collect();
+
+    let rows: Vec<Vec<String>> = lines
+        .map(|line| line.split('\t').map(|s| s.to_owned()).collect())
+        .collect();
+
+    let row_count = rows.len();
+    Ok(Json(serde_json::json!({
+        "columns": columns,
+        "rows": rows,
+        "row_count": row_count,
+    })))
+}
+
 // ── Backups ────────────────────────────────────────────────────────────────────
 
 #[derive(Deserialize)]

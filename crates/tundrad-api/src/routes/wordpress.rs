@@ -233,7 +233,13 @@ pub async fn install_wordpress(
     }
 
     let wp_subpath = body.wp_path.clone().unwrap_or_else(|| "/".to_owned());
-    let db_host = body.db_host.clone().unwrap_or_else(|| "localhost".to_owned());
+    let raw_db_host = body.db_host.clone().unwrap_or_else(|| "localhost".to_owned());
+    // Allow env-var override so the provisioner reaches MySQL in Docker/dev
+    let db_host = if raw_db_host == "localhost" || raw_db_host == "127.0.0.1" {
+        std::env::var("TUNDRA_WP_MYSQL_HOST").unwrap_or(raw_db_host)
+    } else {
+        raw_db_host
+    };
     let db_prefix = body.db_prefix.clone().unwrap_or_else(|| "wp_".to_owned());
     let language = body.language.clone().unwrap_or_else(|| "en_US".to_owned());
     let admin_user = body.admin_user.clone().unwrap_or_else(|| "admin".to_owned());
@@ -764,7 +770,12 @@ pub async fn reprovision_installation(
             db_name: body.db_name.or(row.db_name).unwrap_or_else(|| "wordpress".to_owned()),
             db_user: body.db_user.or(row.db_user).unwrap_or_else(|| "wordpress".to_owned()),
             db_password: body.db_password.unwrap_or_default(),
-            db_host: body.db_host.unwrap_or(row.db_host),
+            db_host: {
+                let raw = body.db_host.unwrap_or(row.db_host);
+                if raw == "localhost" || raw == "127.0.0.1" {
+                    std::env::var("TUNDRA_WP_MYSQL_HOST").unwrap_or(raw)
+                } else { raw }
+            },
             db_prefix: row.db_prefix,
             admin_user: body.admin_user.or(row.admin_user).unwrap_or_else(|| "admin".to_owned()),
             admin_email: body.admin_email.or(row.admin_email).unwrap_or_else(|| "admin@example.com".to_owned()),

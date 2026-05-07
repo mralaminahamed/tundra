@@ -266,6 +266,26 @@ pub async fn delete_database_server(
 
 // ── Databases ─────────────────────────────────────────────────────────────────
 
+pub async fn list_databases_by_site(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(site_id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Read, Resource::Database)
+        .map_err(ApiError::from)?;
+    let dbs = tundrad_repo::DatabaseRepo::new(&pool)
+        .list_by_site(site_id)
+        .await
+        .map_err(ApiError::from)?;
+    let data: Vec<_> = dbs.into_iter().map(to_db_dto).collect();
+    Ok(Json(serde_json::json!({ "data": data })))
+}
+
 pub async fn list_databases(
     State(pool): State<PgPool>,
     AuthSession(session): AuthSession,

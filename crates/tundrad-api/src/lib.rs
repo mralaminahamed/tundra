@@ -110,6 +110,10 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/sites/{id}/deployments",
             get(routes::sites::list_deployments).post(routes::sites::trigger_deploy),
         )
+        .route(
+            "/api/v1/sites/{id}/databases",
+            get(routes::databases::list_databases_by_site),
+        )
         // ── Site file manager ──────────────────────────────────────────────
         .route(
             "/api/v1/sites/{site_id}/files",
@@ -455,6 +459,27 @@ pub fn router(pool: PgPool) -> Router {
         .route(
             "/api/v1/wordpress/installations/{id}/database/export",
             get(routes::wp_actions::export_wp_db),
+        )
+        // Database browser
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/info",
+            get(routes::wp_actions::get_wp_db_info),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/structure",
+            get(routes::wp_actions::get_wp_db_structure),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/tables",
+            get(routes::wp_actions::list_wp_db_tables),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/tables/{table}/columns",
+            get(routes::wp_actions::get_wp_table_columns),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/query",
+            post(routes::wp_actions::run_wp_db_query),
         )
         // Backups
         .route(
