@@ -42,14 +42,14 @@ function WpPluginsTab() {
     mutationFn: (slug: string) =>
       api(`/wordpress/installations/${installId}/plugins/${slug}/update`, { method: 'POST' }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ['wp-plugins', installId] }); toast.success('Plugin updated') },
-    onError: () => toast.info('Update coming soon'),
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Update failed'),
   })
 
   const updateAllMut = useMutation({
     mutationFn: () =>
       api(`/wordpress/installations/${installId}/plugins/update-all`, { method: 'POST' }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ['wp-plugins', installId] }); toast.success('All plugins updated') },
-    onError: () => toast.info('Bulk update coming soon'),
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Update failed'),
   })
 
   const removeMut = useMutation({

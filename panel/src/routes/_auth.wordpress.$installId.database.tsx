@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { type WpInstallation } from '@/components/wp-shared'
@@ -12,11 +12,49 @@ function WpDatabaseTab() {
   const { installId } = Route.useParams()
   const [searchFrom, setSearchFrom] = useState('')
   const [searchTo, setSearchTo] = useState('')
+  const [previewResult, setPreviewResult] = useState<string | null>(null)
 
   const { data: install } = useQuery<WpInstallation>({
     queryKey: ['wp-installation', installId],
     queryFn: () =>
       fetch(`/api/v1/wordpress/installations/${installId}`).then((r) => r.json()),
+  })
+
+  const optimizeMut = useMutation({
+    mutationFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/database/optimize`, {
+        method: 'POST', credentials: 'include',
+      }).then((r) => r.json() as Promise<{ message: string }>),
+    onSuccess: (d) => toast.success(d.message || 'Tables optimized'),
+    onError:   () => toast.error('Optimize failed'),
+  })
+
+  const repairMut = useMutation({
+    mutationFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/database/repair`, {
+        method: 'POST', credentials: 'include',
+      }).then((r) => r.json() as Promise<{ message: string }>),
+    onSuccess: (d) => toast.success(d.message || 'Tables repaired'),
+    onError:   () => toast.error('Repair failed'),
+  })
+
+  const searchReplaceMut = useMutation({
+    mutationFn: ({ from, to, dry_run }: { from: string; to: string; dry_run?: boolean }) =>
+      fetch(`/api/v1/wordpress/installations/${installId}/database/search-replace`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from, to, dry_run }),
+        credentials: 'include',
+      }).then((r) => r.json() as Promise<{ message: string }>),
+    onSuccess: (d, vars) => {
+      if (vars.dry_run) {
+        setPreviewResult(d.message || 'No changes would be made')
+      } else {
+        toast.success(d.message || 'Search & replace complete')
+        setPreviewResult(null)
+      }
+    },
+    onError: () => toast.error('Search & replace failed'),
   })
 
   if (!install) return null
@@ -101,15 +139,24 @@ function WpDatabaseTab() {
                 className="w-full rounded-lg border border-tundra-ink-200 px-3 py-2 text-sm focus:border-tundra-lichen focus:outline-none" />
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={() => toast.info('Preview coming soon')}
-                className="flex-1 rounded-lg border border-tundra-ink-200 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
-                Preview Changes
+              <button type="button"
+                disabled={!searchFrom || !searchTo || searchReplaceMut.isPending}
+                onClick={() => { setPreviewResult(null); searchReplaceMut.mutate({ from: searchFrom, to: searchTo, dry_run: true }) }}
+                className="flex-1 rounded-lg border border-tundra-ink-200 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors disabled:opacity-50">
+                {searchReplaceMut.isPending && searchReplaceMut.variables?.dry_run ? 'Previewing…' : 'Preview Changes'}
               </button>
-              <button type="button" disabled={!searchFrom || !searchTo} onClick={() => toast.info('Search & replace coming soon')}
+              <button type="button"
+                disabled={!searchFrom || !searchTo || searchReplaceMut.isPending}
+                onClick={() => { setPreviewResult(null); searchReplaceMut.mutate({ from: searchFrom, to: searchTo }) }}
                 className="flex-1 rounded-lg bg-tundra-lichen py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 disabled:opacity-50 transition-colors">
-                Run Replace
+                {searchReplaceMut.isPending && !searchReplaceMut.variables?.dry_run ? 'Running…' : 'Run Replace'}
               </button>
             </div>
+            {previewResult && (
+              <pre className="mt-2 max-h-36 overflow-auto rounded-xl border border-tundra-ink-100 bg-tundra-ink-50 p-3 text-[11px] font-mono text-tundra-ink whitespace-pre-wrap">
+                {previewResult}
+              </pre>
+            )}
           </div>
         </div>
 
@@ -118,26 +165,31 @@ function WpDatabaseTab() {
             <span className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-400">Actions</span>
           </div>
           <div className="divide-y divide-tundra-ink-100">
-            {[
-              { label: 'Optimize Tables',    desc: 'Reclaim space and improve performance', action: 'Optimize' },
-              { label: 'Repair Tables',      desc: 'Fix corrupted or crashed tables',        action: 'Repair' },
-              { label: 'Export Database',    desc: 'Download a full SQL dump',               action: 'Export' },
-              { label: 'Change DB Password', desc: 'Rotate the database user password',      action: 'Change' },
-            ].map(({ label, desc, action }) => (
-              <div key={label} className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="text-sm font-medium text-tundra-ink">{label}</p>
-                  <p className="text-xs text-tundra-ink-400">{desc}</p>
-                </div>
-                <button type="button" onClick={() => toast.info(`${label} coming soon`)}
-                  className="rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
-                  {action}
-                </button>
-              </div>
-            ))}
+            <DbActionRow label="Optimize Tables"    desc="Reclaim space and improve performance"   action="Optimize" isPending={optimizeMut.isPending} onClick={() => optimizeMut.mutate()} />
+            <DbActionRow label="Repair Tables"      desc="Fix corrupted or crashed tables"          action="Repair"   isPending={repairMut.isPending}   onClick={() => repairMut.mutate()} />
+            <DbActionRow label="Export Database"    desc="Download a full SQL dump"                 action="Export"   onClick={() => toast.info('DB export coming soon')} />
+            <DbActionRow label="Change DB Password" desc="Rotate the database user password"        action="Change"   onClick={() => toast.info('DB password change coming soon')} />
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function DbActionRow({ label, desc, action, onClick, isPending = false }: {
+  label: string; desc: string; action: string
+  onClick: () => void; isPending?: boolean
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3">
+      <div>
+        <p className="text-sm font-medium text-tundra-ink">{label}</p>
+        <p className="text-xs text-tundra-ink-400">{desc}</p>
+      </div>
+      <button type="button" onClick={onClick} disabled={isPending}
+        className="rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors disabled:opacity-50">
+        {isPending ? '…' : action}
+      </button>
     </div>
   )
 }

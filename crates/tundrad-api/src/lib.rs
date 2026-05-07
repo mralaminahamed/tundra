@@ -366,7 +366,7 @@ pub fn router(pool: PgPool) -> Router {
         )
         .route(
             "/api/v1/wordpress/installations/{id}/plugins/{slug}",
-            delete(routes::wordpress::remove_wp_plugin),
+            patch(routes::wordpress::patch_wp_plugin).delete(routes::wordpress::remove_wp_plugin),
         )
         .route(
             "/api/v1/wordpress/installations/{id}/themes",
@@ -379,6 +379,60 @@ pub fn router(pool: PgPool) -> Router {
         .route(
             "/api/v1/wordpress/installations/{id}/themes/{slug}/activate",
             post(routes::wordpress::activate_wp_theme),
+        )
+        // ── WordPress WP-CLI actions ───────────────────────────────────────
+        .route(
+            "/api/v1/wordpress/installations/{id}/plugins/{slug}/update",
+            post(routes::wp_actions::update_wp_plugin),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/plugins/update-all",
+            post(routes::wp_actions::update_all_wp_plugins),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/themes/{slug}/update",
+            post(routes::wp_actions::update_wp_theme),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/users",
+            get(routes::wp_actions::list_wp_users)
+                .post(routes::wp_actions::create_wp_user_handler),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/users/{user_id}",
+            delete(routes::wp_actions::delete_wp_user_handler),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/users/{user_id}/set-password",
+            post(routes::wp_actions::set_wp_user_password),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/optimize",
+            post(routes::wp_actions::optimize_wp_db),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/repair",
+            post(routes::wp_actions::repair_wp_db),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/search-replace",
+            post(routes::wp_actions::search_replace_wp_db),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/settings",
+            patch(routes::wp_actions::patch_wp_settings),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/security/scan/{scan_type}",
+            post(routes::wp_actions::wp_security_scan),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/core/reset",
+            post(routes::wp_actions::reset_wp_core),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/core/verify",
+            post(routes::wp_actions::verify_wp_core),
         )
         // ── MCP (Model Context Protocol) ───────────────────────────────────
         .route("/mcp", post(mcp_post))

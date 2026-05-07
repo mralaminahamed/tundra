@@ -19,7 +19,7 @@ type FileEntry = {
   name: string
   type: 'file' | 'dir' | 'symlink'
   size?: number
-  modified: string
+  modified: string | null
   perms: string
   owner: string
 }
@@ -37,48 +37,8 @@ type Modal =
 type SortKey = 'name' | 'size' | 'modified' | 'type'
 type ViewMode = 'list' | 'grid'
 
-const DIR_TREE: TreeNode[] = [
-  {
-    name: 'wp-content', path: '/wp-content', children: [
-      {
-        name: 'themes', path: '/wp-content/themes', children: [
-          { name: 'custom-theme', path: '/wp-content/themes/custom-theme' },
-          { name: 'twentytwentyfour', path: '/wp-content/themes/twentytwentyfour' },
-          { name: 'twentytwentythree', path: '/wp-content/themes/twentytwentythree' },
-        ],
-      },
-      {
-        name: 'plugins', path: '/wp-content/plugins', children: [
-          { name: 'akismet', path: '/wp-content/plugins/akismet' },
-          { name: 'contact-form-7', path: '/wp-content/plugins/contact-form-7' },
-          { name: 'woocommerce', path: '/wp-content/plugins/woocommerce' },
-        ],
-      },
-      {
-        name: 'uploads', path: '/wp-content/uploads', children: [
-          { name: '2024', path: '/wp-content/uploads/2024' },
-          { name: '2025', path: '/wp-content/uploads/2025' },
-        ],
-      },
-      { name: 'languages', path: '/wp-content/languages' },
-    ],
-  },
-  {
-    name: 'wp-admin', path: '/wp-admin', children: [
-      { name: 'css', path: '/wp-admin/css' },
-      { name: 'js', path: '/wp-admin/js' },
-      { name: 'images', path: '/wp-admin/images' },
-    ],
-  },
-  {
-    name: 'wp-includes', path: '/wp-includes', children: [
-      { name: 'css', path: '/wp-includes/css' },
-      { name: 'js', path: '/wp-includes/js' },
-      { name: 'images', path: '/wp-includes/images' },
-    ],
-  },
-  { name: '.well-known', path: '/.well-known' },
-]
+// Sidebar tree is populated dynamically from API listing; no static entries needed.
+const DIR_TREE: TreeNode[] = []
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -133,7 +93,7 @@ function sortFiles(files: FileEntry[], key: SortKey, dir: 'asc' | 'desc'): FileE
     let v = 0
     if (key === 'name')     v = a.name.localeCompare(b.name)
     else if (key === 'size')     v = (a.size ?? 0) - (b.size ?? 0)
-    else if (key === 'modified') v = a.modified.localeCompare(b.modified)
+    else if (key === 'modified') v = (a.modified ?? '').localeCompare(b.modified ?? '')
     else if (key === 'type')     v = a.name.split('.').pop()!.localeCompare(b.name.split('.').pop()!)
     return dir === 'asc' ? v : -v
   }
@@ -331,29 +291,15 @@ function ChmodModal({ name, perms, filePath, onApply, isPending, onClose }: {
 
 // ── Upload modal ──────────────────────────────────────────────────────────────
 
-function UploadModal({ path, siteId, onClose, onSuccess }: {
-  path: string; siteId: string; onClose: () => void; onSuccess: () => void
+function UploadModal({ path, onClose }: {
+  path: string; siteId?: string; onClose: () => void; onSuccess?: () => void
 }) {
   const [dragging, setDragging] = useState(false)
-  const [uploading, setUploading] = useState(false)
 
-  async function uploadFiles(fileList: FileList) {
-    setUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append('path', path)
-      for (const file of Array.from(fileList)) {
-        formData.append('files', file)
-      }
-      await fetch(`/api/v1/sites/${siteId}/files/upload`, { method: 'POST', body: formData, credentials: 'include' })
-      toast.success(`${fileList.length} file(s) uploaded`)
-      onSuccess()
-      onClose()
-    } catch {
-      toast.error('Upload failed')
-    } finally {
-      setUploading(false)
-    }
+  async function uploadFiles(_fileList: FileList) {
+    void _fileList
+    toast.info('File upload coming soon')
+    onClose()
   }
 
   return (
@@ -376,10 +322,10 @@ function UploadModal({ path, siteId, onClose, onSuccess }: {
           </svg>
         </div>
         <div className="text-center">
-          <p className="text-sm font-semibold text-tundra-ink">{uploading ? 'Uploading…' : 'Drop files here'}</p>
+          <p className="text-sm font-semibold text-tundra-ink">Drop files here</p>
           <p className="mt-0.5 text-xs text-tundra-ink-400">or click to browse</p>
         </div>
-        <label className={`cursor-pointer rounded-xl border border-tundra-ink-200 bg-white px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors shadow-sm ${uploading ? 'pointer-events-none opacity-50' : ''}`}>
+        <label className="cursor-pointer rounded-xl border border-tundra-ink-200 bg-white px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors shadow-sm">
           Browse files
           <input type="file" multiple className="sr-only" onChange={(e) => {
             if (e.target.files?.length) void uploadFiles(e.target.files)

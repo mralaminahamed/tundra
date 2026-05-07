@@ -7,18 +7,19 @@ export interface WpInstallation {
   id: string
   site_id: string
   wp_version: string | null
-  php_version: string | null
+  php_version: string | null    // not yet in API; reserved for future
   wp_path: string
   db_name: string | null
   db_user: string | null
   db_host: string | null
   db_prefix: string | null
   admin_email: string | null
+  admin_user: string | null
   site_title: string | null
   site_url: string | null
   multisite: boolean
-  ssl_active: boolean | null
-  disk_usage_mb: number | null
+  ssl_active: boolean | null    // not yet in API; reserved for future
+  disk_usage_mb: number | null  // not yet in API; reserved for future
   state: 'provisioning' | 'active' | 'error' | 'removing'
   error_message: string | null
   created_at: string
@@ -51,12 +52,12 @@ export interface WpTheme {
 }
 
 export interface WpUser {
-  id: number
-  login: string
-  email: string
+  ID: number
+  user_login: string
+  user_email: string
   display_name: string
-  role: string
-  registered: string
+  user_registered: string
+  roles: string
 }
 
 export interface WpBackup {

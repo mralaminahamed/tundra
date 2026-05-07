@@ -20,8 +20,11 @@ struct InstallationRow {
     wp_version: Option<String>,
     wp_path: String,
     db_name: Option<String>,
+    db_user: Option<String>,
     db_host: String,
+    db_prefix: Option<String>,
     admin_email: Option<String>,
+    admin_user: Option<String>,
     site_title: Option<String>,
     site_url: Option<String>,
     multisite: bool,
@@ -103,8 +106,11 @@ fn installation_json(r: &InstallationRow) -> serde_json::Value {
         "wp_version": r.wp_version,
         "wp_path": r.wp_path,
         "db_name": r.db_name,
+        "db_user": r.db_user,
         "db_host": r.db_host,
+        "db_prefix": r.db_prefix,
         "admin_email": r.admin_email,
+        "admin_user": r.admin_user,
         "site_title": r.site_title,
         "site_url": r.site_url,
         "multisite": r.multisite,
@@ -153,9 +159,9 @@ pub async fn list_installations(
     State(pool): State<PgPool>,
 ) -> Result<impl IntoResponse, ApiError> {
     let rows = sqlx::query_as::<_, InstallationRow>(
-        "SELECT id, site_id, wp_version, wp_path, db_name, db_host,
-                admin_email, site_title, site_url, multisite, state,
-                error_message, created_at, updated_at
+        "SELECT id, site_id, wp_version, wp_path, db_name, db_user, db_host,
+                db_prefix, admin_email, admin_user, site_title, site_url,
+                multisite, state, error_message, created_at, updated_at
          FROM plugin_wordpress_installations
          ORDER BY created_at DESC",
     )
@@ -289,9 +295,9 @@ pub async fn get_installation(
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse, ApiError> {
     let row = sqlx::query_as::<_, InstallationRow>(
-        "SELECT id, site_id, wp_version, wp_path, db_name, db_host,
-                admin_email, site_title, site_url, multisite, state,
-                error_message, created_at, updated_at
+        "SELECT id, site_id, wp_version, wp_path, db_name, db_user, db_host,
+                db_prefix, admin_email, admin_user, site_title, site_url,
+                multisite, state, error_message, created_at, updated_at
          FROM plugin_wordpress_installations WHERE id = $1",
     )
     .bind(id)
@@ -395,6 +401,40 @@ pub async fn install_wp_plugin(
             "state": "installing",
         })),
     ))
+}
+
+#[derive(Deserialize)]
+pub struct PatchWpPluginRequest {
+    pub active: Option<bool>,
+}
+
+pub async fn patch_wp_plugin(
+    AuthSession(_session): AuthSession,
+    State(pool): State<PgPool>,
+    Path((id, slug)): Path<(Uuid, String)>,
+    Json(body): Json<PatchWpPluginRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    if let Some(active) = body.active {
+        let affected = sqlx::query(
+            "UPDATE plugin_wordpress_plugins
+             SET active = $1, last_synced_at = now()
+             WHERE installation_id = $2 AND slug = $3",
+        )
+        .bind(active)
+        .bind(id)
+        .bind(&slug)
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            tracing::error!(error = %e, "patch wp plugin");
+            ApiError::internal()
+        })?;
+
+        if affected.rows_affected() == 0 {
+            return Err(ApiError::not_found("wordpress plugin"));
+        }
+    }
+    Ok(StatusCode::NO_CONTENT)
 }
 
 pub async fn remove_wp_plugin(

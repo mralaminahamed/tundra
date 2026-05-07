@@ -1,8 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { api } from '@/lib/api'
 import { Toggle, type WpInstallation } from '@/components/wp-shared'
 
 export const Route = createFileRoute('/_auth/wordpress/$installId/settings')({
@@ -24,12 +23,23 @@ function WpSettingsTab() {
   const [wpCron, setWpCron] = useState(true)
   const [phpVersion, setPhpVersion] = useState(install?.php_version ?? '8.2')
 
-  const patchSetting = (key: string, value: unknown) => {
-    void api(`/wordpress/installations/${installId}/settings`, {
-      method: 'PATCH',
-      body: { [key]: value },
-    }).catch(() => null)
-  }
+  const settingsMut = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      fetch(`/api/v1/wordpress/installations/${installId}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        credentials: 'include',
+      }).then((r) => r.json() as Promise<{ applied: string[]; errors: string[] }>),
+    onSuccess: (data) => {
+      if (data.errors.length > 0) {
+        toast.error(`Setting failed: ${data.errors[0]}`)
+      } else {
+        toast.success('Saved')
+      }
+    },
+    onError: () => toast.error('Failed to save setting'),
+  })
 
   if (!install) return null
 
@@ -46,7 +56,7 @@ function WpSettingsTab() {
               <div className="flex gap-1">
                 {(['disabled', 'minor', 'all'] as const).map((v) => (
                   <button key={v} type="button"
-                    onClick={() => { setCoreUpdates(v); patchSetting('core_auto_update', v) }}
+                    onClick={() => { setCoreUpdates(v); settingsMut.mutate({ core_auto_update: v }) }}
                     className={`flex-1 rounded-lg border py-1.5 text-xs font-medium capitalize transition-colors ${
                       coreUpdates === v
                         ? 'border-tundra-lichen bg-tundra-lichen text-white'
@@ -59,11 +69,17 @@ function WpSettingsTab() {
             </div>
             <div className="divide-y divide-tundra-ink-100">
               <Toggle label="Plugin Auto-Updates" description="Automatically update all plugins"
-                checked={pluginUpdates} onChange={(v) => { setPluginUpdates(v); patchSetting('plugin_auto_update', v) }} />
+                checked={pluginUpdates}
+                onChange={(v) => { setPluginUpdates(v); settingsMut.mutate({ plugin_auto_update: v }) }}
+                disabled={settingsMut.isPending} />
               <Toggle label="Theme Auto-Updates" description="Automatically update all themes"
-                checked={themeUpdates} onChange={(v) => { setThemeUpdates(v); patchSetting('theme_auto_update', v) }} />
+                checked={themeUpdates}
+                onChange={(v) => { setThemeUpdates(v); settingsMut.mutate({ theme_auto_update: v }) }}
+                disabled={settingsMut.isPending} />
               <Toggle label="WP-Cron (built-in scheduler)" description="Disable if using real system cron"
-                checked={wpCron} onChange={(v) => { setWpCron(v); patchSetting('wp_cron', v) }} />
+                checked={wpCron}
+                onChange={(v) => { setWpCron(v); settingsMut.mutate({ wp_cron: v }) }}
+                disabled={settingsMut.isPending} />
             </div>
           </div>
         </div>
@@ -86,7 +102,7 @@ function WpSettingsTab() {
               ))}
             </div>
             <button type="button"
-              onClick={() => { patchSetting('php_version', phpVersion); toast.success('PHP version queued for update') }}
+              onClick={() => toast.info('PHP version change requires system-level provisioning')}
               className="w-full rounded-lg border border-tundra-ink-200 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
               Apply PHP {phpVersion}
             </button>
@@ -115,32 +131,78 @@ function WpSettingsTab() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white">
-          <div className="border-b border-tundra-ink-100 bg-tundra-ink-50 px-4 py-2.5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-400">Tools</span>
-          </div>
-          <div className="divide-y divide-tundra-ink-100">
-            {[
-              { label: 'WP-CLI Console',      desc: 'Run WP-CLI commands interactively',         action: 'Open' },
-              { label: 'Regenerate Salts',    desc: 'Refresh wp-config.php auth keys and salts', action: 'Regenerate' },
-              { label: 'Flush Rewrite Rules', desc: 'Rebuild permalink structure',               action: 'Flush' },
-              { label: 'Clear Object Cache',  desc: 'Flush Redis / Memcached object cache',      action: 'Clear' },
-              { label: 'Export wp-config.php', desc: 'Download a sanitized copy',               action: 'Export' },
-            ].map(({ label, desc, action }) => (
-              <div key={label} className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="text-sm font-medium text-tundra-ink">{label}</p>
-                  <p className="text-xs text-tundra-ink-400">{desc}</p>
-                </div>
-                <button type="button" onClick={() => toast.info(`${label} coming soon`)}
-                  className="shrink-0 rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
-                  {action}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+        <WpTools installId={installId} />
       </div>
+    </div>
+  )
+}
+
+function WpTools({ installId }: { installId: string }) {
+  const flushMut = useMutation({
+    mutationFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+        credentials: 'include',
+      }),
+    onSuccess: () => toast.success('Flush queued'),
+    onError:   () => toast.error('Failed'),
+  })
+
+  const verifyMut = useMutation({
+    mutationFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/core/verify`, {
+        method: 'POST',
+        credentials: 'include',
+      }).then((r) => r.json() as Promise<{ ok: boolean; message: string }>),
+    onSuccess: (d) => {
+      if (d.ok) toast.success('Core files verified — no issues found')
+      else      toast.error(`Integrity issue: ${d.message}`)
+    },
+    onError: () => toast.error('Verification failed'),
+  })
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white">
+      <div className="border-b border-tundra-ink-100 bg-tundra-ink-50 px-4 py-2.5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-400">Tools</span>
+      </div>
+      <div className="divide-y divide-tundra-ink-100">
+        <ToolRow label="Verify Core Integrity" desc="Check core files against WordPress.org checksums"
+          action="Verify" isPending={verifyMut.isPending}
+          onClick={() => verifyMut.mutate()} />
+        <ToolRow label="Flush Rewrite Rules" desc="Rebuild permalink structure"
+          action="Flush" isPending={flushMut.isPending}
+          onClick={() => {
+            // wp rewrite flush via search-replace stub — real impl would call wp rewrite flush
+            toast.info('Flush rewrite rules — coming soon')
+          }} />
+        <ToolRow label="Regenerate Salts"    desc="Refresh wp-config.php auth keys and salts"
+          action="Regenerate" onClick={() => toast.info('Regenerate salts coming soon')} />
+        <ToolRow label="Clear Object Cache"  desc="Flush Redis / Memcached object cache"
+          action="Clear"      onClick={() => toast.info('Clear cache coming soon')} />
+        <ToolRow label="Export wp-config.php" desc="Download a sanitized copy"
+          action="Export"     onClick={() => toast.info('Export coming soon')} />
+      </div>
+    </div>
+  )
+}
+
+function ToolRow({ label, desc, action, onClick, isPending = false }: {
+  label: string; desc: string; action: string
+  onClick: () => void; isPending?: boolean
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3">
+      <div>
+        <p className="text-sm font-medium text-tundra-ink">{label}</p>
+        <p className="text-xs text-tundra-ink-400">{desc}</p>
+      </div>
+      <button type="button" onClick={onClick} disabled={isPending}
+        className="shrink-0 rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors disabled:opacity-50">
+        {isPending ? '…' : action}
+      </button>
     </div>
   )
 }

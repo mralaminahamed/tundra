@@ -40,7 +40,7 @@ function WpThemesTab() {
     mutationFn: (slug: string) =>
       api(`/wordpress/installations/${installId}/themes/${slug}/update`, { method: 'POST' }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ['wp-themes', installId] }); toast.success('Theme updated') },
-    onError: () => toast.info('Update coming soon'),
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Update failed'),
   })
 
   const removeMut = useMutation({

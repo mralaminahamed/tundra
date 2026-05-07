@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { type WpInstallation } from '@/components/wp-shared'
@@ -10,12 +10,25 @@ export const Route = createFileRoute('/_auth/wordpress/$installId/danger')({
 
 function WpDangerTab() {
   const { installId } = Route.useParams()
+  const qc = useQueryClient()
   const [confirmed, setConfirmed] = useState('')
 
   const { data: install } = useQuery<WpInstallation>({
     queryKey: ['wp-installation', installId],
     queryFn: () =>
       fetch(`/api/v1/wordpress/installations/${installId}`).then((r) => r.json()),
+  })
+
+  const coreResetMut = useMutation({
+    mutationFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/core/reset`, {
+        method: 'POST', credentials: 'include',
+      }).then((r) => { if (!r.ok) throw new Error('Failed'); return r.json() }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['wp-installation', installId] })
+      toast.success('Core reset started — installation will re-provision')
+    },
+    onError: () => toast.error('Core reset failed'),
   })
 
   const removeMut = useMutation({
@@ -36,9 +49,11 @@ function WpDangerTab() {
           Reinstall WordPress core files without touching the database or uploads. Useful to recover from
           a corrupted or hacked core installation.
         </p>
-        <button type="button" onClick={() => toast.info('Core reset coming soon')}
-          className="rounded-lg border border-yellow-400 px-4 py-2 text-sm font-medium text-yellow-700 hover:bg-yellow-100 transition-colors">
-          Reset WordPress Core
+        <button type="button"
+          disabled={coreResetMut.isPending}
+          onClick={() => coreResetMut.mutate()}
+          className="rounded-lg border border-yellow-400 px-4 py-2 text-sm font-medium text-yellow-700 hover:bg-yellow-100 transition-colors disabled:opacity-50">
+          {coreResetMut.isPending ? 'Starting reset…' : 'Reset WordPress Core'}
         </button>
       </div>
 

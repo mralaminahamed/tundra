@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   SitePreview, UpdateBadge,
@@ -36,6 +36,20 @@ function QuickActionBtn({
 
 function WpOverviewTab() {
   const { installId } = Route.useParams()
+  const qc = useQueryClient()
+
+  const updateAllMut = useMutation({
+    mutationFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/plugins/update-all`, {
+        method: 'POST', credentials: 'include',
+      }).then((r) => r.json()),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['wp-plugins', installId] })
+      void qc.invalidateQueries({ queryKey: ['wp-themes', installId] })
+      toast.success('All plugins updated')
+    },
+    onError: () => toast.error('Update failed'),
+  })
 
   const { data: install } = useQuery<WpInstallation>({
     queryKey: ['wp-installation', installId],
@@ -198,9 +212,11 @@ function WpOverviewTab() {
                   </div>
                 ))}
               </div>
-              <button type="button" onClick={() => toast.info('Bulk update coming soon')}
-                className="mt-3 w-full rounded-lg border border-yellow-400 py-1.5 text-xs font-medium text-yellow-700 hover:bg-yellow-100 transition-colors">
-                Update All
+              <button type="button"
+                disabled={updateAllMut.isPending}
+                onClick={() => updateAllMut.mutate()}
+                className="mt-3 w-full rounded-lg border border-yellow-400 py-1.5 text-xs font-medium text-yellow-700 hover:bg-yellow-100 transition-colors disabled:opacity-50">
+                {updateAllMut.isPending ? 'Updating…' : 'Update All'}
               </button>
             </div>
           )}
