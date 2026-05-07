@@ -8,6 +8,7 @@ pub mod domains;
 pub mod files;
 pub mod health;
 pub mod wp_actions;
+pub mod wp_clone;
 pub mod mail;
 pub mod operators;
 pub mod plugins;

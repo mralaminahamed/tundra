@@ -272,7 +272,7 @@ pub async fn install_wordpress(
     let db_user = body.db_user.clone().unwrap_or_else(|| {
         format!("wp_{}", &id.simple().to_string()[..12])
     });
-    let db_password = body.db_password.clone().unwrap_or_else(|| {
+    let db_password = body.db_password.clone().filter(|s| !s.is_empty()).unwrap_or_else(|| {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
         let mut h = DefaultHasher::new();
@@ -433,37 +433,42 @@ pub async fn install_wp_plugin(
     Path(id): Path<Uuid>,
     Json(body): Json<InstallWpPluginRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let row_id: i64 = sqlx::query_scalar(
-        "INSERT INTO plugin_wordpress_plugins
-             (installation_id, slug, name, version, active)
-         VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (installation_id, slug) DO UPDATE
-             SET version = EXCLUDED.version,
-                 active  = EXCLUDED.active,
-                 last_synced_at = now()
-         RETURNING id",
-    )
-    .bind(id)
-    .bind(&body.slug)
-    .bind(&body.slug)
-    .bind(&body.version)
-    .bind(body.activate.unwrap_or(false))
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        tracing::error!(error = %e, "install wp plugin");
-        ApiError::internal()
-    })?;
+    let activate = body.activate.unwrap_or(false);
+    let env = crate::routes::wp_actions::WpEnv::load(&pool, id).await?;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(serde_json::json!({
-            "id": row_id,
-            "installation_id": id,
-            "slug": body.slug,
-            "state": "installing",
-        })),
-    ))
+    // WP-CLI install (and optionally activate)
+    let mut wp_args = vec!["plugin", "install", body.slug.as_str()];
+    if activate { wp_args.push("--activate"); }
+    env.run(&wp_args).await.map_err(|e| ApiError::bad_request(format!("wp-cli: {e}")))?;
+
+    // Read actual version + title (display name) + author from WP-CLI after install
+    let ver    = env.run(&["plugin", "get", &body.slug, "--field=version"]).await.unwrap_or_default();
+    let name   = env.run(&["plugin", "get", &body.slug, "--field=title"]).await.unwrap_or_else(|_| body.slug.clone());
+    let author = env.run(&["plugin", "get", &body.slug, "--field=author"]).await.unwrap_or_default();
+
+    // If activating, clear other active flags
+    if activate {
+        // plugins can have multiple active; no need to clear
+    }
+
+    sqlx::query(
+        "INSERT INTO plugin_wordpress_plugins
+             (installation_id, slug, name, version, author, active)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (installation_id, slug) DO UPDATE
+             SET name=$3, version=$4, author=$5, active=$6, last_synced_at=now()",
+    )
+    .bind(id).bind(&body.slug).bind(&name).bind(&ver).bind(&author).bind(activate)
+    .execute(&pool).await
+    .map_err(|e| { tracing::error!(%e, "upsert plugin"); ApiError::internal() })?;
+
+    Ok((StatusCode::CREATED, Json(serde_json::json!({
+        "installation_id": id,
+        "slug": body.slug,
+        "name": name,
+        "version": ver,
+        "active": activate,
+    }))))
 }
 
 #[derive(Deserialize)]
@@ -478,38 +483,19 @@ pub async fn patch_wp_plugin(
     Json(body): Json<PatchWpPluginRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     if let Some(active) = body.active {
+        let env = crate::routes::wp_actions::WpEnv::load(&pool, id).await?;
+        let cmd = if active { "activate" } else { "deactivate" };
+        env.run(&["plugin", cmd, &slug]).await.map_err(|e| ApiError::bad_request(format!("wp-cli: {e}")))?;
+
         let affected = sqlx::query(
-            "UPDATE plugin_wordpress_plugins
-             SET active = $1, last_synced_at = now()
-             WHERE installation_id = $2 AND slug = $3",
+            "UPDATE plugin_wordpress_plugins SET active=$1, last_synced_at=now() WHERE installation_id=$2 AND slug=$3",
         )
-        .bind(active)
-        .bind(id)
-        .bind(&slug)
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            tracing::error!(error = %e, "patch wp plugin");
-            ApiError::internal()
-        })?;
+        .bind(active).bind(id).bind(&slug)
+        .execute(&pool).await.map_err(|_| ApiError::internal())?;
 
         if affected.rows_affected() == 0 {
             return Err(ApiError::not_found("wordpress plugin"));
         }
-
-        // Best-effort: run WP-CLI activate/deactivate in background
-        let pool2 = pool.clone();
-        let slug2 = slug.clone();
-        tokio::spawn(async move {
-            let env = match crate::routes::wp_actions::WpEnv::load(&pool2, id).await {
-                Ok(e) => e,
-                Err(_) => return,
-            };
-            let cmd = if active { "activate" } else { "deactivate" };
-            if let Err(e) = env.run(&["plugin", cmd, &slug2]).await {
-                tracing::warn!(installation_id = %id, slug = %slug2, error = %e, "wp plugin {} failed", cmd);
-            }
-        });
     }
     Ok(StatusCode::NO_CONTENT)
 }
@@ -519,21 +505,14 @@ pub async fn remove_wp_plugin(
     State(pool): State<PgPool>,
     Path((id, slug)): Path<(Uuid, String)>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let affected = sqlx::query(
-        "DELETE FROM plugin_wordpress_plugins WHERE installation_id = $1 AND slug = $2",
-    )
-    .bind(id)
-    .bind(&slug)
-    .execute(&pool)
-    .await
-    .map_err(|e| {
-        tracing::error!(error = %e, "remove wp plugin");
-        ApiError::internal()
-    })?;
+    let env = crate::routes::wp_actions::WpEnv::load(&pool, id).await?;
+    // Deactivate first (ignore error — plugin may already be inactive)
+    let _ = env.run(&["plugin", "deactivate", &slug]).await;
+    env.run(&["plugin", "delete", &slug]).await.map_err(|e| ApiError::bad_request(format!("wp-cli: {e}")))?;
 
-    if affected.rows_affected() == 0 {
-        return Err(ApiError::not_found("wordpress plugin"));
-    }
+    sqlx::query("DELETE FROM plugin_wordpress_plugins WHERE installation_id=$1 AND slug=$2")
+        .bind(id).bind(&slug).execute(&pool).await.map_err(|_| ApiError::internal())?;
+
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -570,49 +549,30 @@ pub async fn install_wp_theme(
     Json(body): Json<InstallWpThemeRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let activate = body.activate.unwrap_or(false);
+    let env = crate::routes::wp_actions::WpEnv::load(&pool, id).await?;
 
+    // WP-CLI install (and optionally activate)
+    let mut wp_args = vec!["theme", "install", body.slug.as_str()];
+    if activate { wp_args.push("--activate"); }
+    env.run(&wp_args).await.map_err(|e| ApiError::bad_request(format!("wp-cli: {e}")))?;
+
+    // Sync this theme into DB
+    let screenshot_url = format!("/api/v1/wordpress/installations/{id}/themes/{}/screenshot", body.slug);
     if activate {
         sqlx::query("UPDATE plugin_wordpress_themes SET active = false WHERE installation_id = $1")
-            .bind(id)
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                tracing::error!(error = %e, "deactivate wp themes");
-                ApiError::internal()
-            })?;
+            .bind(id).execute(&pool).await.ok();
     }
-
-    let row_id: i64 = sqlx::query_scalar(
-        "INSERT INTO plugin_wordpress_themes
-             (installation_id, slug, name, version, active)
+    sqlx::query(
+        "INSERT INTO plugin_wordpress_themes (installation_id, slug, name, active, screenshot_url)
          VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (installation_id, slug) DO UPDATE
-             SET version = EXCLUDED.version,
-                 active  = EXCLUDED.active,
-                 last_synced_at = now()
-         RETURNING id",
+             SET active = EXCLUDED.active, screenshot_url = EXCLUDED.screenshot_url,
+                 last_synced_at = now()",
     )
-    .bind(id)
-    .bind(&body.slug)
-    .bind(&body.slug)
-    .bind(&body.version)
-    .bind(activate)
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        tracing::error!(error = %e, "install wp theme");
-        ApiError::internal()
-    })?;
+    .bind(id).bind(&body.slug).bind(&body.slug).bind(activate).bind(&screenshot_url)
+    .execute(&pool).await.map_err(|_| ApiError::internal())?;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(serde_json::json!({
-            "id": row_id,
-            "installation_id": id,
-            "slug": body.slug,
-            "active": activate,
-        })),
-    ))
+    Ok((StatusCode::CREATED, Json(serde_json::json!({ "slug": body.slug, "active": activate }))))
 }
 
 pub async fn remove_wp_theme(
@@ -620,20 +580,23 @@ pub async fn remove_wp_theme(
     State(pool): State<PgPool>,
     Path((id, slug)): Path<(Uuid, String)>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let affected =
-        sqlx::query("DELETE FROM plugin_wordpress_themes WHERE installation_id = $1 AND slug = $2")
-            .bind(id)
-            .bind(&slug)
-            .execute(&pool)
-            .await
-            .map_err(|e| {
-                tracing::error!(error = %e, "remove wp theme");
-                ApiError::internal()
-            })?;
-
-    if affected.rows_affected() == 0 {
-        return Err(ApiError::not_found("wordpress theme"));
+    // Guard: cannot delete the active theme
+    let is_active: bool = sqlx::query_scalar(
+        "SELECT COALESCE(active, false) FROM plugin_wordpress_themes WHERE installation_id=$1 AND slug=$2",
+    )
+    .bind(id).bind(&slug).fetch_optional(&pool).await
+    .map_err(|_| ApiError::internal())?
+    .unwrap_or(false);
+    if is_active {
+        return Err(ApiError::bad_request("cannot remove the active theme"));
     }
+
+    let env = crate::routes::wp_actions::WpEnv::load(&pool, id).await?;
+    env.run(&["theme", "delete", &slug]).await.map_err(|e| ApiError::bad_request(format!("wp-cli: {e}")))?;
+
+    sqlx::query("DELETE FROM plugin_wordpress_themes WHERE installation_id = $1 AND slug = $2")
+        .bind(id).bind(&slug).execute(&pool).await.map_err(|_| ApiError::internal())?;
+
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -642,27 +605,15 @@ pub async fn activate_wp_theme(
     State(pool): State<PgPool>,
     Path((id, slug)): Path<(Uuid, String)>,
 ) -> Result<impl IntoResponse, ApiError> {
-    sqlx::query("UPDATE plugin_wordpress_themes SET active = false WHERE installation_id = $1")
-        .bind(id)
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            tracing::error!(error = %e, "deactivate wp themes");
-            ApiError::internal()
-        })?;
+    let env = crate::routes::wp_actions::WpEnv::load(&pool, id).await?;
+    env.run(&["theme", "activate", &slug]).await.map_err(|e| ApiError::bad_request(format!("wp-cli: {e}")))?;
 
+    sqlx::query("UPDATE plugin_wordpress_themes SET active = false WHERE installation_id = $1")
+        .bind(id).execute(&pool).await.map_err(|_| ApiError::internal())?;
     let affected = sqlx::query(
-        "UPDATE plugin_wordpress_themes SET active = true, last_synced_at = now()
-         WHERE installation_id = $1 AND slug = $2",
+        "UPDATE plugin_wordpress_themes SET active = true, last_synced_at = now() WHERE installation_id=$1 AND slug=$2",
     )
-    .bind(id)
-    .bind(&slug)
-    .execute(&pool)
-    .await
-    .map_err(|e| {
-        tracing::error!(error = %e, "activate wp theme");
-        ApiError::internal()
-    })?;
+    .bind(id).bind(&slug).execute(&pool).await.map_err(|_| ApiError::internal())?;
 
     if affected.rows_affected() == 0 {
         return Err(ApiError::not_found("wordpress theme"));

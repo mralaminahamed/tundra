@@ -5182,6 +5182,7 @@ dependencies = [
  "openssh",
  "p256",
  "rand 0.10.1",
+ "reqwest",
  "serde",
  "serde_json",
  "serde_yaml",

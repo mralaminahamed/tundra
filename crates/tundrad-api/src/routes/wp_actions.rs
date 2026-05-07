@@ -56,12 +56,15 @@ impl WpEnv {
     }
 
     pub async fn run(&self, base_args: &[&str]) -> Result<String, String> {
-        let mut args = base_args.to_vec();
-        args.push("--path");
-        args.push(&self.install_path);
-        args.push("--allow-root");
+        // Build owned args so there are no borrowed-across-await lifetime issues.
+        let mut args: Vec<String> = base_args.iter().map(|s| s.to_string()).collect();
+        args.push(format!("--path={}", self.install_path));
+        args.push("--allow-root".to_owned());
 
-        let out = Command::new(&self.wp_bin)
+        let bin = self.wp_bin.clone();
+        tracing::debug!(cmd = %bin, path = %self.install_path, args = ?args, "wp-cli run");
+
+        let out = Command::new(&bin)
             .args(&args)
             .output()
             .await
@@ -77,13 +80,13 @@ impl WpEnv {
     }
 
     pub async fn run_json(&self, base_args: &[&str]) -> Result<serde_json::Value, String> {
-        let mut args = base_args.to_vec();
-        args.push("--format=json");
-        args.push("--path");
-        args.push(&self.install_path);
-        args.push("--allow-root");
+        let mut args: Vec<String> = base_args.iter().map(|s| s.to_string()).collect();
+        args.push("--format=json".to_owned());
+        args.push(format!("--path={}", self.install_path));
+        args.push("--allow-root".to_owned());
 
-        let out = Command::new(&self.wp_bin)
+        let bin = self.wp_bin.clone();
+        let out = Command::new(&bin)
             .args(&args)
             .output()
             .await
@@ -110,10 +113,20 @@ pub async fn update_wp_plugin(
     Path((id, slug)): Path<(Uuid, String)>,
 ) -> Result<impl IntoResponse, ApiError> {
     let env = WpEnv::load(&pool, id).await?;
-    env.run(&["plugin", "update", &slug])
-        .await
-        .map_err(wp_cli_error)?;
-    Ok(Json(serde_json::json!({ "updated": true, "slug": slug })))
+    env.run(&["plugin", "update", &slug]).await.map_err(wp_cli_error)?;
+
+    // Sync new version back to DB
+    let ver = env.run(&["plugin", "get", &slug, "--field=version"]).await.unwrap_or_default();
+    if !ver.is_empty() {
+        let _ = sqlx::query(
+            "UPDATE plugin_wordpress_plugins
+             SET version=$1, update_available=false, new_version=null, last_synced_at=now()
+             WHERE installation_id=$2 AND slug=$3",
+        )
+        .bind(&ver).bind(id).bind(&slug)
+        .execute(&pool).await;
+    }
+    Ok(Json(serde_json::json!({ "updated": true, "slug": slug, "version": ver })))
 }
 
 pub async fn update_all_wp_plugins(
@@ -122,10 +135,109 @@ pub async fn update_all_wp_plugins(
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse, ApiError> {
     let env = WpEnv::load(&pool, id).await?;
-    let out = env.run(&["plugin", "update", "--all"])
-        .await
-        .map_err(wp_cli_error)?;
+    let out = env.run(&["plugin", "update", "--all"]).await.map_err(wp_cli_error)?;
+
+    // Re-sync all plugin versions + display names from WP-CLI JSON list
+    if let Ok(list) = env.run_json(&["plugin", "list", "--fields=name,title,version,update,update_version,author"]).await {
+        if let Some(plugins) = list.as_array() {
+            for p in plugins {
+                let slug  = p.get("name").and_then(|v| v.as_str()).unwrap_or_default();
+                let title = p.get("title").and_then(|v| v.as_str()).unwrap_or(slug);
+                let ver   = p.get("version").and_then(|v| v.as_str()).unwrap_or_default();
+                let author = p.get("author").and_then(|v| v.as_str()).unwrap_or_default();
+                let has_update = p.get("update").and_then(|v| v.as_str()).map(|s| s == "available").unwrap_or(false);
+                let new_ver = p.get("update_version").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).map(|s| s.to_owned());
+                let _ = sqlx::query(
+                    "UPDATE plugin_wordpress_plugins
+                     SET name=$1, version=$2, author=$3, update_available=$4, new_version=$5, last_synced_at=now()
+                     WHERE installation_id=$6 AND slug=$7",
+                )
+                .bind(title).bind(ver).bind(author).bind(has_update).bind(new_ver).bind(id).bind(slug)
+                .execute(&pool).await;
+            }
+        }
+    }
     Ok(Json(serde_json::json!({ "updated": true, "message": out })))
+}
+
+// ── Plugin sync ───────────────────────────────────────────────────────────────
+
+pub async fn sync_wp_plugins(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<serde_json::Value>, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+    let list = env.run_json(&["plugin", "list",
+        "--fields=name,title,version,author,status,update,update_version",
+    ]).await.map_err(wp_cli_error)?;
+
+    let mut count = 0u32;
+    if let Some(plugins) = list.as_array() {
+        for p in plugins {
+            let slug   = p.get("name").and_then(|v| v.as_str()).unwrap_or_default();
+            let title  = p.get("title").and_then(|v| v.as_str()).unwrap_or(slug);
+            let ver    = p.get("version").and_then(|v| v.as_str()).unwrap_or_default();
+            let author = p.get("author").and_then(|v| v.as_str()).unwrap_or_default();
+            let active = p.get("status").and_then(|v| v.as_str()).map(|s| s == "active").unwrap_or(false);
+            let has_update = p.get("update").and_then(|v| v.as_str()).map(|s| s == "available").unwrap_or(false);
+            let new_ver = p.get("update_version").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).map(|s| s.to_owned());
+            let _ = sqlx::query(
+                "INSERT INTO plugin_wordpress_plugins
+                     (installation_id, slug, name, version, author, active, update_available, new_version)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+                 ON CONFLICT (installation_id, slug) DO UPDATE
+                     SET name=$3, version=$4, author=$5, active=$6,
+                         update_available=$7, new_version=$8, last_synced_at=now()",
+            )
+            .bind(id).bind(slug).bind(title).bind(ver).bind(author)
+            .bind(active).bind(has_update).bind(new_ver)
+            .execute(&pool).await;
+            count += 1;
+        }
+    }
+    Ok(Json(serde_json::json!({ "synced": count })))
+}
+
+// ── Theme sync ────────────────────────────────────────────────────────────────
+
+pub async fn sync_wp_themes(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<serde_json::Value>, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+    let list = env.run_json(&["theme", "list",
+        "--fields=name,title,version,author,status,update,update_version",
+    ]).await.map_err(wp_cli_error)?;
+
+    let screenshot_base = format!("/api/v1/wordpress/installations/{id}/themes");
+    let mut count = 0u32;
+    if let Some(themes) = list.as_array() {
+        for t in themes {
+            let slug   = t.get("name").and_then(|v| v.as_str()).unwrap_or_default();
+            let title  = t.get("title").and_then(|v| v.as_str()).unwrap_or(slug);
+            let ver    = t.get("version").and_then(|v| v.as_str()).unwrap_or_default();
+            let author = t.get("author").and_then(|v| v.as_str()).unwrap_or_default();
+            let active = t.get("status").and_then(|v| v.as_str()).map(|s| s == "active").unwrap_or(false);
+            let has_update = t.get("update").and_then(|v| v.as_str()).map(|s| s == "available").unwrap_or(false);
+            let new_ver = t.get("update_version").and_then(|v| v.as_str()).filter(|s| !s.is_empty()).map(|s| s.to_owned());
+            let screenshot_url = format!("{screenshot_base}/{slug}/screenshot");
+            let _ = sqlx::query(
+                "INSERT INTO plugin_wordpress_themes
+                     (installation_id, slug, name, version, author, active, update_available, new_version, screenshot_url)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+                 ON CONFLICT (installation_id, slug) DO UPDATE
+                     SET name=$3, version=$4, author=$5, active=$6,
+                         update_available=$7, new_version=$8, screenshot_url=$9, last_synced_at=now()",
+            )
+            .bind(id).bind(slug).bind(title).bind(ver).bind(author)
+            .bind(active).bind(has_update).bind(new_ver).bind(&screenshot_url)
+            .execute(&pool).await;
+            count += 1;
+        }
+    }
+    Ok(Json(serde_json::json!({ "synced": count })))
 }
 
 // ── Theme actions ──────────────────────────────────────────────────────────────
@@ -136,10 +248,52 @@ pub async fn update_wp_theme(
     Path((id, slug)): Path<(Uuid, String)>,
 ) -> Result<impl IntoResponse, ApiError> {
     let env = WpEnv::load(&pool, id).await?;
-    env.run(&["theme", "update", &slug])
-        .await
-        .map_err(wp_cli_error)?;
+    env.run(&["theme", "update", &slug]).await.map_err(wp_cli_error)?;
+    // Sync new version into DB
+    let ver = env.run(&["theme", "get", &slug, "--field=version"]).await.unwrap_or_default();
+    if !ver.is_empty() {
+        let _ = sqlx::query(
+            "UPDATE plugin_wordpress_themes SET version=$1, update_available=false, new_version=null, last_synced_at=now() WHERE installation_id=$2 AND slug=$3",
+        )
+        .bind(&ver).bind(id).bind(&slug).execute(&pool).await;
+    }
     Ok(Json(serde_json::json!({ "updated": true, "slug": slug })))
+}
+
+pub async fn get_wp_theme_screenshot(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path((id, slug)): Path<(Uuid, String)>,
+) -> Result<impl IntoResponse, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+    let theme_dir = format!("{}/wp-content/themes/{}", env.install_path, slug);
+
+    // Try png then jpg
+    for (ext, mime) in [("png", "image/png"), ("jpg", "image/jpeg"), ("jpeg", "image/jpeg")] {
+        let path = format!("{}/screenshot.{}", theme_dir, ext);
+        if let Ok(bytes) = tokio::fs::read(&path).await {
+            return Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, mime)
+                .header(header::CACHE_CONTROL, "public, max-age=86400")
+                .body(Body::from(bytes))
+                .unwrap());
+        }
+    }
+
+    // Fallback: 1×1 transparent PNG
+    let transparent_png: &[u8] = &[
+        0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a,0x00,0x00,0x00,0x0d,0x49,0x48,0x44,0x52,
+        0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,0x08,0x06,0x00,0x00,0x00,0x1f,0x15,0xc4,
+        0x89,0x00,0x00,0x00,0x0a,0x49,0x44,0x41,0x54,0x78,0x9c,0x62,0x00,0x01,0x00,0x00,
+        0x05,0x00,0x01,0x0d,0x0a,0x2d,0xb4,0x00,0x00,0x00,0x00,0x49,0x45,0x4e,0x44,0xae,
+        0x42,0x60,0x82,
+    ];
+    Ok(Response::builder()
+        .status(StatusCode::NOT_FOUND)
+        .header(header::CONTENT_TYPE, "image/png")
+        .body(Body::from(transparent_png))
+        .unwrap())
 }
 
 // ── User actions ───────────────────────────────────────────────────────────────
@@ -268,14 +422,43 @@ pub async fn search_replace_wp_db(
 
 #[derive(Deserialize)]
 pub struct WpSettingsRequest {
-    pub maintenance_mode:  Option<bool>,
-    pub debug_mode:        Option<bool>,
-    pub search_indexing:   Option<bool>,
-    pub wp_cron:           Option<bool>,   // true = WP cron enabled
-    pub core_auto_update:  Option<String>, // "disabled" | "minor" | "all"
-    pub plugin_auto_update: Option<bool>,
-    pub theme_auto_update:  Option<bool>,
-    pub force_https:        Option<bool>,
+    pub maintenance_mode:     Option<bool>,
+    pub debug_mode:           Option<bool>,
+    pub search_indexing:      Option<bool>,
+    pub wp_cron:              Option<bool>,   // true = WP cron enabled
+    pub core_auto_update:     Option<String>, // "disabled" | "minor" | "all"
+    pub plugin_auto_update:   Option<bool>,
+    pub theme_auto_update:    Option<bool>,
+    pub force_https:          Option<bool>,
+    pub file_editing_disabled: Option<bool>,
+    pub php_version:          Option<String>,
+}
+
+// ── GET settings ──────────────────────────────────────────────────────────────
+
+pub async fn get_wp_settings(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+
+    let blog_public        = env.run(&["option", "get", "blog_public"]).await.unwrap_or_else(|_| "1".into());
+    let wp_debug           = env.run(&["config", "get", "WP_DEBUG"]).await.unwrap_or_else(|_| "false".into());
+    let disable_wp_cron    = env.run(&["config", "get", "DISABLE_WP_CRON"]).await.unwrap_or_else(|_| "false".into());
+    let disallow_file_edit = env.run(&["config", "get", "DISALLOW_FILE_EDIT"]).await.unwrap_or_else(|_| "false".into());
+
+    let search_indexing       = blog_public.trim() == "1";
+    let debug_mode            = matches!(wp_debug.trim().to_ascii_lowercase().as_str(), "true" | "1");
+    let wp_cron               = !matches!(disable_wp_cron.trim().to_ascii_lowercase().as_str(), "true" | "1");
+    let file_editing_disabled = matches!(disallow_file_edit.trim().to_ascii_lowercase().as_str(), "true" | "1");
+
+    Ok(Json(serde_json::json!({
+        "search_indexing":       search_indexing,
+        "debug_mode":            debug_mode,
+        "wp_cron":               wp_cron,
+        "file_editing_disabled": file_editing_disabled,
+    })))
 }
 
 pub async fn patch_wp_settings(
@@ -334,6 +517,10 @@ pub async fn patch_wp_settings(
         let state = if v { "enable" } else { "disable" };
         apply!("theme_auto_update", &["theme", "auto-updates", state, "--all"]);
     }
+    if let Some(v) = body.file_editing_disabled {
+        let val = if v { "true" } else { "false" };
+        apply!("file_editing", &["config", "set", "DISALLOW_FILE_EDIT", val, "--raw"]);
+    }
     if let Some(true) = body.force_https {
         // Read current siteurl, switch to https
         if let Ok(url) = env.run(&["option", "get", "siteurl"]).await {
@@ -345,6 +532,41 @@ pub async fn patch_wp_settings(
             apply!("force_https_siteurl", &["option", "update", "siteurl", &https_url]);
             let home = url.replacen("http://", "https://", 1);
             apply!("force_https_home", &["option", "update", "home", &home]);
+        }
+    }
+
+    if let Some(ref v) = body.php_version {
+        let valid = {
+            let parts: Vec<&str> = v.split('.').collect();
+            (2..=3).contains(&parts.len()) && parts.iter().all(|p| p.parse::<u32>().is_ok())
+        };
+        if valid {
+            match sqlx::query(
+                "UPDATE applications a SET runtime_version = $1, updated_at = now()
+                 FROM plugin_wordpress_installations i
+                 WHERE i.id = $2 AND a.site_id = i.site_id",
+            )
+            .bind(v)
+            .bind(id)
+            .execute(&pool)
+            .await
+            {
+                Ok(_) => {
+                    applied.push("php_version".to_owned());
+                    // Mark installation as provisioning so agent reconciles PHP-FPM
+                    let _ = sqlx::query(
+                        "UPDATE plugin_wordpress_installations \
+                         SET state = 'provisioning', updated_at = now() \
+                         WHERE id = $1",
+                    )
+                    .bind(id)
+                    .execute(&pool)
+                    .await;
+                }
+                Err(e) => errors.push(format!("php_version: {e}")),
+            }
+        } else {
+            errors.push("php_version: invalid format — expected e.g. 8.3 or 8.3.6".to_owned());
         }
     }
 
@@ -546,7 +768,9 @@ pub async fn export_wp_db(
 
     // wp db export - streams SQL to stdout
     let out = Command::new(&env.wp_bin)
-        .args(["db", "export", "-", "--path", &env.install_path, "--allow-root"])
+        .args(["db", "export", "-",
+               &format!("--path={}", env.install_path),
+               "--allow-root"])
         .output()
         .await
         .map_err(|e| wp_cli_error(e.to_string()))?;
@@ -567,6 +791,69 @@ pub async fn export_wp_db(
         .map_err(|_| ApiError::internal())?;
 
     Ok(response)
+}
+
+// ── DB password reveal ────────────────────────────────────────────────────────
+
+pub async fn get_db_password(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let creds = DbCreds::load(&pool, id).await?;
+    Ok(Json(serde_json::json!({ "password": creds.password })))
+}
+
+// ── DB password rotation ──────────────────────────────────────────────────────
+
+#[derive(Deserialize)]
+pub struct ChangePasswordRequest {
+    pub new_password: String,
+}
+
+pub async fn change_db_password(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+    Json(body): Json<ChangePasswordRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    if body.new_password.len() < 8 {
+        return Err(ApiError::bad_request("password must be at least 8 characters"));
+    }
+
+    let creds = DbCreds::load(&pool, id).await?;
+    let env   = WpEnv::load(&pool, id).await?;
+
+    // 1. Rotate MySQL user password
+    let sql = format!(
+        "ALTER USER '{user}'@'%' IDENTIFIED BY '{pw}'; FLUSH PRIVILEGES;",
+        user = creds.user.replace('\'', "\\'"),
+        pw   = body.new_password.replace('\'', "\\'"),
+    );
+    let status = creds.mysql_cmd(&["-e", &sql])
+        .status()
+        .await
+        .map_err(|e| wp_cli_error(e.to_string()))?;
+
+    if !status.success() {
+        return Err(wp_cli_error("ALTER USER failed — check MySQL admin privileges".to_owned()));
+    }
+
+    // 2. Update wp-config.php via WP-CLI
+    env.run(&["config", "set", "DB_PASSWORD", &body.new_password]).await
+        .map_err(wp_cli_error)?;
+
+    // 3. Persist new password to DB
+    sqlx::query(
+        "UPDATE plugin_wordpress_installations SET db_password = $1, updated_at = now() WHERE id = $2",
+    )
+    .bind(&body.new_password)
+    .bind(id)
+    .execute(&pool)
+    .await
+    .map_err(|_| ApiError::internal())?;
+
+    Ok(Json(serde_json::json!({ "ok": true })))
 }
 
 // ── Database browser ──────────────────────────────────────────────────────────
@@ -616,15 +903,15 @@ struct DbCreds {
 
 impl DbCreds {
     async fn load(pool: &PgPool, installation_id: Uuid) -> Result<Self, ApiError> {
-        let row: Option<(String, String, String)> = sqlx::query_as(
-            "SELECT db_host, db_user, db_name FROM plugin_wordpress_installations WHERE id = $1",
+        let row: Option<(String, String, String, Option<String>)> = sqlx::query_as(
+            "SELECT db_host, db_user, db_name, db_password FROM plugin_wordpress_installations WHERE id = $1",
         )
         .bind(installation_id)
         .fetch_optional(pool)
         .await
         .map_err(|_| ApiError::internal())?;
 
-        let (host, user, name) = row.ok_or_else(|| ApiError::not_found("wordpress installation"))?;
+        let (host, user, name, db_pwd) = row.ok_or_else(|| ApiError::not_found("wordpress installation"))?;
 
         // Allow docker/dev override: TUNDRA_WP_MYSQL_HOST replaces 'localhost'
         let host = if host == "localhost" || host == "127.0.0.1" {
@@ -633,7 +920,10 @@ impl DbCreds {
             host
         };
 
-        let password = std::env::var("TUNDRA_WP_MYSQL_PASSWORD").unwrap_or_default();
+        // Use per-install password; fall back to global env var for legacy installs
+        let password = db_pwd
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| std::env::var("TUNDRA_WP_MYSQL_PASSWORD").unwrap_or_default());
 
         Ok(Self { host, user, name, password })
     }
@@ -1101,4 +1391,44 @@ pub async fn save_backup_schedule(
     .map_err(|_| ApiError::internal())?;
 
     Ok(Json(serde_json::json!({ "frequency": body.frequency, "retention": body.retention })))
+}
+
+// ── php.net releases proxy ────────────────────────────────────────────────────
+
+pub async fn proxy_php_releases(
+    AuthSession(_s): AuthSession,
+) -> Result<impl IntoResponse, ApiError> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(15))
+        .user_agent("tundra/1.0")
+        .build()
+        .map_err(|_| ApiError::internal())?;
+
+    // Fetch each branch individually — ?version=X.Y returns all X.Y.z releases
+    let branches = ["8.4", "8.3", "8.2", "8.1", "8.0", "7.4"];
+    let mut handles = Vec::new();
+    for branch in branches {
+        let c = client.clone();
+        let url = format!("https://www.php.net/releases/index.php?json&version={branch}");
+        handles.push(tokio::spawn(async move {
+            c.get(&url).send().await.ok()?.json::<serde_json::Value>().await.ok()
+        }));
+    }
+
+    let mut versions: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+    for handle in handles {
+        if let Ok(Some(data)) = handle.await {
+            if let Some(obj) = data.as_object() {
+                for (k, v) in obj {
+                    // Only take entries whose key starts with a digit (version numbers)
+                    if k.starts_with(|c: char| c.is_ascii_digit()) {
+                        versions.insert(k.clone(), v.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    // Return empty object on failure — frontend falls back to hardcoded list
+    Ok(Json(serde_json::Value::Object(versions)))
 }

@@ -365,6 +365,19 @@ pub fn router(pool: PgPool) -> Router {
             post(routes::wordpress::reprovision_installation),
         )
         .route(
+            "/api/v1/wordpress/installations/{id}/clone",
+            post(routes::wp_clone::clone_installation),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/staging",
+            get(routes::wp_clone::get_staging_status)
+                .post(routes::wp_clone::create_staging),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/staging/push-to-live",
+            post(routes::wp_clone::push_to_live),
+        )
+        .route(
             "/api/v1/wordpress/installations/{id}/plugins",
             get(routes::wordpress::list_wp_plugins).post(routes::wordpress::install_wp_plugin),
         )
@@ -384,6 +397,10 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/wordpress/installations/{id}/themes/{slug}/activate",
             post(routes::wordpress::activate_wp_theme),
         )
+        .route(
+            "/api/v1/wordpress/installations/{id}/themes/{slug}/screenshot",
+            get(routes::wp_actions::get_wp_theme_screenshot),
+        )
         // ── WordPress WP-CLI actions ───────────────────────────────────────
         .route(
             "/api/v1/wordpress/installations/{id}/plugins/{slug}/update",
@@ -392,6 +409,14 @@ pub fn router(pool: PgPool) -> Router {
         .route(
             "/api/v1/wordpress/installations/{id}/plugins/update-all",
             post(routes::wp_actions::update_all_wp_plugins),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/plugins/sync",
+            post(routes::wp_actions::sync_wp_plugins),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/themes/sync",
+            post(routes::wp_actions::sync_wp_themes),
         )
         .route(
             "/api/v1/wordpress/installations/{id}/themes/{slug}/update",
@@ -424,7 +449,7 @@ pub fn router(pool: PgPool) -> Router {
         )
         .route(
             "/api/v1/wordpress/installations/{id}/settings",
-            patch(routes::wp_actions::patch_wp_settings),
+            get(routes::wp_actions::get_wp_settings).patch(routes::wp_actions::patch_wp_settings),
         )
         .route(
             "/api/v1/wordpress/installations/{id}/security/scan/{scan_type}",
@@ -456,6 +481,11 @@ pub fn router(pool: PgPool) -> Router {
             get(routes::wp_actions::export_wp_config),
         )
         // Database export
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/password",
+            get(routes::wp_actions::get_db_password)
+                .post(routes::wp_actions::change_db_password),
+        )
         .route(
             "/api/v1/wordpress/installations/{id}/database/export",
             get(routes::wp_actions::export_wp_db),
@@ -504,6 +534,10 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/wordpress/installations/{id}/backup-schedule",
             get(routes::wp_actions::get_backup_schedule)
                 .put(routes::wp_actions::save_backup_schedule),
+        )
+        .route(
+            "/api/v1/proxy/php-releases",
+            get(routes::wp_actions::proxy_php_releases),
         )
         // ── MCP (Model Context Protocol) ───────────────────────────────────
         .route("/mcp", post(mcp_post))

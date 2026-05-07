@@ -42,8 +42,9 @@ services:
       # WP MySQL access — override localhost → mysql container, known dev password
       TUNDRA_WP_MYSQL_HOST: mysql
       TUNDRA_WP_MYSQL_PASSWORD: wordpress
-      # Root password used by provisioner to CREATE DATABASE / CREATE USER
+      # Admin user/password used by provisioner to CREATE DATABASE / CREATE USER per install
       TUNDRA_WP_MYSQL_ROOT_PASSWORD: devsecret
+      TUNDRA_WP_MYSQL_ADMIN_USER: tundra_admin
     volumes:
       - workload-srv:/srv/sites   # file-manager API reads/writes site files
     command:
@@ -55,8 +56,8 @@ services:
         apt-get update >/dev/null
         apt-get install -y --no-install-recommends \
             pkg-config libssl-dev protobuf-compiler ca-certificates \
-            php-cli php-mysql php-xml php-curl php-mbstring curl \
-            default-mysql-client >/dev/null
+            php-cli php-mysql php-xml php-curl php-mbstring php-zip php-gd curl \
+            default-mysql-client rsync >/dev/null
         # Install WP-CLI
         if ! command -v wp &>/dev/null; then
           curl -sL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \

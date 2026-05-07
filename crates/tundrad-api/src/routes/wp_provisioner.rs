@@ -70,7 +70,10 @@ async fn run(
     tracing::info!(installation_id = %req.installation_id, db = %req.db_name, "creating MySQL database and user");
     {
         let root_host = std::env::var("TUNDRA_WP_MYSQL_HOST").unwrap_or_else(|_| req.db_host.clone());
-        let root_pass = std::env::var("TUNDRA_WP_MYSQL_ROOT_PASSWORD")
+        // Admin user: prefer explicit override, fall back to the app user (which has GRANT OPTION in dev)
+        let admin_user = std::env::var("TUNDRA_WP_MYSQL_ADMIN_USER")
+            .unwrap_or_else(|_| "wordpress".to_owned());
+        let admin_pass = std::env::var("TUNDRA_WP_MYSQL_ROOT_PASSWORD")
             .or_else(|_| std::env::var("TUNDRA_WP_MYSQL_PASSWORD"))
             .unwrap_or_default();
         let sql = format!(
@@ -83,8 +86,8 @@ async fn run(
             pass = req.db_password.replace('\'', "\\'"),
         );
         let mut cmd = tokio::process::Command::new("mysql");
-        cmd.env("MYSQL_PWD", &root_pass)
-            .args(["-h", &root_host, "-u", "root", "--skip-ssl", "-e", &sql]);
+        cmd.env("MYSQL_PWD", &admin_pass)
+            .args(["-h", &root_host, "-u", &admin_user, "--skip-ssl", "-e", &sql]);
         let out = cmd.output().await?;
         if !out.status.success() {
             let err = String::from_utf8_lossy(&out.stderr);
@@ -422,13 +425,10 @@ async fn sync_themes(pool: &PgPool, installation_id: Uuid, install_path: &str, w
         let name = get("Theme Name").unwrap_or_else(|| slug.clone());
         let version = get("Version");
         let author = get("Author");
-        // First theme discovered is set active (default theme that WP activates on install)
         let active = idx == 0;
-        // Use WordPress.org SVN screenshot URL (works for all bundled themes)
-        let ver_str = version.as_deref().unwrap_or("1.0");
+        // Local screenshot endpoint — works for all themes including custom/premium
         let screenshot_url = format!(
-            "https://i0.wp.com/themes.svn.wordpress.org/{}/{}/screenshot.png",
-            slug, ver_str
+            "/api/v1/wordpress/installations/{installation_id}/themes/{slug}/screenshot"
         );
 
         let _ = sqlx::query(
@@ -436,7 +436,9 @@ async fn sync_themes(pool: &PgPool, installation_id: Uuid, install_path: &str, w
                  (installation_id, slug, name, version, author,
                   active, update_available, screenshot_url)
              VALUES ($1, $2, $3, $4, $5, $6, false, $7)
-             ON CONFLICT (installation_id, slug) DO NOTHING",
+             ON CONFLICT (installation_id, slug) DO UPDATE
+                 SET name=$3, version=$4, author=$5, active=$6,
+                     screenshot_url=$7, last_synced_at=now()",
         )
         .bind(installation_id).bind(&slug).bind(&name)
         .bind(&version).bind(&author).bind(active)
@@ -472,7 +474,7 @@ async fn run_wp(
 }
 
 /// Returns the path to the wp binary: checks /usr/local/bin/wp first, falls back to "wp".
-fn wp_bin() -> String {
+pub fn wp_bin() -> String {
     if std::path::Path::new("/usr/local/bin/wp").exists() {
         "/usr/local/bin/wp".to_owned()
     } else {
@@ -484,7 +486,7 @@ fn wp_bin() -> String {
 /// document_root = "/srv/sites/abc/current"
 /// subpath = "/" → "/srv/sites/abc/current"
 /// subpath = "/blog" → "/srv/sites/abc/current/blog"
-fn resolve_path(document_root: &str, subpath: &str) -> String {
+pub fn resolve_path(document_root: &str, subpath: &str) -> String {
     let root = document_root.trim_end_matches('/');
     let sub = subpath.trim_matches('/');
     if sub.is_empty() {
