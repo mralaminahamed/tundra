@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
 import CodeMirror from '@uiw/react-codemirror'
 import { oneDark } from '@codemirror/theme-one-dark'
@@ -70,42 +70,10 @@ function getLanguageLabel(filepath: string): string {
   return map[ext] ?? 'Plain text'
 }
 
-// ── Dir tree (for explorer sidebar) ──────────────────────────────────────────
+// ── Dir/file cache for real explorer ─────────────────────────────────────────
 
-type TreeNode = { name: string; path: string; children?: TreeNode[] }
-
-const DIR_TREE: TreeNode[] = [
-  {
-    name: 'wp-content', path: '/wp-content', children: [
-      {
-        name: 'themes', path: '/wp-content/themes', children: [
-          {
-            name: 'custom-theme', path: '/wp-content/themes/custom-theme', children: [
-              { name: 'style.css', path: '/wp-content/themes/custom-theme/style.css' },
-              { name: 'functions.php', path: '/wp-content/themes/custom-theme/functions.php' },
-              { name: 'index.php', path: '/wp-content/themes/custom-theme/index.php' },
-              { name: 'header.php', path: '/wp-content/themes/custom-theme/header.php' },
-              { name: 'footer.php', path: '/wp-content/themes/custom-theme/footer.php' },
-            ],
-          },
-          { name: 'twentytwentyfour', path: '/wp-content/themes/twentytwentyfour' },
-        ],
-      },
-      {
-        name: 'plugins', path: '/wp-content/plugins', children: [
-          { name: 'akismet', path: '/wp-content/plugins/akismet' },
-          { name: 'woocommerce', path: '/wp-content/plugins/woocommerce' },
-        ],
-      },
-    ],
-  },
-  { name: 'wp-admin', path: '/wp-admin' },
-  { name: 'wp-includes', path: '/wp-includes' },
-  { name: 'wp-config.php', path: '/wp-config.php' },
-  { name: '.htaccess', path: '/.htaccess' },
-  { name: 'robots.txt', path: '/robots.txt' },
-  { name: 'index.php', path: '/index.php' },
-]
+type FileEntry = { name: string; type: 'file' | 'dir' | 'symlink' }
+type DirCache  = Record<string, FileEntry[]>
 
 const TEXT_EXTS = new Set(['php','js','ts','tsx','jsx','css','scss','html','htm','xml','json','txt','md','yaml','yml','env','sh','conf','ini','htaccess','sql'])
 
@@ -136,18 +104,22 @@ function FileIcon({ path: fp, isDir }: { path: string; isDir?: boolean }) {
   )
 }
 
-// ── Explorer tree node ────────────────────────────────────────────────────────
+// ── Explorer tree node (API-driven) ──────────────────────────────────────────
 
 function ExplorerNode({
-  node, depth, openFiles, activeFile, expandedDirs, onToggleDir, onOpenFile,
+  entry, parentPath: parent, depth, openFiles, activeFile, expandedDirs, dirCache, onToggleDir, onOpenFile,
 }: {
-  node: TreeNode; depth: number; openFiles: Set<string>; activeFile: string
-  expandedDirs: Set<string>; onToggleDir: (p: string) => void; onOpenFile: (p: string) => Promise<void>
+  entry: FileEntry; parentPath: string; depth: number
+  openFiles: Set<string>; activeFile: string
+  expandedDirs: Set<string>; dirCache: DirCache
+  onToggleDir: (p: string) => void; onOpenFile: (p: string) => Promise<void>
 }) {
-  const isDir = !!node.children
-  const isExpanded = expandedDirs.has(node.path)
-  const isActive = activeFile === node.path
-  const isOpen = openFiles.has(node.path)
+  const nodePath = parent === '/' ? `/${entry.name}` : `${parent}/${entry.name}`
+  const isDir = entry.type === 'dir'
+  const isExpanded = isDir && expandedDirs.has(nodePath)
+  const isActive = activeFile === nodePath
+  const isOpen = openFiles.has(nodePath)
+  const children = isDir ? (dirCache[nodePath] ?? null) : null
 
   return (
     <>
@@ -158,8 +130,8 @@ function ExplorerNode({
           isActive ? 'bg-[#264f78] text-white' : 'text-[#cccccc] hover:bg-[#2a2d2e]',
         ].join(' ')}
         onClick={() => {
-          if (isDir) onToggleDir(node.path)
-          else if (isTextFile(node.path)) void onOpenFile(node.path)
+          if (isDir) onToggleDir(nodePath)
+          else if (isTextFile(entry.name)) void onOpenFile(nodePath)
           else toast.error('Binary file cannot be edited')
         }}
       >
@@ -171,20 +143,27 @@ function ExplorerNode({
         ) : (
           <span className="w-3 shrink-0" />
         )}
-        <FileIcon path={node.path} isDir={isDir} />
-        <span className="truncate text-[12px]">{node.name}</span>
+        <FileIcon path={nodePath} isDir={isDir} />
+        <span className="truncate text-[12px]">{entry.name}</span>
         {isOpen && !isActive && (
           <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-[#4d9375]" />
         )}
       </div>
-      {isDir && isExpanded && node.children?.map((child) => (
+      {isDir && isExpanded && children === null && (
+        <div style={{ paddingLeft: `${22 + depth * 14}px` }} className="py-0.5 text-[11px] text-[#555]">
+          Loading…
+        </div>
+      )}
+      {isDir && isExpanded && children?.map((child) => (
         <ExplorerNode
-          key={child.path}
-          node={child}
+          key={child.name}
+          entry={child}
+          parentPath={nodePath}
           depth={depth + 1}
           openFiles={openFiles}
           activeFile={activeFile}
           expandedDirs={expandedDirs}
+          dirCache={dirCache}
           onToggleDir={onToggleDir}
           onOpenFile={onOpenFile}
         />
@@ -212,7 +191,8 @@ function FileEditor() {
   const [dirty, setDirty] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState<Set<string>>(new Set())
   const [activeFile, setActiveFile] = useState(initialActive || initialFiles[0] || '')
-  const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set(['/wp-content', '/wp-content/themes', '/wp-content/themes/custom-theme']))
+  const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set())
+  const [dirCache, setDirCache] = useState<DirCache>({})
   const [showExplorer, setShowExplorer] = useState(true)
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [fontSize, setFontSize] = useState(13)
@@ -220,6 +200,26 @@ function FileEditor() {
   const editorRef = useRef<HTMLDivElement>(null)
 
   const openFilePaths = Array.from(contents.keys())
+
+  const fetchDirEntries = useCallback(async (p: string) => {
+    try {
+      const res = await api<{ data: FileEntry[] }>(`/sites/${siteId}/files`, { query: { path: p } })
+      const sorted = (res.data ?? []).sort((a, b) => {
+        if (a.type === 'dir' && b.type !== 'dir') return -1
+        if (a.type !== 'dir' && b.type === 'dir') return 1
+        return a.name.localeCompare(b.name)
+      })
+      setDirCache((c) => ({ ...c, [p]: sorted }))
+    } catch {
+      setDirCache((c) => ({ ...c, [p]: [] }))
+    }
+  }, [siteId])
+
+  // Load root on mount
+  useEffect(() => {
+    if (!dirCache['/']) void fetchDirEntries('/')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function fetchFileContent(fp: string): Promise<string> {
     // Use react-query cache if available, otherwise fetch
@@ -302,8 +302,19 @@ function FileEditor() {
   }, [activeFile])
 
   function toggleDir(p: string) {
-    setExpandedDirs((s) => { const n = new Set(s); n.has(p) ? n.delete(p) : n.add(p); return n })
+    setExpandedDirs((s) => {
+      const n = new Set(s)
+      if (n.has(p)) {
+        n.delete(p)
+      } else {
+        n.add(p)
+        if (!dirCache[p]) void fetchDirEntries(p)
+      }
+      return n
+    })
   }
+
+  const rootEntries = useMemo(() => dirCache['/'] ?? null, [dirCache])
 
   const activeContent = contents.get(activeFile) ?? ''
   const lang = getLang(activeFile)
@@ -424,25 +435,33 @@ function FileEditor() {
               </p>
             </div>
             <div className="flex-1 overflow-y-auto py-1">
-              {/* Root node */}
+              {/* Root row */}
               <div
                 className="flex cursor-pointer items-center gap-1.5 px-2 py-0.5 text-[12px]"
                 style={{ color: theme === 'dark' ? '#cccccc' : '#333' }}
-                onClick={() => {
-                  void navigate({ to: '/files/$siteId', params: { siteId }, search: { path: '/' } })
-                }}
+                onClick={() => void navigate({ to: '/files/$siteId', params: { siteId }, search: { path: '/' } })}
               >
                 <FolderIconBase className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" />
                 <span className="font-medium">/ (document root)</span>
               </div>
-              {DIR_TREE.map((node) => (
+              {rootEntries === null ? (
+                <div className="px-4 py-2 text-[11px]" style={{ color: theme === 'dark' ? '#555' : '#aaa' }}>
+                  Loading…
+                </div>
+              ) : rootEntries.length === 0 ? (
+                <div className="px-4 py-2 text-[11px]" style={{ color: theme === 'dark' ? '#555' : '#aaa' }}>
+                  Empty directory
+                </div>
+              ) : rootEntries.map((entry) => (
                 <ExplorerNode
-                  key={node.path}
-                  node={node}
+                  key={entry.name}
+                  entry={entry}
+                  parentPath="/"
                   depth={0}
                   openFiles={new Set(openFilePaths)}
                   activeFile={activeFile}
                   expandedDirs={expandedDirs}
+                  dirCache={dirCache}
                   onToggleDir={toggleDir}
                   onOpenFile={openFile}
                 />
