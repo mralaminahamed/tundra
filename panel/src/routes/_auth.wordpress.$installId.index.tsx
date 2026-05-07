@@ -1,10 +1,19 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import {
   SitePreview, UpdateBadge,
   type WpInstallation, type WpPlugin, type WpTheme,
 } from '@/components/wp-shared'
+
+interface StagingStatus {
+  has_staging: boolean
+  staging_install_id: string | null
+  staging_state: string | null
+  is_staging: boolean
+  source_install_id: string | null
+}
 
 export const Route = createFileRoute('/_auth/wordpress/$installId/')({
   component: WpOverviewTab,
@@ -39,6 +48,9 @@ function WpOverviewTab() {
   const qc = useQueryClient()
   const navigate = useNavigate()
 
+  const [showCloneModal, setShowCloneModal] = useState(false)
+  const [cloneDomain, setCloneDomain] = useState('')
+
   const updateAllMut = useMutation({
     mutationFn: () =>
       fetch(`/api/v1/wordpress/installations/${installId}/plugins/update-all`, {
@@ -50,6 +62,49 @@ function WpOverviewTab() {
       toast.success('All plugins updated')
     },
     onError: () => toast.error('Update failed'),
+  })
+
+  const { data: stagingStatus } = useQuery<StagingStatus>({
+    queryKey: ['wp-staging', installId],
+    queryFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/staging`).then((r) => r.json()),
+  })
+
+  const cloneMut = useMutation({
+    mutationFn: (domain: string) =>
+      fetch(`/api/v1/wordpress/installations/${installId}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_domain: domain || undefined }),
+      }).then(async (r) => {
+        if (!r.ok) throw new Error((await r.json()).error?.message ?? 'Clone failed')
+        return r.json() as Promise<{ installation_id: string }>
+      }),
+    onSuccess: (data) => {
+      toast.success('Clone started')
+      setShowCloneModal(false)
+      setCloneDomain('')
+      void navigate({ to: '/wordpress/$installId', params: { installId: data.installation_id } })
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+
+  const createStagingMut = useMutation({
+    mutationFn: () =>
+      fetch(`/api/v1/wordpress/installations/${installId}/staging`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      }).then(async (r) => {
+        if (!r.ok) throw new Error((await r.json()).error?.message ?? 'Failed')
+        return r.json() as Promise<{ installation_id: string }>
+      }),
+    onSuccess: () => {
+      toast.success('Staging environment is being created…')
+      void qc.invalidateQueries({ queryKey: ['wp-staging', installId] })
+      void navigate({ to: '/wordpress/$installId/staging', params: { installId } })
+    },
+    onError: (e: Error) => toast.error(e.message),
   })
 
   const { data: install } = useQuery<WpInstallation>({
@@ -85,6 +140,7 @@ function WpOverviewTab() {
   const phpMyAdminUrl = `/tools/phpmyadmin?installId=${installId}`
 
   return (
+    <>
     <div className="space-y-6">
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
@@ -106,11 +162,21 @@ function WpOverviewTab() {
         <QuickActionBtn href={install.site_url ?? '#'} label="View Site"
           icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>}
         />
-        <QuickActionBtn label="Clone" onClick={() => toast.info('Clone coming soon')}
+        <QuickActionBtn label="Clone" onClick={() => setShowCloneModal(true)}
           icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>}
         />
-        <QuickActionBtn label="Staging" onClick={() => toast.info('Staging coming soon')}
-          icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>}
+        <QuickActionBtn
+          label={stagingStatus?.has_staging ? 'View Staging' : stagingStatus?.is_staging ? 'Push to Live' : 'Staging'}
+          onClick={() => {
+            if (stagingStatus?.has_staging && stagingStatus.staging_install_id) {
+              void navigate({ to: '/wordpress/$installId/staging', params: { installId: stagingStatus.staging_install_id } })
+            } else if (stagingStatus?.is_staging) {
+              void navigate({ to: '/wordpress/$installId/staging', params: { installId } })
+            } else {
+              createStagingMut.mutate()
+            }
+          }}
+          icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>}
         />
       </div>
 
@@ -251,5 +317,50 @@ function WpOverviewTab() {
         </div>
       </div>
     </div>
+
+      {/* ── Clone modal ─────────────────────────────────────── */}
+      {showCloneModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="mb-1 text-base font-semibold text-tundra-ink-900">Clone Installation</h2>
+            <p className="mb-4 text-sm text-tundra-ink-500">
+              Copies all files and the database to a new domain. URLs are rewritten automatically.
+            </p>
+            <label className="mb-1.5 block text-xs font-medium text-tundra-ink-700">New domain</label>
+            <input
+              type="text"
+              value={cloneDomain}
+              onChange={(e) => setCloneDomain(e.target.value)}
+              placeholder="copy.example.com"
+              autoFocus
+              className="w-full rounded-lg border border-tundra-ink-200 px-3 py-2 text-sm focus:border-tundra-blue-500 focus:outline-none"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && cloneDomain.trim()) cloneMut.mutate(cloneDomain.trim())
+              }}
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => { setShowCloneModal(false); setCloneDomain('') }}
+                className="rounded-lg border border-tundra-ink-200 px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => cloneMut.mutate(cloneDomain.trim())}
+                disabled={cloneMut.isPending || !cloneDomain.trim()}
+                className="flex items-center gap-2 rounded-lg bg-tundra-ink-900 px-4 py-2 text-sm font-medium text-white hover:bg-tundra-ink-700 disabled:opacity-50"
+              >
+                {cloneMut.isPending ? (
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                )}
+                Clone
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

@@ -42,6 +42,7 @@ import { Route as AuthWordpressInstallIdSecurityRouteImport } from './routes/_au
 import { Route as AuthWordpressInstallIdUsersRouteImport } from './routes/_auth.wordpress.$installId.users'
 import { Route as AuthWordpressInstallIdBackupsRouteImport } from './routes/_auth.wordpress.$installId.backups'
 import { Route as AuthWordpressInstallIdSettingsRouteImport } from './routes/_auth.wordpress.$installId.settings'
+import { Route as AuthWordpressInstallIdStagingRouteImport } from './routes/_auth.wordpress.$installId.staging'
 import { Route as AuthWordpressInstallIdDangerRouteImport } from './routes/_auth.wordpress.$installId.danger'
 import { Route as AuthSitesNewRouteImport } from './routes/_auth.sites.new'
 import { Route as AuthSitesSiteIdRouteImport } from './routes/_auth.sites.$siteId'
@@ -252,6 +253,11 @@ const AuthWordpressInstallIdBackupsRoute = AuthWordpressInstallIdBackupsRouteImp
 const AuthWordpressInstallIdSettingsRoute = AuthWordpressInstallIdSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthWordpressInstallIdRoute,
+} as any)
+const AuthWordpressInstallIdStagingRoute = AuthWordpressInstallIdStagingRouteImport.update({
+  id: '/staging',
+  path: '/staging',
   getParentRoute: () => AuthWordpressInstallIdRoute,
 } as any)
 const AuthWordpressInstallIdDangerRoute = AuthWordpressInstallIdDangerRouteImport.update({
@@ -567,6 +573,7 @@ export interface FileRoutesByFullPath {
   '/wordpress/$installId/users': typeof AuthWordpressInstallIdUsersRoute
   '/wordpress/$installId/backups': typeof AuthWordpressInstallIdBackupsRoute
   '/wordpress/$installId/settings': typeof AuthWordpressInstallIdSettingsRoute
+  '/wordpress/$installId/staging': typeof AuthWordpressInstallIdStagingRoute
   '/wordpress/$installId/danger': typeof AuthWordpressInstallIdDangerRoute
   '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
@@ -643,6 +650,7 @@ export interface FileRoutesByTo {
   '/wordpress/$installId/users': typeof AuthWordpressInstallIdUsersRoute
   '/wordpress/$installId/backups': typeof AuthWordpressInstallIdBackupsRoute
   '/wordpress/$installId/settings': typeof AuthWordpressInstallIdSettingsRoute
+  '/wordpress/$installId/staging': typeof AuthWordpressInstallIdStagingRoute
   '/wordpress/$installId/danger': typeof AuthWordpressInstallIdDangerRoute
   '/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/backups/targets/new': typeof AuthBackupsTargetsNewRoute
@@ -726,6 +734,7 @@ export interface FileRoutesById {
   '/_auth/wordpress/$installId/users': typeof AuthWordpressInstallIdUsersRoute
   '/_auth/wordpress/$installId/backups': typeof AuthWordpressInstallIdBackupsRoute
   '/_auth/wordpress/$installId/settings': typeof AuthWordpressInstallIdSettingsRoute
+  '/_auth/wordpress/$installId/staging': typeof AuthWordpressInstallIdStagingRoute
   '/_auth/wordpress/$installId/danger': typeof AuthWordpressInstallIdDangerRoute
   '/_auth/backups/jobs/new': typeof AuthBackupsJobsNewRoute
   '/_auth/backups/targets/new': typeof AuthBackupsTargetsNewRoute
@@ -809,6 +818,7 @@ export interface FileRouteTypes {
     | '/wordpress/$installId/users'
     | '/wordpress/$installId/backups'
     | '/wordpress/$installId/settings'
+    | '/wordpress/$installId/staging'
     | '/wordpress/$installId/danger'
     | '/backups/jobs/new'
     | '/backups/targets/new'
@@ -885,6 +895,7 @@ export interface FileRouteTypes {
     | '/wordpress/$installId/users'
     | '/wordpress/$installId/backups'
     | '/wordpress/$installId/settings'
+    | '/wordpress/$installId/staging'
     | '/wordpress/$installId/danger'
     | '/backups/jobs/new'
     | '/backups/targets/new'
@@ -967,6 +978,7 @@ export interface FileRouteTypes {
     | '/_auth/wordpress/$installId/users'
     | '/_auth/wordpress/$installId/backups'
     | '/_auth/wordpress/$installId/settings'
+    | '/_auth/wordpress/$installId/staging'
     | '/_auth/wordpress/$installId/danger'
     | '/_auth/backups/jobs/new'
     | '/_auth/backups/targets/new'
@@ -1213,6 +1225,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/wordpress/$installId/settings'
       preLoaderRoute: typeof AuthWordpressInstallIdSettingsRouteImport
+      parentRoute: typeof AuthWordpressInstallIdRoute
+    }
+    '/_auth/wordpress/$installId/staging': {
+      id: '/_auth/wordpress/$installId/staging'
+      path: '/staging'
+      fullPath: '/wordpress/$installId/staging'
+      preLoaderRoute: typeof AuthWordpressInstallIdStagingRouteImport
       parentRoute: typeof AuthWordpressInstallIdRoute
     }
     '/_auth/wordpress/$installId/danger': {
@@ -1806,6 +1825,7 @@ const AuthWordpressInstallIdRouteChildren: AuthWordpressInstallIdRouteChildren =
   AuthWordpressInstallIdUsersRoute: AuthWordpressInstallIdUsersRoute,
   AuthWordpressInstallIdBackupsRoute: AuthWordpressInstallIdBackupsRoute,
   AuthWordpressInstallIdSettingsRoute: AuthWordpressInstallIdSettingsRoute,
+  AuthWordpressInstallIdStagingRoute: AuthWordpressInstallIdStagingRoute,
   AuthWordpressInstallIdDangerRoute: AuthWordpressInstallIdDangerRoute,
 }
 
