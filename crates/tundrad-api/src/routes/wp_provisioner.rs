@@ -155,10 +155,13 @@ async fn run(
         actual_version
     };
 
-    // Store admin_user in DB now that provisioning succeeded
+    // Store resolved db_name, db_user, admin_user (request may have had None)
     let _ = sqlx::query(
-        "UPDATE plugin_wordpress_installations SET admin_user = $1 WHERE id = $2",
+        "UPDATE plugin_wordpress_installations
+         SET db_name = $1, db_user = $2, admin_user = $3 WHERE id = $4",
     )
+    .bind(&req.db_name)
+    .bind(&req.db_user)
     .bind(&req.admin_user)
     .bind(req.installation_id)
     .execute(pool)
@@ -251,16 +254,23 @@ async fn sync_themes(pool: &PgPool, installation_id: Uuid, install_path: &str, w
         let author = get("Author");
         // First theme discovered is set active (default theme that WP activates on install)
         let active = idx == 0;
+        // Use WordPress.org SVN screenshot URL (works for all bundled themes)
+        let ver_str = version.as_deref().unwrap_or("1.0");
+        let screenshot_url = format!(
+            "https://i0.wp.com/themes.svn.wordpress.org/{}/{}/screenshot.png",
+            slug, ver_str
+        );
 
         let _ = sqlx::query(
             "INSERT INTO plugin_wordpress_themes
                  (installation_id, slug, name, version, author,
                   active, update_available, screenshot_url)
-             VALUES ($1, $2, $3, $4, $5, $6, false, NULL)
+             VALUES ($1, $2, $3, $4, $5, $6, false, $7)
              ON CONFLICT (installation_id, slug) DO NOTHING",
         )
         .bind(installation_id).bind(&slug).bind(&name)
         .bind(&version).bind(&author).bind(active)
+        .bind(&screenshot_url)
         .execute(pool).await;
 
         idx += 1;
