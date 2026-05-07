@@ -21,6 +21,7 @@ import {
   TypeIcon,
   DownloadIcon,
   TrashIcon,
+  CopyIcon,
 } from '@/components/icons'
 
 export const Route = createFileRoute('/_auth/files/$siteId')({
@@ -48,12 +49,13 @@ type Modal =
   | { type: 'delete'; names: string[] }
   | { type: 'chmod'; name: string; perms: string }
   | { type: 'upload' }
+  | { type: 'copy'; names: string[] }
+  | { type: 'move'; names: string[] }
 
 type SortKey = 'name' | 'size' | 'modified' | 'type'
 type ViewMode = 'list' | 'grid'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
 
 function buildBreadcrumb(path: string) {
   if (path === '/') return [{ label: '/', path: '/' }]
@@ -104,6 +106,10 @@ function sortFiles(files: FileEntry[], key: SortKey, dir: 'asc' | 'desc'): FileE
     return dir === 'asc' ? v : -v
   }
   return [...dirs.sort(cmp), ...rest.sort(cmp)]
+}
+
+function filePath(dirPath: string, name: string) {
+  return dirPath === '/' ? `/${name}` : `${dirPath}/${name}`
 }
 
 // ── File icon ─────────────────────────────────────────────────────────────────
@@ -240,7 +246,7 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
 
 // ── Chmod modal ───────────────────────────────────────────────────────────────
 
-function ChmodModal({ name, perms, filePath, onApply, isPending, onClose }: {
+function ChmodModal({ name, perms, filePath: fp, onApply, isPending, onClose }: {
   name: string; perms: string; filePath: string
   onApply: (filePath: string, mode: string) => void
   isPending: boolean; onClose: () => void
@@ -284,7 +290,7 @@ function ChmodModal({ name, perms, filePath, onApply, isPending, onClose }: {
           className="rounded-xl border border-tundra-ink-200 px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
           Cancel
         </button>
-        <button type="button" disabled={isPending} onClick={() => { onApply(filePath, octal) }}
+        <button type="button" disabled={isPending} onClick={() => { onApply(fp, octal) }}
           className="rounded-xl bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 disabled:opacity-50 transition-colors">
           {isPending ? 'Applying…' : 'Apply'}
         </button>
@@ -295,48 +301,139 @@ function ChmodModal({ name, perms, filePath, onApply, isPending, onClose }: {
 
 // ── Upload modal ──────────────────────────────────────────────────────────────
 
-function UploadModal({ path, onClose }: {
-  path: string; siteId?: string; onClose: () => void; onSuccess?: () => void
+function UploadModal({ path, siteId, onClose, onSuccess }: {
+  path: string; siteId: string; onClose: () => void; onSuccess?: () => void
 }) {
-  const [dragging, setDragging] = useState(false)
+  const [dragging, setDragging]   = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress]   = useState<string[]>([])
 
-  async function uploadFiles(_fileList: FileList) {
-    void _fileList
-    toast.info('File upload coming soon')
-    onClose()
+  async function uploadFiles(fileList: FileList) {
+    setUploading(true)
+    const files = Array.from(fileList)
+    const msgs: string[] = []
+    for (const file of files) {
+      const form = new FormData()
+      form.append('path', path)
+      form.append('file', file, file.name)
+      try {
+        const res = await fetch(`/api/v1/sites/${siteId}/files/upload`, {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+          msgs.push(`✗ ${file.name}: ${err?.error?.message ?? res.statusText}`)
+        } else {
+          msgs.push(`✓ ${file.name}`)
+        }
+      } catch (e) {
+        msgs.push(`✗ ${file.name}: network error`)
+      }
+    }
+    setProgress(msgs)
+    setUploading(false)
+    const succeeded = msgs.filter((m) => m.startsWith('✓')).length
+    if (succeeded > 0) {
+      toast.success(`Uploaded ${succeeded} file${succeeded !== 1 ? 's' : ''}`)
+      onSuccess?.()
+    }
+    if (msgs.every((m) => m.startsWith('✓'))) onClose()
   }
 
   return (
     <ModalShell title="Upload files" onClose={onClose}>
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-        onDragLeave={() => { setDragging(false) }}
-        onDrop={(e) => {
-          e.preventDefault(); setDragging(false)
-          if (e.dataTransfer.files.length) void uploadFiles(e.dataTransfer.files)
-        }}
-        className={[
-          'mb-4 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed py-12 transition-colors',
-          dragging ? 'border-tundra-lichen bg-tundra-lichen/5' : 'border-tundra-ink-200 bg-tundra-ink-50',
-        ].join(' ')}
-      >
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
-          <UploadIcon className="h-7 w-7 text-tundra-ink-400" />
+      {progress.length > 0 ? (
+        <div className="mb-4 space-y-1 rounded-xl border border-tundra-ink-100 p-3 max-h-48 overflow-y-auto">
+          {progress.map((m, i) => (
+            <p key={i} className={`text-xs font-mono ${m.startsWith('✓') ? 'text-tundra-lichen-700' : 'text-red-600'}`}>{m}</p>
+          ))}
         </div>
-        <div className="text-center">
-          <p className="text-sm font-semibold text-tundra-ink">Drop files here</p>
-          <p className="mt-0.5 text-xs text-tundra-ink-400">or click to browse</p>
+      ) : (
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+          onDragLeave={() => { setDragging(false) }}
+          onDrop={(e) => {
+            e.preventDefault(); setDragging(false)
+            if (e.dataTransfer.files.length) void uploadFiles(e.dataTransfer.files)
+          }}
+          className={[
+            'mb-4 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed py-12 transition-colors',
+            dragging ? 'border-tundra-lichen bg-tundra-lichen/5' : 'border-tundra-ink-200 bg-tundra-ink-50',
+          ].join(' ')}
+        >
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
+            {uploading
+              ? <div className="h-7 w-7 animate-spin rounded-full border-2 border-tundra-lichen border-t-transparent" />
+              : <UploadIcon className="h-7 w-7 text-tundra-ink-400" />
+            }
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-semibold text-tundra-ink">{uploading ? 'Uploading…' : 'Drop files here'}</p>
+            <p className="mt-0.5 text-xs text-tundra-ink-400">or click to browse</p>
+          </div>
+          {!uploading && (
+            <label className="cursor-pointer rounded-xl border border-tundra-ink-200 bg-white px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors shadow-sm">
+              Browse files
+              <input type="file" multiple className="sr-only" onChange={(e) => {
+                if (e.target.files?.length) void uploadFiles(e.target.files)
+              }} />
+            </label>
+          )}
         </div>
-        <label className="cursor-pointer rounded-xl border border-tundra-ink-200 bg-white px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors shadow-sm">
-          Browse files
-          <input type="file" multiple className="sr-only" onChange={(e) => {
-            if (e.target.files?.length) void uploadFiles(e.target.files)
-          }} />
-        </label>
-      </div>
+      )}
       <p className="text-center text-xs text-tundra-ink-400">
         Destination: <code className="font-mono text-tundra-ink-600">{path}</code>
       </p>
+      {progress.length > 0 && (
+        <div className="mt-4 flex justify-end">
+          <button type="button" onClick={onClose}
+            className="rounded-xl bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors">
+            Done
+          </button>
+        </div>
+      )}
+    </ModalShell>
+  )
+}
+
+// ── Copy/Move modal ───────────────────────────────────────────────────────────
+
+function CopyMoveModal({ mode, names, currentPath, onDone, isPending, onClose }: {
+  mode: 'copy' | 'move'; names: string[]; currentPath: string
+  onDone: (dest: string) => void; isPending: boolean; onClose: () => void
+}) {
+  const [dest, setDest] = useState(currentPath === '/' ? '/' : currentPath)
+  const label = mode === 'copy' ? 'Copy' : 'Move'
+  const hint  = names.length === 1 ? names[0] : `${names.length} items`
+
+  return (
+    <ModalShell title={`${label} — ${hint}`} onClose={onClose}>
+      <p className="mb-3 text-xs text-tundra-ink-400">
+        {label} to destination path (absolute, within document root):
+      </p>
+      <label className="mb-1.5 block text-xs font-medium text-tundra-ink-600">Destination directory</label>
+      <input
+        autoFocus type="text" value={dest}
+        onChange={(e) => { setDest(e.target.value) }}
+        onKeyDown={(e) => { if (e.key === 'Enter' && dest) onDone(dest) }}
+        placeholder="/wp-content/uploads"
+        className="mb-4 w-full rounded-xl border border-tundra-ink-200 px-3 py-2.5 font-mono text-sm focus:border-tundra-lichen focus:outline-none"
+      />
+      {names.length > 1 && (
+        <ul className="mb-4 max-h-28 overflow-y-auto rounded-xl border border-tundra-ink-100 p-2 text-xs font-mono text-tundra-ink-500">
+          {names.map((n) => <li key={n} className="py-0.5">{n}</li>)}
+        </ul>
+      )}
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onClose}
+          className="rounded-xl border border-tundra-ink-200 px-4 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">Cancel</button>
+        <button type="button" disabled={!dest || isPending} onClick={() => { if (dest) onDone(dest) }}
+          className="rounded-xl bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 disabled:opacity-50 transition-colors">
+          {isPending ? `${label}ing…` : label}
+        </button>
+      </div>
     </ModalShell>
   )
 }
@@ -370,16 +467,15 @@ function FileBrowser() {
   const [sortKey,      setSortKey]      = useState<SortKey>('name')
   const [sortDir,      setSortDir]      = useState<'asc' | 'desc'>('asc')
 
-  const invalidateDir = () => {
+  const invalidateDir = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['site-files', siteId, path] })
-    // Also refresh sidebar tree for current path so new/renamed/deleted dirs appear
     void fetchTreeDirs(path)
-  }
+  }, [queryClient, siteId, path]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const touchMutation = useMutation({
     mutationFn: (name: string) => api(`/sites/${siteId}/files/touch`, {
       method: 'POST',
-      body: { path: path === '/' ? `/${name}` : `${path}/${name}` },
+      body: { path: filePath(path, name) },
     }),
     onSuccess: (_data, name) => { toast.success(`Created ${name}`); void invalidateDir(); setModal(null) },
     onError: (e) => { toast.error(e instanceof Error ? e.message : 'Failed to create file') },
@@ -388,7 +484,7 @@ function FileBrowser() {
   const mkdirMutation = useMutation({
     mutationFn: (name: string) => api(`/sites/${siteId}/files/mkdir`, {
       method: 'POST',
-      body: { path: path === '/' ? `/${name}` : `${path}/${name}` },
+      body: { path: filePath(path, name) },
     }),
     onSuccess: (_data, name) => { toast.success(`Created ${name}/`); void invalidateDir(); setModal(null) },
     onError: (e) => { toast.error(e instanceof Error ? e.message : 'Failed to create folder') },
@@ -407,7 +503,7 @@ function FileBrowser() {
     mutationFn: (names: string[]) => Promise.all(
       names.map((name) => api(`/sites/${siteId}/files`, {
         method: 'DELETE',
-        query: { path: path === '/' ? `/${name}` : `${path}/${name}` },
+        query: { path: filePath(path, name) },
       }))
     ),
     onSuccess: (_data, names) => {
@@ -420,12 +516,48 @@ function FileBrowser() {
   })
 
   const chmodMutation = useMutation({
-    mutationFn: ({ filePath, mode }: { filePath: string; mode: string }) => api(`/sites/${siteId}/files/chmod`, {
+    mutationFn: ({ filePath: fp, mode }: { filePath: string; mode: string }) => api(`/sites/${siteId}/files/chmod`, {
       method: 'POST',
-      body: { path: filePath, mode },
+      body: { path: fp, mode },
     }),
     onSuccess: () => { void invalidateDir(); setModal(null) },
     onError: (e) => { toast.error(e instanceof Error ? e.message : 'Failed to change permissions') },
+  })
+
+  const copyMutation = useMutation({
+    mutationFn: ({ names, dest }: { names: string[]; dest: string }) =>
+      Promise.all(names.map((name) => {
+        const destName = `${dest.replace(/\/$/, '')}/${name}`
+        return api(`/sites/${siteId}/files/copy`, {
+          method: 'POST',
+          body: { from: filePath(path, name), to: destName },
+        })
+      })),
+    onSuccess: (_d, { names }) => {
+      toast.success(`Copied ${names.length} item(s)`)
+      void invalidateDir()
+      setSelected(new Set())
+      setModal(null)
+    },
+    onError: (e) => { toast.error(e instanceof Error ? e.message : 'Failed to copy') },
+  })
+
+  const moveMutation = useMutation({
+    mutationFn: ({ names, dest }: { names: string[]; dest: string }) =>
+      Promise.all(names.map((name) => {
+        const destName = `${dest.replace(/\/$/, '')}/${name}`
+        return api(`/sites/${siteId}/files/rename`, {
+          method: 'POST',
+          body: { from: filePath(path, name), to: destName },
+        })
+      })),
+    onSuccess: (_d, { names }) => {
+      toast.success(`Moved ${names.length} item(s)`)
+      void invalidateDir()
+      setSelected(new Set())
+      setModal(null)
+    },
+    onError: (e) => { toast.error(e instanceof Error ? e.message : 'Failed to move') },
   })
 
   const allFiles = filesData?.data ?? []
@@ -501,12 +633,27 @@ function FileBrowser() {
 
   function openEdit(name: string) {
     if (!isTextFile(name)) { toast.error('Binary file — cannot open in editor'); return }
-    const fp = path === '/' ? `/${name}` : `${path}/${name}`
+    const fp = filePath(path, name)
     window.open(`/editor/${siteId}?active=${encodeURIComponent(fp)}&files=${encodeURIComponent(fp)}`, '_blank')
   }
 
   function enterDir(name: string) {
-    goToPath(path === '/' ? `/${name}` : `${path}/${name}`)
+    goToPath(filePath(path, name))
+  }
+
+  function downloadEntry(name: string) {
+    const fp = filePath(path, name)
+    const url = `/api/v1/sites/${siteId}/files/download?path=${encodeURIComponent(fp)}`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = name
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+  function downloadBulk() {
+    for (const name of selected) downloadEntry(name)
   }
 
   return (
@@ -641,16 +788,18 @@ function FileBrowser() {
           <div className="flex shrink-0 items-center gap-2 border-b border-tundra-lichen-200 bg-tundra-lichen-50 px-4 py-2">
             <span className="text-xs font-semibold text-tundra-lichen-800">{selected.size} selected</span>
             <div className="h-3 w-px bg-tundra-lichen-200" />
-            {[
-              { label: 'Download', action: () => toast.info('Download zip — coming soon') },
-              { label: 'Copy',     action: () => toast.info('Copy — coming soon') },
-              { label: 'Move',     action: () => toast.info('Move — coming soon') },
-            ].map(({ label, action }) => (
-              <button key={label} type="button" onClick={action}
-                className="rounded-lg border border-tundra-lichen-200 bg-white px-2.5 py-1 text-xs font-medium text-tundra-lichen-700 hover:bg-tundra-lichen-100 transition-colors">
-                {label}
-              </button>
-            ))}
+            <button type="button" onClick={downloadBulk}
+              className="rounded-lg border border-tundra-lichen-200 bg-white px-2.5 py-1 text-xs font-medium text-tundra-lichen-700 hover:bg-tundra-lichen-100 transition-colors">
+              Download
+            </button>
+            <button type="button" onClick={() => { setModal({ type: 'copy', names: [...selected] }) }}
+              className="rounded-lg border border-tundra-lichen-200 bg-white px-2.5 py-1 text-xs font-medium text-tundra-lichen-700 hover:bg-tundra-lichen-100 transition-colors">
+              Copy
+            </button>
+            <button type="button" onClick={() => { setModal({ type: 'move', names: [...selected] }) }}
+              className="rounded-lg border border-tundra-lichen-200 bg-white px-2.5 py-1 text-xs font-medium text-tundra-lichen-700 hover:bg-tundra-lichen-100 transition-colors">
+              Move
+            </button>
             <button type="button" onClick={() => { setModal({ type: 'delete', names: [...selected] }) }}
               className="rounded-lg border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
               Delete
@@ -795,7 +944,11 @@ function FileBrowser() {
                             className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors">
                             <TypeIcon className="h-3.5 w-3.5" />
                           </button>
-                          <button type="button" onClick={() => toast.info(`Downloading ${f.name}…`)} title={f.type === 'dir' ? 'Zip & download' : 'Download'}
+                          <button type="button" onClick={() => { setModal({ type: 'copy', names: [f.name] }) }} title="Copy"
+                            className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors">
+                            <CopyIcon className="h-3.5 w-3.5" />
+                          </button>
+                          <button type="button" onClick={() => { downloadEntry(f.name) }} title={f.type === 'dir' ? 'Zip & download' : 'Download'}
                             className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors">
                             <DownloadIcon className="h-3.5 w-3.5" />
                           </button>
@@ -868,14 +1021,16 @@ function FileBrowser() {
                           <span className="text-[10px] text-tundra-ink-300 tabular-nums">{fmtBytes(f.size)}</span>
                         )}
                         {/* Quick action on hover */}
-                        {f.type !== 'dir' && (
-                          <div className="absolute right-1 top-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button type="button" onClick={(e) => { e.stopPropagation(); setModal({ type: 'delete', names: [f.name] }) }}
-                              className="flex h-5 w-5 items-center justify-center rounded-md bg-white shadow text-tundra-ink-400 hover:text-red-600 transition-colors">
-                              <CloseIcon className="h-3 w-3" />
-                            </button>
-                          </div>
-                        )}
+                        <div className="absolute right-1 top-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button type="button" onClick={(e) => { e.stopPropagation(); downloadEntry(f.name) }}
+                            className="flex h-5 w-5 items-center justify-center rounded-md bg-white shadow text-tundra-ink-400 hover:text-tundra-lichen-700 transition-colors">
+                            <DownloadIcon className="h-3 w-3" />
+                          </button>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); setModal({ type: 'delete', names: [f.name] }) }}
+                            className="flex h-5 w-5 items-center justify-center rounded-md bg-white shadow text-tundra-ink-400 hover:text-red-600 transition-colors">
+                            <CloseIcon className="h-3 w-3" />
+                          </button>
+                        </div>
                       </div>
                     )
                   })}
@@ -941,9 +1096,7 @@ function FileBrowser() {
             onChange={(e) => { setNewName(e.target.value) }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && newName && modal.type === 'rename') {
-                const from = path === '/' ? `/${modal.name}` : `${path}/${modal.name}`
-                const to   = path === '/' ? `/${newName}` : `${path}/${newName}`
-                renameMutation.mutate({ from, to })
+                renameMutation.mutate({ from: filePath(path, modal.name), to: filePath(path, newName) })
               }
             }}
             className="mb-4 w-full rounded-xl border border-tundra-ink-200 px-3 py-2.5 font-mono text-sm focus:border-tundra-lichen focus:outline-none" />
@@ -953,9 +1106,7 @@ function FileBrowser() {
             <button type="button" disabled={!newName || renameMutation.isPending}
               onClick={() => {
                 if (newName && modal.type === 'rename') {
-                  const from = path === '/' ? `/${modal.name}` : `${path}/${modal.name}`
-                  const to   = path === '/' ? `/${newName}` : `${path}/${newName}`
-                  renameMutation.mutate({ from, to })
+                  renameMutation.mutate({ from: filePath(path, modal.name), to: filePath(path, newName) })
                 }
               }}
               className="rounded-xl bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 disabled:opacity-50 transition-colors">
@@ -991,14 +1142,33 @@ function FileBrowser() {
         <ChmodModal
           name={modal.name}
           perms={modal.perms}
-          filePath={path === '/' ? `/${modal.name}` : `${path}/${modal.name}`}
-          onApply={(filePath, mode) => { chmodMutation.mutate({ filePath, mode }) }}
+          filePath={filePath(path, modal.name)}
+          onApply={(fp, mode) => { chmodMutation.mutate({ filePath: fp, mode }) }}
           isPending={chmodMutation.isPending}
           onClose={() => { setModal(null) }}
         />
       )}
+
       {modal?.type === 'upload' && (
         <UploadModal path={path} siteId={siteId} onClose={() => { setModal(null) }} onSuccess={() => { void invalidateDir() }} />
+      )}
+
+      {modal?.type === 'copy' && (
+        <CopyMoveModal
+          mode="copy" names={modal.names} currentPath={path}
+          onDone={(dest) => { copyMutation.mutate({ names: modal.names, dest }) }}
+          isPending={copyMutation.isPending}
+          onClose={() => { setModal(null) }}
+        />
+      )}
+
+      {modal?.type === 'move' && (
+        <CopyMoveModal
+          mode="move" names={modal.names} currentPath={path}
+          onDone={(dest) => { moveMutation.mutate({ names: modal.names, dest }) }}
+          isPending={moveMutation.isPending}
+          onClose={() => { setModal(null) }}
+        />
       )}
     </div>
   )

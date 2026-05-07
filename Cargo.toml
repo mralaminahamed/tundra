@@ -51,7 +51,7 @@ repository = "https://github.com/mralaminahamed/tundra"
 tokio = { version = "1", features = ["full"] }
 
 # HTTP framework — Axum 0.8 (spec §3.1)
-axum = { version = "0.8", features = ["macros", "ws"] }
+axum = { version = "0.8", features = ["macros", "ws", "multipart"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["trace", "cors", "compression-gzip"] }
 

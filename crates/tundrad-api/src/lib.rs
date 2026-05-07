@@ -139,6 +139,18 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/sites/{site_id}/files/chmod",
             post(routes::files::chmod_entry),
         )
+        .route(
+            "/api/v1/sites/{site_id}/files/download",
+            get(routes::files::download),
+        )
+        .route(
+            "/api/v1/sites/{site_id}/files/upload",
+            post(routes::files::upload),
+        )
+        .route(
+            "/api/v1/sites/{site_id}/files/copy",
+            post(routes::files::copy_entry),
+        )
         // ── Database servers ───────────────────────────────────────────────
         .route(
             "/api/v1/database-servers",

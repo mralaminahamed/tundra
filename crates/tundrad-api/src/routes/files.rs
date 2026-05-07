@@ -1,10 +1,12 @@
+use std::io::Write as _;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 
 use axum::{
     Json,
-    extract::{Path as AxumPath, Query, State},
-    http::StatusCode,
+    body::Body,
+    extract::{Multipart, Path as AxumPath, Query, State},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
     response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
@@ -58,6 +60,12 @@ pub struct RenameRequest {
 pub struct ChmodRequest {
     pub path: String,
     pub mode: String,
+}
+
+#[derive(Deserialize)]
+pub struct CopyRequest {
+    pub from: String,
+    pub to: String,
 }
 
 // ── Security helpers ──────────────────────────────────────────────────────────
@@ -473,3 +481,176 @@ pub async fn chmod_entry(
 
     Ok(StatusCode::OK)
 }
+
+/// GET /api/v1/sites/{site_id}/files/download?path=...
+/// Returns file as attachment, or a zip archive for directories.
+pub async fn download(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    AxumPath(site_id): AxumPath<Uuid>,
+    Query(q): Query<PathQuery>,
+) -> Result<impl IntoResponse, ApiError> {
+    let site = require_site(&pool, session.operator_id, site_id, Action::Read).await?;
+    let root = canonical_doc_root(&site.document_root).await?;
+    let abs_path = resolve_safe(&root, &q.path).await?;
+
+    let meta = tokio::fs::metadata(&abs_path)
+        .await
+        .map_err(|_| ApiError::new(StatusCode::NOT_FOUND, "files.not_found", "path not found"))?;
+
+    let file_name = abs_path
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .into_owned();
+
+    if meta.is_file() {
+        let bytes = tokio::fs::read(&abs_path).await.map_err(|e| {
+            tracing::error!("download read error: {e}");
+            ApiError::internal()
+        })?;
+        let disposition = format!("attachment; filename=\"{file_name}\"");
+        let mut headers = HeaderMap::new();
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/octet-stream"));
+        headers.insert(header::CONTENT_DISPOSITION, HeaderValue::from_str(&disposition).unwrap_or(HeaderValue::from_static("attachment")));
+        Ok((headers, Body::from(bytes)).into_response())
+    } else {
+        // Directory → zip in memory
+        let zip_name = format!("{file_name}.zip");
+        let buf = tokio::task::spawn_blocking(move || -> Result<Vec<u8>, std::io::Error> {
+            let cursor = std::io::Cursor::new(Vec::new());
+            let mut zip = zip::ZipWriter::new(cursor);
+            let options: zip::write::SimpleFileOptions = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated);
+            zip_dir_recursive(&mut zip, &abs_path, &abs_path, options)?;
+            let inner = zip.finish()?;
+            Ok(inner.into_inner())
+        })
+        .await
+        .map_err(|_| ApiError::internal())?
+        .map_err(|e| {
+            tracing::error!("zip error: {e}");
+            ApiError::internal()
+        })?;
+
+        let disposition = format!("attachment; filename=\"{zip_name}\"");
+        let mut headers = HeaderMap::new();
+        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/zip"));
+        headers.insert(header::CONTENT_DISPOSITION, HeaderValue::from_str(&disposition).unwrap_or(HeaderValue::from_static("attachment")));
+        Ok((headers, Body::from(buf)).into_response())
+    }
+}
+
+fn zip_dir_recursive(
+    zip: &mut zip::ZipWriter<std::io::Cursor<Vec<u8>>>,
+    base: &Path,
+    current: &Path,
+    options: zip::write::SimpleFileOptions,
+) -> std::io::Result<()> {
+    for entry in std::fs::read_dir(current)? {
+        let entry = entry?;
+        let path = entry.path();
+        let rel = path.strip_prefix(base).unwrap_or(&path);
+        let name = rel.to_string_lossy();
+        let meta = entry.metadata()?;
+        if meta.is_dir() {
+            zip.add_directory(format!("{name}/"), options)?;
+            zip_dir_recursive(zip, base, &path, options)?;
+        } else {
+            zip.start_file(name.as_ref(), options)?;
+            let bytes = std::fs::read(&path)?;
+            zip.write_all(&bytes)?;
+        }
+    }
+    Ok(())
+}
+
+/// POST /api/v1/sites/{site_id}/files/upload  (multipart: path + file fields)
+pub async fn upload(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    AxumPath(site_id): AxumPath<Uuid>,
+    mut multipart: Multipart,
+) -> Result<impl IntoResponse, ApiError> {
+    let site = require_site(&pool, session.operator_id, site_id, Action::Create).await?;
+    let root = canonical_doc_root(&site.document_root).await?;
+
+    let mut dest_dir: Option<String> = None;
+    let mut uploads: Vec<(String, Vec<u8>)> = Vec::new();
+
+    while let Some(field) = multipart.next_field().await.map_err(|e| {
+        ApiError::bad_request(format!("multipart error: {e}"))
+    })? {
+        let field_name = field.name().unwrap_or("").to_owned();
+        if field_name == "path" {
+            dest_dir = Some(field.text().await.map_err(|e| ApiError::bad_request(format!("multipart error: {e}")))?);
+        } else if field_name == "file" {
+            let filename = field.file_name().unwrap_or("upload").to_owned();
+            let data = field.bytes().await.map_err(|e| ApiError::bad_request(format!("multipart error: {e}")))?;
+            uploads.push((filename, data.to_vec()));
+        }
+    }
+
+    let dir = dest_dir.unwrap_or_else(|| "/".to_owned());
+    let dir_path = resolve_safe(&root, &dir).await?;
+
+    for (filename, data) in uploads {
+        let safe_name: String = filename.chars().filter(|c| *c != '/' && *c != '\\').collect();
+        if safe_name.is_empty() { continue; }
+        let target = dir_path.join(&safe_name);
+        if !target.starts_with(&root) {
+            return Err(ApiError::forbidden("path escapes document root"));
+        }
+        tokio::fs::write(&target, &data).await.map_err(|e| {
+            ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "files.upload_error", format!("failed to write {safe_name}: {e}"))
+        })?;
+    }
+
+    Ok(StatusCode::CREATED)
+}
+
+/// POST /api/v1/sites/{site_id}/files/copy
+pub async fn copy_entry(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    AxumPath(site_id): AxumPath<Uuid>,
+    Json(body): Json<CopyRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let site = require_site(&pool, session.operator_id, site_id, Action::Create).await?;
+    let root = canonical_doc_root(&site.document_root).await?;
+    let from_path = resolve_safe(&root, &body.from).await?;
+    let to_path   = resolve_safe(&root, &body.to).await?;
+
+    let meta = tokio::fs::metadata(&from_path)
+        .await
+        .map_err(|_| ApiError::new(StatusCode::NOT_FOUND, "files.not_found", "source not found"))?;
+
+    if meta.is_dir() {
+        tokio::task::spawn_blocking(move || copy_dir_all(&from_path, &to_path))
+            .await
+            .map_err(|_| ApiError::internal())?
+            .map_err(|e| ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "files.copy_error", format!("copy failed: {e}")))?;
+    } else {
+        tokio::fs::copy(&from_path, &to_path).await.map_err(|e| {
+            ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "files.copy_error", format!("copy failed: {e}"))
+        })?;
+    }
+
+    Ok(StatusCode::CREATED)
+}
+
+fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(dst)?;
+    for entry in std::fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        let dest = dst.join(entry.file_name());
+        if ty.is_dir() {
+            copy_dir_all(&entry.path(), &dest)?;
+        } else {
+            std::fs::copy(entry.path(), dest)?;
+        }
+    }
+    Ok(())
+}
+
