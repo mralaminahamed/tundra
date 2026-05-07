@@ -154,7 +154,7 @@ function ServerDetailPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['servers'] })
       toast.success('Server removed')
-      void navigate({ to: '/servers/' })
+      void navigate({ to: '/servers' })
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed to delete'),
   })
@@ -199,7 +199,7 @@ function ServerDetailPage() {
     <div className="max-w-5xl">
       {/* Breadcrumb */}
       <nav className="mb-4 flex items-center gap-1.5 text-xs text-tundra-ink-400">
-        <Link to="/servers/" className="hover:text-tundra-aurora">Servers</Link>
+        <Link to="/servers" className="hover:text-tundra-aurora">Servers</Link>
         <span>/</span>
         <span className="text-tundra-ink-600">{server.name}</span>
       </nav>

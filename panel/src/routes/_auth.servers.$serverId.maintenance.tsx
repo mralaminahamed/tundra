@@ -111,7 +111,7 @@ function MaintenancePage() {
     <div className="max-w-2xl">
       {/* Breadcrumb */}
       <nav className="mb-5 flex items-center gap-1.5 text-xs text-tundra-ink-400">
-        <Link to="/servers/" className="hover:text-tundra-aurora">Servers</Link>
+        <Link to="/servers" className="hover:text-tundra-aurora">Servers</Link>
         <span>/</span>
         <Link to="/servers/$serverId" params={{ serverId }} className="hover:text-tundra-aurora">{server.name}</Link>
         <span>/</span>

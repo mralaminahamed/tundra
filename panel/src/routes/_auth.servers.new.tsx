@@ -125,7 +125,7 @@ function AddServerPage() {
     <div className="max-w-2xl">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1.5 text-xs text-tundra-ink-400">
-        <Link to="/servers/" className="hover:text-tundra-aurora">Servers</Link>
+        <Link to="/servers" className="hover:text-tundra-aurora">Servers</Link>
         <span>/</span>
         <span className="text-tundra-ink">Add server</span>
       </nav>
@@ -248,7 +248,7 @@ function AddServerPage() {
             >
               {createMutation.isPending ? 'Creating…' : 'Create server & continue →'}
             </button>
-            <Link to="/servers/" className="rounded-lg border border-tundra-ink-200 px-5 py-2 text-sm text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
+            <Link to="/servers" className="rounded-lg border border-tundra-ink-200 px-5 py-2 text-sm text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
               Cancel
             </Link>
           </div>
@@ -544,7 +544,7 @@ function AddServerPage() {
               View server
             </Link>
             <Link
-              to="/servers/"
+              to="/servers"
               className="rounded-lg border border-tundra-ink-200 px-5 py-2 text-sm text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors"
             >
               All servers
