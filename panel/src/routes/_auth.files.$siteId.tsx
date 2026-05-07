@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Site } from '@/lib/api-types'
@@ -25,8 +25,6 @@ type FileEntry = {
   owner: string
 }
 
-type TreeNode = { name: string; path: string; children?: TreeNode[] }
-
 type Modal =
   | { type: 'newFile' }
   | { type: 'newFolder' }
@@ -37,9 +35,6 @@ type Modal =
 
 type SortKey = 'name' | 'size' | 'modified' | 'type'
 type ViewMode = 'list' | 'grid'
-
-// Sidebar tree is populated dynamically from API listing; no static entries needed.
-const DIR_TREE: TreeNode[] = []
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -170,19 +165,23 @@ function SortTh({ label, sortKey, current, dir, onChange, className = '' }: {
 
 // ── Directory tree ────────────────────────────────────────────────────────────
 
-function TreeNodeRow({ node, depth, currentPath, expanded, onToggle, onNavigate }: {
-  node: TreeNode; depth: number; currentPath: string
-  expanded: Set<string>; onToggle: (p: string) => void; onNavigate: (p: string) => void
+type DirCache = Record<string, FileEntry[]>
+
+function TreeNodeRow({ name, nodePath, depth, currentPath, expanded, dirCache, onToggle, onNavigate }: {
+  name: string; nodePath: string; depth: number; currentPath: string
+  expanded: Set<string>; dirCache: DirCache
+  onToggle: (p: string) => void; onNavigate: (p: string) => void
 }) {
-  const isExpanded = expanded.has(node.path)
-  const isActive   = currentPath === node.path
-  const hasKids    = !!node.children?.length
+  const isExpanded = expanded.has(nodePath)
+  const isActive   = currentPath === nodePath
+  const cachedKids = dirCache[nodePath]
+  const hasKids    = cachedKids === undefined || cachedKids.length > 0
 
   return (
     <>
       <div
         style={{ paddingLeft: `${10 + depth * 14}px` }}
-        onClick={() => { onNavigate(node.path); if (hasKids && !isExpanded) onToggle(node.path) }}
+        onClick={() => { onNavigate(nodePath); if (!isExpanded) onToggle(nodePath) }}
         className={[
           'group flex cursor-pointer select-none items-center gap-1.5 rounded-md mx-1 pr-2 py-1 transition-colors',
           isActive ? 'bg-tundra-lichen/10 text-tundra-lichen-700' : 'text-tundra-ink-600 hover:bg-tundra-ink-100 hover:text-tundra-ink',
@@ -190,7 +189,7 @@ function TreeNodeRow({ node, depth, currentPath, expanded, onToggle, onNavigate 
       >
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); if (hasKids) onToggle(node.path) }}
+          onClick={(e) => { e.stopPropagation(); onToggle(nodePath) }}
           className={`h-4 w-4 shrink-0 flex items-center justify-center rounded transition-transform ${!hasKids ? 'invisible' : ''}`}
           style={{ transform: isExpanded ? 'rotate(90deg)' : undefined }}
         >
@@ -201,12 +200,16 @@ function TreeNodeRow({ node, depth, currentPath, expanded, onToggle, onNavigate 
         <svg className="h-3.5 w-3.5 shrink-0 text-tundra-aurora" fill="currentColor" viewBox="0 0 20 20">
           <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
         </svg>
-        <span className="truncate text-xs">{node.name}</span>
+        <span className="truncate text-xs">{name}</span>
       </div>
-      {isExpanded && hasKids && node.children!.map((child) => (
-        <TreeNodeRow key={child.path} node={child} depth={depth + 1}
-          currentPath={currentPath} expanded={expanded} onToggle={onToggle} onNavigate={onNavigate} />
-      ))}
+      {isExpanded && cachedKids && cachedKids.map((child) => {
+        const childPath = nodePath === '/' ? `/${child.name}` : `${nodePath}/${child.name}`
+        return (
+          <TreeNodeRow key={childPath} name={child.name} nodePath={childPath} depth={depth + 1}
+            currentPath={currentPath} expanded={expanded} dirCache={dirCache}
+            onToggle={onToggle} onNavigate={onNavigate} />
+        )
+      })}
     </>
   )
 }
@@ -353,7 +356,8 @@ function FileBrowser() {
   })
 
   const [showTree,     setShowTree]     = useState(true)
-  const [treeExpanded, setTreeExpanded] = useState<Set<string>>(new Set())
+  const [treeExpanded, setTreeExpanded] = useState<Set<string>>(new Set(['/']))
+  const [dirCache,     setDirCache]     = useState<DirCache>({})
   const [selected,     setSelected]     = useState<Set<string>>(new Set())
   const [filterText,   setFilterText]   = useState('')
   const [modal,        setModal]        = useState<Modal | null>(null)
@@ -362,7 +366,11 @@ function FileBrowser() {
   const [sortKey,      setSortKey]      = useState<SortKey>('name')
   const [sortDir,      setSortDir]      = useState<'asc' | 'desc'>('asc')
 
-  const invalidateDir = () => queryClient.invalidateQueries({ queryKey: ['site-files', siteId, path] })
+  const invalidateDir = () => {
+    void queryClient.invalidateQueries({ queryKey: ['site-files', siteId, path] })
+    // Also refresh sidebar tree for current path so new/renamed/deleted dirs appear
+    void fetchTreeDirs(path)
+  }
 
   const touchMutation = useMutation({
     mutationFn: (name: string) => api(`/sites/${siteId}/files/touch`, {
@@ -432,8 +440,50 @@ function FileBrowser() {
     setFilterText('')
   }
 
+  const fetchTreeDirs = useCallback(async (p: string) => {
+    try {
+      const res = await api<{ data: FileEntry[] }>(`/sites/${siteId}/files`, { query: { path: p } })
+      const dirs = (res.data ?? []).filter((f) => f.type === 'dir').sort((a, b) => a.name.localeCompare(b.name))
+      setDirCache((c) => ({ ...c, [p]: dirs }))
+    } catch {
+      setDirCache((c) => ({ ...c, [p]: [] }))
+    }
+  }, [siteId])
+
+  // Initial fetch: root directories
+  useEffect(() => {
+    if (!dirCache['/']) void fetchTreeDirs('/')
+  }, [dirCache, fetchTreeDirs])
+
+  // Auto-expand all parent dirs of the current path so tree reveals the location
+  useEffect(() => {
+    if (path === '/') return
+    const parts = path.split('/').filter(Boolean)
+    let acc = ''
+    const toFetch: string[] = ['/']
+    for (let i = 0; i < parts.length - 1; i++) {
+      acc += '/' + parts[i]
+      toFetch.push(acc)
+    }
+    setTreeExpanded((s) => {
+      const n = new Set(s)
+      toFetch.forEach((p) => n.add(p))
+      return n
+    })
+    toFetch.forEach((p) => { if (!dirCache[p]) void fetchTreeDirs(p) })
+  }, [path, dirCache, fetchTreeDirs])
+
   function toggleTree(p: string) {
-    setTreeExpanded((s) => { const n = new Set(s); n.has(p) ? n.delete(p) : n.add(p); return n })
+    setTreeExpanded((s) => {
+      const n = new Set(s)
+      if (n.has(p)) {
+        n.delete(p)
+      } else {
+        n.add(p)
+        if (!dirCache[p]) void fetchTreeDirs(p)
+      }
+      return n
+    })
   }
 
   function toggleSelect(name: string) {
@@ -478,10 +528,18 @@ function FileBrowser() {
               </svg>
               <span className="text-xs font-medium">/ root</span>
             </div>
-            {DIR_TREE.map((node) => (
-              <TreeNodeRow key={node.path} node={node} depth={0} currentPath={path}
-                expanded={treeExpanded} onToggle={toggleTree} onNavigate={goToPath} />
+            {(dirCache['/'] ?? []).map((d) => (
+              <TreeNodeRow key={`/${d.name}`} name={d.name} nodePath={`/${d.name}`} depth={0}
+                currentPath={path} expanded={treeExpanded} dirCache={dirCache}
+                onToggle={toggleTree} onNavigate={goToPath} />
             ))}
+            {!dirCache['/'] && (
+              <div className="mx-2 mt-2 space-y-1">
+                {[1,2,3,4].map((i) => (
+                  <div key={i} className="h-5 animate-pulse rounded bg-tundra-ink-100" />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
