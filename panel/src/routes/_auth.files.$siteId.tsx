@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Site } from '@/lib/api-types'
 import { Dialog } from '@/components/ui/dialog'
-import { fmtBytes } from '@/lib/utils'
+import { fmtBytes, fmtDate, fmtRelative } from '@/lib/utils'
 import {
   FolderIcon as FolderIconBase,
   FileIcon as FileIconBase,
@@ -17,6 +17,7 @@ import {
   SearchIcon,
   ArrowLeftIcon,
   PencilIcon,
+  TypeIcon,
   DownloadIcon,
   TrashIcon,
 } from '@/components/icons'
@@ -766,7 +767,7 @@ function FileBrowser() {
 
                       {/* Modified */}
                       <td className="hidden px-3 py-2.5 text-xs text-tundra-ink-400 md:table-cell">
-                        {f.modified}
+                        <span title={fmtDate(f.modified)}>{fmtRelative(f.modified)}</span>
                       </td>
 
                       {/* Perms */}
@@ -790,7 +791,7 @@ function FileBrowser() {
                             onClick={() => { setNewName(f.name); setModal({ type: 'rename', name: f.name }) }}
                             title="Rename"
                             className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors">
-                            <ListIcon className="h-3.5 w-3.5" />
+                            <TypeIcon className="h-3.5 w-3.5" />
                           </button>
                           <button type="button" onClick={() => toast.info(`Downloading ${f.name}…`)} title={f.type === 'dir' ? 'Zip & download' : 'Download'}
                             className="flex h-6 w-6 items-center justify-center rounded-md text-tundra-ink-400 hover:bg-tundra-ink-100 hover:text-tundra-ink transition-colors">
