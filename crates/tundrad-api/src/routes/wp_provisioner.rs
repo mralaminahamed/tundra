@@ -167,8 +167,9 @@ async fn run(
     .execute(pool)
     .await;
 
-    // ── Step 5: sync installed themes ─────────────────────────────────────────
+    // ── Step 5: sync installed themes + plugins ───────────────────────────────
     sync_themes(pool, req.installation_id, &install_path, &wp).await;
+    sync_plugins(pool, req.installation_id, &install_path, &wp).await;
 
     // ── Step 6: compute disk usage ────────────────────────────────────────────
     if let Ok(out) = Command::new("du")
@@ -189,6 +190,130 @@ async fn run(
     }
 
     Ok(version)
+}
+
+/// Sync installed plugins: try wp-cli first (needs live DB), fall back to
+/// scanning wp-content/plugins/ and reading plugin header comments.
+async fn sync_plugins(pool: &PgPool, installation_id: Uuid, install_path: &str, wp: &str) {
+    #[derive(serde::Deserialize)]
+    struct WpPlugin {
+        name: String,          // slug
+        title: Option<String>, // display name
+        status: String,        // "active" | "inactive" | "must-use"
+        version: Option<String>,
+        update: Option<String>,
+        update_version: Option<String>,
+        author: Option<String>,
+    }
+
+    // Try wp-cli first (needs live MySQL)
+    let wp_cli_ok = async {
+        let out = Command::new(wp)
+            .args([
+                "plugin", "list",
+                "--format=json",
+                "--fields=name,title,status,version,update,update_version,author",
+                &format!("--path={}", install_path),
+                "--allow-root",
+            ])
+            .output()
+            .await
+            .ok()?;
+        if !out.status.success() { return None; }
+        let plugins: Vec<WpPlugin> = serde_json::from_slice(&out.stdout).ok()?;
+        Some(plugins)
+    }.await;
+
+    if let Some(plugins) = wp_cli_ok {
+        for p in &plugins {
+            let active = p.status == "active" || p.status == "must-use";
+            let has_update = p.update.as_deref() == Some("available");
+            let name = p.title.as_deref().unwrap_or(&p.name);
+            let _ = sqlx::query(
+                "INSERT INTO plugin_wordpress_plugins
+                     (installation_id, slug, name, version, author,
+                      active, update_available, new_version)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                 ON CONFLICT (installation_id, slug) DO UPDATE
+                     SET active = EXCLUDED.active, version = EXCLUDED.version,
+                         update_available = EXCLUDED.update_available,
+                         new_version = EXCLUDED.new_version, last_synced_at = now()",
+            )
+            .bind(installation_id).bind(&p.name).bind(name)
+            .bind(&p.version).bind(&p.author).bind(active)
+            .bind(has_update).bind(&p.update_version)
+            .execute(pool).await;
+        }
+        tracing::info!(installation_id = %installation_id, count = plugins.len(), "plugins synced via wp-cli");
+        return;
+    }
+
+    // Fallback: scan wp-content/plugins/, read plugin header from main PHP file.
+    // Active state unknown without DB — set false; WP-CLI sync will fix on next run.
+    let plugins_dir = format!("{}/wp-content/plugins", install_path);
+    let mut rd = match tokio::fs::read_dir(&plugins_dir).await {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+
+    let mut count = 0usize;
+    while let Ok(Some(entry)) = rd.next_entry().await {
+        let meta = match entry.metadata().await { Ok(m) => m, Err(_) => continue };
+        if !meta.is_dir() { continue; }
+        let slug = entry.file_name().to_string_lossy().into_owned();
+
+        // Find main plugin file: prefer {slug}.php, else first *.php with Plugin Name header
+        let main_php = format!("{}/{}/{}.php", plugins_dir, slug, slug);
+        let contents = if let Ok(c) = tokio::fs::read_to_string(&main_php).await {
+            c
+        } else {
+            // scan dir for any .php with a Plugin Name header
+            let mut found = String::new();
+            if let Ok(mut d) = tokio::fs::read_dir(format!("{}/{}", plugins_dir, slug)).await {
+                while let Ok(Some(f)) = d.next_entry().await {
+                    let fname = f.file_name().to_string_lossy().into_owned();
+                    if !fname.ends_with(".php") { continue; }
+                    if let Ok(c) = tokio::fs::read_to_string(f.path()).await {
+                        if c.contains("Plugin Name:") { found = c; break; }
+                    }
+                }
+            }
+            found
+        };
+
+        let get = |key: &str| -> Option<String> {
+            contents.lines()
+                .find(|l| l.trim_start().to_lowercase().starts_with(&format!("{}:", key.to_lowercase()).replace("plugin ", "")))
+                .or_else(|| contents.lines().find(|l| {
+                    let s = l.trim_start().to_lowercase();
+                    s.starts_with(&format!("* {}:", key.to_lowercase())) ||
+                    s.starts_with(&format!("{}: ", key.to_lowercase()))
+                }))
+                .map(|l| l.splitn(2, ':').nth(1).unwrap_or("").trim().to_owned())
+                .filter(|s| !s.is_empty())
+        };
+
+        let name = get("Plugin Name").unwrap_or_else(|| slug.clone());
+        if name == slug && !contents.contains("Plugin Name:") { continue; } // skip non-plugins
+        let version = get("Version");
+        let author = get("Author");
+
+        let _ = sqlx::query(
+            "INSERT INTO plugin_wordpress_plugins
+                 (installation_id, slug, name, version, author,
+                  active, update_available)
+             VALUES ($1, $2, $3, $4, $5, false, false)
+             ON CONFLICT (installation_id, slug) DO NOTHING",
+        )
+        .bind(installation_id).bind(&slug).bind(&name)
+        .bind(&version).bind(&author)
+        .execute(pool).await;
+
+        count += 1;
+    }
+    if count > 0 {
+        tracing::info!(installation_id = %installation_id, count, "plugins synced via filesystem scan");
+    }
 }
 
 /// Sync installed themes: try wp-cli first (needs live DB), fall back to
