@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/stores/auth'
 import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/operators')({
   component: OperatorsPage,
@@ -126,7 +127,7 @@ function OperatorsPage() {
                   </td>
                   <td className="px-4 py-3 text-tundra-ink-400">{relativeTime(op.last_active_at)}</td>
                   <td className="px-4 py-3 text-tundra-ink-400">
-                    {new Date(op.created_at).toLocaleDateString()}
+                    {fmtDate(op.created_at)}
                   </td>
                   <td className="px-4 py-3">
                     {op.id !== currentOperator?.id && (

@@ -28,6 +28,7 @@ use tokio::sync::mpsc;
 use tracing::{debug, error, instrument, warn};
 
 use tundrad_repo::PgPool;
+use crate::serde_util::fmt_dt;
 
 /// Maximum number of outbound frames buffered per WebSocket client.
 const OUTBOUND_QUEUE: usize = 256;
@@ -83,7 +84,7 @@ async fn handle_socket(mut socket: WebSocket, query: WsQuery, pool: PgPool) {
     let welcome = json!({
         "type": "welcome",
         "operator_id": operator_id,
-        "server_time": time::OffsetDateTime::now_utc().to_string(),
+        "server_time": fmt_dt(time::OffsetDateTime::now_utc()),
     });
     if socket
         .send(Message::Text(welcome.to_string().into()))

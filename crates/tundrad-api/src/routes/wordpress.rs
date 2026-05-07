@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use crate::error::ApiError;
 use crate::extractors::AuthSession;
+use crate::serde_util::fmt_dt;
 use tundrad_repo::PgPool;
 
 // ── DB row types ──────────────────────────────────────────────────────────────
@@ -116,8 +117,8 @@ fn installation_json(r: &InstallationRow) -> serde_json::Value {
         "multisite": r.multisite,
         "state": r.state,
         "error_message": r.error_message,
-        "created_at": r.created_at,
-        "updated_at": r.updated_at,
+        "created_at": fmt_dt(r.created_at),
+        "updated_at": fmt_dt(r.updated_at),
     })
 }
 

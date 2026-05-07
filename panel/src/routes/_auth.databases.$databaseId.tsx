@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Database, DbUser, ListResponse } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/databases/$databaseId')({
   component: DatabaseDetailPage,
@@ -96,7 +97,7 @@ function DatabaseDetailPage() {
         </dd>
 
         <dt className="font-medium">Created</dt>
-        <dd>{new Date(database.created_at).toLocaleDateString()}</dd>
+        <dd>{fmtDate(database.created_at)}</dd>
       </dl>
 
       {/* Users with access */}
@@ -182,7 +183,7 @@ function DatabaseDetailPage() {
                     <td className="px-4 py-3 font-medium">{u.username}</td>
                     <td className="px-4 py-3 text-tundra-ink-500">{u.is_managed ? 'Yes' : 'No'}</td>
                     <td className="px-4 py-3 text-tundra-ink-400">
-                      {new Date(u.created_at).toLocaleDateString()}
+                      {fmtDate(u.created_at)}
                     </td>
                   </tr>
                 ))}

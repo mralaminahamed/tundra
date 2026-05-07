@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import type { BackupSnapshot, ListResponse, RestorePreview } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/backups/snapshots')({
   component: BackupSnapshotsPage,
@@ -58,9 +59,9 @@ function RestoreDialog({
         <dt className="font-medium text-tundra-ink-500">Size</dt>
         <dd>{formatMB(preview.preview.size_bytes)}</dd>
         <dt className="font-medium text-tundra-ink-500">Created</dt>
-        <dd>{new Date(preview.preview.created_at).toLocaleString()}</dd>
+        <dd>{fmtDateTime(preview.preview.created_at)}</dd>
         <dt className="font-medium text-tundra-ink-500">Expires</dt>
-        <dd>{new Date(preview.expires_at).toLocaleString()}</dd>
+        <dd>{fmtDateTime(preview.expires_at)}</dd>
       </dl>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel}>
@@ -151,7 +152,7 @@ function BackupSnapshotsPage() {
                   <td className="px-4 py-3 text-tundra-ink-500">{formatMB(s.size_bytes)}</td>
                   <td className="px-4 py-3 text-tundra-ink-500">{formatSeconds(s.duration_ms)}</td>
                   <td className="px-4 py-3 text-tundra-ink-400">
-                    {new Date(s.created_at).toLocaleString()}
+                    {fmtDateTime(s.created_at)}
                   </td>
                   <td className="px-4 py-3">
                     <Button

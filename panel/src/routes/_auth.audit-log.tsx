@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
+import { fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/audit-log')({
   component: AuditLogPage,
@@ -112,7 +113,7 @@ function AuditLogPage() {
                 <tr key={e.id} className="hover:bg-tundra-ink-50">
                   <td className="px-4 py-3 text-tundra-ink-400 whitespace-nowrap">
                     <span title={new Date(e.created_at).toISOString()}>
-                      {new Date(e.created_at).toLocaleString()}
+                      {fmtDateTime(e.created_at)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-tundra-ink-600">

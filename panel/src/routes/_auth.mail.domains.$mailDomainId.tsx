@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import type { MailDomain, Mailbox, Alias, DkimKey, ListResponse } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/mail/domains/$mailDomainId')({
   component: MailDomainDetailPage,
@@ -148,7 +149,7 @@ function MailDomainDetailPage() {
         </dd>
 
         <dt className="font-medium">Created</dt>
-        <dd className="text-tundra-ink-400">{new Date(domain.created_at).toLocaleDateString()}</dd>
+        <dd className="text-tundra-ink-400">{fmtDate(domain.created_at)}</dd>
       </dl>
 
       {/* Mailboxes section */}

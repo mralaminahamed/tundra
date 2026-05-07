@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import type { Deployment, ListResponse, Server, Site } from '@/lib/api-types'
 import { resolveBadge } from '@/lib/source-badge'
 import { CopyButton, DeployStatusBadge, InfoRow, SectionCard } from '@/components/site-shared'
+import { fmtDate, fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/')({
   component: SiteOverviewTab,
@@ -90,7 +91,7 @@ function SiteOverviewTab() {
           <span className="flex items-center font-mono text-xs">{site.document_root}<CopyButton value={site.document_root} label="Document root" /></span>
         </InfoRow>
         <InfoRow label="Created">
-          {new Date(site.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+          {fmtDate(site.created_at)}
           {' '}
           <span className="text-xs text-tundra-ink-300">
             {new Date(site.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
@@ -117,7 +118,7 @@ function SiteOverviewTab() {
               </InfoRow>
             )}
             <InfoRow label="Started">
-              <span className="text-tundra-ink-500 text-xs">{new Date(latestDeploy.created_at).toLocaleString()}</span>
+              <span className="text-tundra-ink-500 text-xs">{fmtDateTime(latestDeploy.created_at)}</span>
             </InfoRow>
             <div className="mt-3 border-t border-tundra-ink-100 pt-3">
               <Link to="/sites/$siteId/deployments" params={{ siteId }}

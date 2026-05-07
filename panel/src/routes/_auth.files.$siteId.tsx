@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Site } from '@/lib/api-types'
 import { Dialog } from '@/components/ui/dialog'
+import { fmtBytes } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/files/$siteId')({
   validateSearch: (s: Record<string, unknown>): { path: string } => ({
@@ -42,12 +43,6 @@ const DIR_TREE: TreeNode[] = []
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmtSize(bytes?: number) {
-  if (!bytes) return '—'
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / 1048576).toFixed(1)} MB`
-}
 
 function buildBreadcrumb(path: string) {
   if (path === '/') return [{ label: '/', path: '/' }]
@@ -718,7 +713,7 @@ function FileBrowser() {
 
                       {/* Size */}
                       <td className="hidden px-3 py-2.5 text-right font-mono text-xs text-tundra-ink-400 tabular-nums sm:table-cell">
-                        {fmtSize(f.size)}
+                        {fmtBytes(f.size)}
                       </td>
 
                       {/* Modified */}
@@ -829,7 +824,7 @@ function FileBrowser() {
                           {f.name}
                         </span>
                         {f.size && (
-                          <span className="text-[10px] text-tundra-ink-300 tabular-nums">{fmtSize(f.size)}</span>
+                          <span className="text-[10px] text-tundra-ink-300 tabular-nums">{fmtBytes(f.size)}</span>
                         )}
                         {/* Quick action on hover */}
                         {f.type !== 'dir' && (

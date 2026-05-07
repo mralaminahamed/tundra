@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Deployment, ListResponse } from '@/lib/api-types'
 import { DeployStatusBadge, EmptyState } from '@/components/site-shared'
+import { fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/deployments')({
   component: SiteDeploymentsTab,
@@ -81,7 +82,7 @@ function SiteDeploymentsTab() {
                   <td className="px-4 py-3 capitalize text-tundra-ink-500">{d.triggered_by}</td>
                   <td className="px-4 py-3 font-mono text-xs text-tundra-ink-400">{d.source_ref ? d.source_ref.slice(0, 10) : '—'}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-xs text-tundra-ink-400">
-                    {new Date(d.created_at).toLocaleString()}
+                    {fmtDateTime(d.created_at)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1.5">

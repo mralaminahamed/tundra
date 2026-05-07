@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
 import type { ListResponse, Domain } from '@/lib/api-types'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/domains')({
   component: DomainsPage,
@@ -78,7 +79,7 @@ function DomainsPage() {
                   </td>
                   <td className="px-4 py-3 text-tundra-ink-400">
                     {d.registration_expires_at
-                      ? new Date(d.registration_expires_at).toLocaleDateString()
+                      ? fmtDate(d.registration_expires_at)
                       : '—'}
                   </td>
                 </tr>

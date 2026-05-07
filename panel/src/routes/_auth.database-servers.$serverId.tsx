@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { Database, DatabaseServer, DbUser, ListResponse } from '@/lib/api-types'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/database-servers/$serverId')({
   component: DatabaseServerDetailPage,
@@ -74,7 +75,7 @@ function DatabaseServerDetailPage() {
         <dd>{dbServer.superuser}</dd>
 
         <dt className="font-medium">Added</dt>
-        <dd>{new Date(dbServer.created_at).toLocaleDateString()}</dd>
+        <dd>{fmtDate(dbServer.created_at)}</dd>
       </dl>
 
       {/* Databases section */}
@@ -118,7 +119,7 @@ function DatabaseServerDetailPage() {
                         : '—'}
                     </td>
                     <td className="px-4 py-3 text-tundra-ink-400">
-                      {new Date(db.created_at).toLocaleDateString()}
+                      {fmtDate(db.created_at)}
                     </td>
                   </tr>
                 ))}
@@ -149,7 +150,7 @@ function DatabaseServerDetailPage() {
                     <td className="px-4 py-3 font-medium">{u.username}</td>
                     <td className="px-4 py-3 text-tundra-ink-500">{u.is_managed ? 'Yes' : 'No'}</td>
                     <td className="px-4 py-3 text-tundra-ink-400">
-                      {new Date(u.created_at).toLocaleDateString()}
+                      {fmtDate(u.created_at)}
                     </td>
                   </tr>
                 ))}

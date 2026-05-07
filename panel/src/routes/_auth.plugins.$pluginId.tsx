@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { PluginLogo } from '../components/plugin-logo'
+import { fmtDate, fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/plugins/$pluginId')({
   component: PluginDetailPage,
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/_auth/plugins/$pluginId')({
 // time::OffsetDateTime serializes as [year, dayOfYear, hour, min, sec, ns, tzH, tzM, tzS]
 function fmtTs(v: number[] | string | null | undefined): string {
   if (!v) return '—'
-  if (typeof v === 'string') return new Date(v).toLocaleString()
+  if (typeof v === 'string') return fmtDateTime(v)
   if (Array.isArray(v) && v.length >= 6) {
     const [year, dayOfYear, hour, min, sec] = v as number[]
     const d = new Date(year, 0, dayOfYear - 1)
@@ -629,7 +630,7 @@ function PluginDetailPage() {
                     <div className="flex items-baseline gap-3 mb-2">
                       <span className="text-sm font-bold text-tundra-ink">v{entry.version}</span>
                       <span className="text-xs text-tundra-ink-400">
-                        {new Date(entry.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                        {fmtDate(entry.date)}
                       </span>
                       {i === 0 && (
                         <span className="rounded-full bg-tundra-lichen-100 px-2 py-0.5 text-xs font-medium text-tundra-lichen-700">Latest</span>

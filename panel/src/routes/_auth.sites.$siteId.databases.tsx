@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Database, ListResponse } from '@/lib/api-types'
 import { EmptyState } from '@/components/site-shared'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/databases')({
   component: SiteDatabasesTab,
@@ -49,7 +50,7 @@ function SiteDatabasesTab() {
                   { label: 'Charset',   value: db.charset ?? '—', mono: true },
                   { label: 'Collation', value: db.collation ?? '—', mono: true },
                   { label: 'Size',      value: db.size_bytes != null ? `${(db.size_bytes / 1024 / 1024).toFixed(1)} MB` : '—' },
-                  { label: 'Created',   value: new Date(db.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) },
+                  { label: 'Created',   value: fmtDate(db.created_at) },
                 ].map(({ label, value, mono }) => (
                   <div key={label} className="flex items-center justify-between px-4 py-2 text-xs">
                     <span className="text-tundra-ink-400">{label}</span>

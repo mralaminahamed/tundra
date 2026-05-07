@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
 import { PluginLogo } from '../components/plugin-logo'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/plugins/')({
   component: PluginsPage,
@@ -299,7 +300,7 @@ function InstalledCard({ p, onEnable, onDisable, acting }: {
 
       {p.state === 'enabled' && p.enabled_at && (
         <p className="mt-2 text-xs text-tundra-ink-300">
-          Enabled {new Date(p.enabled_at).toLocaleDateString()}
+          Enabled {fmtDate(p.enabled_at)}
         </p>
       )}
 

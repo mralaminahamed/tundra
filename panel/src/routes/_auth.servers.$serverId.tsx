@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Server, ServerMetricsState, Site, ListResponse } from '@/lib/api-types'
+import { fmtDate, fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/servers/$serverId')({
   component: ServerDetailPage,
@@ -207,7 +208,7 @@ function ServerDetailPage() {
       {inMaintenance && (
         <div className="mb-4 flex items-center gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
           <span className="font-medium">🔧 Maintenance window active</span>
-          <span>until {new Date(server.maintenance_ends_at ?? '').toLocaleString()}</span>
+          <span>until {fmtDateTime(server.maintenance_ends_at ?? '')}</span>
           <Link to="/servers/$serverId/maintenance" params={{ serverId: server.id }} className="ml-auto text-xs underline">
             Manage
           </Link>
@@ -310,8 +311,8 @@ function ServerDetailPage() {
               ) : '—'}
             </InfoRow>
             <InfoRow label="Region">{server.region ?? '—'}</InfoRow>
-            <InfoRow label="Added">{new Date(server.created_at).toLocaleString()}</InfoRow>
-            <InfoRow label="Last updated">{new Date(server.updated_at).toLocaleString()}</InfoRow>
+            <InfoRow label="Added">{fmtDateTime(server.created_at)}</InfoRow>
+            <InfoRow label="Last updated">{fmtDateTime(server.updated_at)}</InfoRow>
             {server.notes && (
               <div className="mt-3 border-t border-tundra-ink-100 pt-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-tundra-ink-400 mb-1">Notes</p>
@@ -414,16 +415,16 @@ function ServerDetailPage() {
               <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm">
                 <p className="font-medium text-yellow-800">Maintenance window active</p>
                 <p className="text-xs text-yellow-700 mt-1">
-                  {new Date(server.maintenance_starts_at ?? '').toLocaleString()} →{' '}
-                  {new Date(server.maintenance_ends_at ?? '').toLocaleString()}
+                  {fmtDateTime(server.maintenance_starts_at ?? '')} →{' '}
+                  {fmtDateTime(server.maintenance_ends_at ?? '')}
                 </p>
               </div>
             ) : server.maintenance_starts_at ? (
               <div className="rounded-lg border border-tundra-ink-200 bg-tundra-ink-50 p-3 text-sm">
                 <p className="font-medium text-tundra-ink-600">Scheduled</p>
                 <p className="text-xs text-tundra-ink-400 mt-1">
-                  {new Date(server.maintenance_starts_at).toLocaleString()} →{' '}
-                  {server.maintenance_ends_at ? new Date(server.maintenance_ends_at).toLocaleString() : '?'}
+                  {fmtDateTime(server.maintenance_starts_at)} →{' '}
+                  {server.maintenance_ends_at ? fmtDateTime(server.maintenance_ends_at) : '?'}
                 </p>
               </div>
             ) : (
@@ -579,7 +580,7 @@ function ServerDetailPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-tundra-ink-400">
-                      {new Date(s.created_at).toLocaleDateString()}
+                      {fmtDate(s.created_at)}
                     </td>
                     <td className="px-4 py-3">
                       <Link to="/sites/$siteId" params={{ siteId: s.id }}

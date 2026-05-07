@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import { SkeletonTable } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/alerts')({
   component: AlertsPage,
@@ -113,7 +114,7 @@ function AlertsPage() {
                       <td className="px-4 py-3 font-medium">{rule?.name ?? d.rule_id}</td>
                       <td className="px-4 py-3">{d.current_value.toFixed(2)}</td>
                       <td className="px-4 py-3">{d.threshold.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-tundra-ink-400">{new Date(d.fired_at).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-tundra-ink-400">{fmtDateTime(d.fired_at)}</td>
                     </tr>
                   )
                 })}

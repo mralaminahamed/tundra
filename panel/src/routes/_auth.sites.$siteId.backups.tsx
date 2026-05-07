@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { BackupJob, BackupSnapshot, ListResponse } from '@/lib/api-types'
 import { EmptyState } from '@/components/site-shared'
+import { fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/backups')({
   component: SiteBackupsTab,
@@ -100,7 +101,7 @@ function SiteBackupsTab() {
                     <code className="mt-1 block rounded bg-tundra-ink-50 px-1.5 py-0.5 text-xs font-mono text-tundra-ink-500">{j.schedule_cron}</code>
                   )}
                   {j.next_run_at && (
-                    <p className="mt-0.5 text-xs text-tundra-ink-400">Next: {new Date(j.next_run_at).toLocaleString()}</p>
+                    <p className="mt-0.5 text-xs text-tundra-ink-400">Next: {fmtDateTime(j.next_run_at)}</p>
                   )}
                 </div>
               ))}
@@ -138,7 +139,7 @@ function SiteBackupsTab() {
                 {snaps.map((s) => (
                   <tr key={s.id} className="hover:bg-tundra-ink-50 transition-colors">
                     <td className="px-4 py-3 text-xs text-tundra-ink-500 whitespace-nowrap">
-                      {new Date(s.created_at).toLocaleString()}
+                      {fmtDateTime(s.created_at)}
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-tundra-ink-500">{fmt(s.size_bytes)}</td>
                     <td className="px-4 py-3 text-xs text-tundra-ink-400">{fmtMs(s.duration_ms)}</td>

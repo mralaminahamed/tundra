@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { BackupTarget, ListResponse } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/backups/targets')({
   component: BackupTargetsPage,
@@ -83,7 +84,7 @@ function BackupTargetsPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-tundra-ink-400">
-                    {new Date(t.created_at).toLocaleDateString()}
+                    {fmtDate(t.created_at)}
                   </td>
                   <td className="px-4 py-3">
                     <Button

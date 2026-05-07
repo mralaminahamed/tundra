@@ -10,7 +10,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{error::ApiError, extractors::AuthSession};
+use crate::{error::ApiError, extractors::AuthSession, serde_util::fmt_unix_ts};
 use tundrad_auth::{Action, AuthzService, Resource};
 use tundrad_repo::PgPool;
 
@@ -139,19 +139,9 @@ async fn require_site(
 // ── Metadata helper ───────────────────────────────────────────────────────────
 
 fn format_modified(meta: &std::fs::Metadata) -> Option<String> {
-    meta.modified().ok().map(|st| {
-        let secs = st
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
-        // Build an OffsetDateTime from unix timestamp, fall back to raw seconds on failure.
-        time::OffsetDateTime::from_unix_timestamp(secs as i64)
-            .ok()
-            .and_then(|dt| {
-                dt.format(&time::format_description::well_known::Rfc3339)
-                    .ok()
-            })
-            .unwrap_or_else(|| secs.to_string())
+    meta.modified().ok().and_then(|st| {
+        let secs = st.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs();
+        fmt_unix_ts(secs as i64).or_else(|| Some(secs.to_string()))
     })
 }
 

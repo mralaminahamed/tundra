@@ -5,6 +5,7 @@ import { api } from '@/lib/api'
 import type { ListResponse, Server, Site } from '@/lib/api-types'
 import { resolveBadge } from '@/lib/source-badge'
 import { SiteStatusPill } from '@/components/site-shared'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/sites/$siteId')({
   component: SiteDetailLayout,
@@ -124,7 +125,7 @@ function SiteDetailLayout() {
               </svg>
               <span className="font-mono">{site.document_root}</span>
             </span>
-            <span>Created {new Date(site.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+            <span>Created {fmtDate(site.created_at)}</span>
           </div>
           {site.status === 'suspended' && (
             <div className="mt-3 flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-800">

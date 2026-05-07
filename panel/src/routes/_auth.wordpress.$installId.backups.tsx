@@ -3,16 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { type WpBackup } from '@/components/wp-shared'
+import { fmtBytes, fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/wordpress/$installId/backups')({
   component: WpBackupsTab,
 })
-
-function fmtSize(bytes: number): string {
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`
-}
 
 function WpBackupsTab() {
   const { installId } = Route.useParams()
@@ -104,11 +99,11 @@ function WpBackupsTab() {
               <tbody className="divide-y divide-tundra-ink-100">
                 {backups.map((b) => (
                   <tr key={b.id} className="hover:bg-tundra-ink-50 transition-colors">
-                    <td className="px-4 py-3 text-xs text-tundra-ink-500">{b.created_at}</td>
+                    <td className="px-4 py-3 text-xs text-tundra-ink-500">{fmtDateTime(b.created_at)}</td>
                     <td className="px-4 py-3">
                       <span className="rounded-full border border-tundra-ink-200 px-2 py-0.5 text-xs capitalize text-tundra-ink-500">{b.type}</span>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-tundra-ink-500">{fmtSize(b.size_bytes)}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-tundra-ink-500">{fmtBytes(b.size_bytes)}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                         b.status === 'complete' ? 'border-tundra-lichen-300 bg-tundra-lichen-50 text-tundra-lichen-700' :

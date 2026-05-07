@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { ListResponse, ScheduledTask } from '@/lib/api-types'
 import { EmptyState } from '@/components/site-shared'
+import { fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/cron')({
   component: SiteCronTab,
@@ -57,7 +58,7 @@ function SiteCronTab() {
                     <span className="block max-w-[16rem] truncate font-mono text-xs text-tundra-ink-500" title={t.command}>{t.command}</span>
                   </td>
                   <td className="px-4 py-3 text-xs text-tundra-ink-400">
-                    {t.last_run_at ? new Date(t.last_run_at).toLocaleString() : <span className="italic text-tundra-ink-300">Never</span>}
+                    {t.last_run_at ? fmtDateTime(t.last_run_at) : <span className="italic text-tundra-ink-300">Never</span>}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium ${

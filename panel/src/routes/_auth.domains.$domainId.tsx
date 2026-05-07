@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import type { Domain, DnsRecord, ListResponse } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/domains/$domainId')({
   component: DomainDetailPage,
@@ -215,7 +216,7 @@ function DomainDetailPage() {
         <dt className="font-medium">Registration expires</dt>
         <dd>
           {domain.registration_expires_at
-            ? new Date(domain.registration_expires_at).toLocaleDateString()
+            ? fmtDate(domain.registration_expires_at)
             : '—'}
         </dd>
 
@@ -223,7 +224,7 @@ function DomainDetailPage() {
         <dd className="text-tundra-ink-500">{domain.notes ?? '—'}</dd>
 
         <dt className="font-medium">Added</dt>
-        <dd>{new Date(domain.created_at).toLocaleDateString()}</dd>
+        <dd>{fmtDate(domain.created_at)}</dd>
       </dl>
 
       {/* DNS Zone Editor */}

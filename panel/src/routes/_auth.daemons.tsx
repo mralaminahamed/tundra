@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 
 import type { Daemon, ListResponse, Site } from '@/lib/api-types'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/daemons')({
   component: DaemonsPage,
@@ -142,7 +143,7 @@ function DaemonsPage() {
                       </td>
                       <td className="px-4 py-3">{activeBadge(d.is_active)}</td>
                       <td className="px-4 py-3 text-tundra-ink-400">
-                        {new Date(d.created_at).toLocaleDateString()}
+                        {fmtDate(d.created_at)}
                       </td>
                       <td className="px-4 py-3">
                         <button

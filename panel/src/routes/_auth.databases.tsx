@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
 import type { Database, ListResponse } from '@/lib/api-types'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/databases')({
   component: DatabasesPage,
@@ -67,7 +68,7 @@ function DatabasesPage() {
                       : '—'}
                   </td>
                   <td className="px-4 py-3 text-tundra-ink-400">
-                    {new Date(db.created_at).toLocaleDateString()}
+                    {fmtDate(db.created_at)}
                   </td>
                 </tr>
               ))}

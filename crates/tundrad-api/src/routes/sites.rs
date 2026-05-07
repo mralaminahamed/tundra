@@ -9,7 +9,7 @@ use tundrad_auth::{Action, AuthzService, Resource};
 use tundrad_repo::PgPool;
 use uuid::Uuid;
 
-use crate::{error::ApiError, extractors::AuthSession};
+use crate::{error::ApiError, extractors::AuthSession, serde_util::fmt_dt};
 
 // ── Request / Response DTOs ───────────────────────────────────────────────────
 
@@ -320,11 +320,6 @@ pub async fn trigger_deploy(
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-fn fmt_ts(dt: time::OffsetDateTime) -> String {
-    dt.format(&time::format_description::well_known::Rfc3339)
-        .unwrap_or_else(|_| dt.to_string())
-}
-
 fn to_site_dto(
     s: tundrad_domain::Site,
     source_kind: Option<String>,
@@ -339,7 +334,7 @@ fn to_site_dto(
         document_root: s.document_root,
         source_kind,
         source_config,
-        created_at: fmt_ts(s.created_at),
+        created_at: fmt_dt(s.created_at),
     }
 }
 
@@ -351,7 +346,7 @@ fn to_deploy_dto(d: &tundrad_domain::Deployment) -> DeploymentDto {
         status: d.status.as_str().to_owned(),
         triggered_by: d.triggered_by.clone(),
         source_ref: d.source_ref.clone(),
-        created_at: fmt_ts(d.created_at),
+        created_at: fmt_dt(d.created_at),
         log_stream,
     }
 }

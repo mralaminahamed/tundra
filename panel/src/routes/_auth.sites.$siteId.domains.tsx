@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Domain, ListResponse } from '@/lib/api-types'
 import { EmptyState } from '@/components/site-shared'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/domains')({
   component: SiteDomainsTab,
@@ -91,7 +92,7 @@ function SiteDomainsTab() {
                     </td>
                     <td className="px-4 py-3 text-xs text-tundra-ink-500">
                       {d.registration_expires_at
-                        ? new Date(d.registration_expires_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                        ? fmtDate(d.registration_expires_at)
                         : '—'}
                     </td>
                     <td className="px-4 py-3">

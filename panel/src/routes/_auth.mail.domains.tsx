@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { MailDomain, ListResponse } from '@/lib/api-types'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/mail/domains')({
   component: MailDomainsPage,
@@ -99,7 +100,7 @@ function MailDomainsPage() {
                   <td className="px-4 py-3">{activeBadge(d.active)}</td>
                   <td className="px-4 py-3">{webmailBadge(d.webmail_enabled)}</td>
                   <td className="px-4 py-3 text-tundra-ink-400">
-                    {new Date(d.created_at).toLocaleDateString()}
+                    {fmtDate(d.created_at)}
                   </td>
                 </tr>
               ))}

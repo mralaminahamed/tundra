@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
+import { toast } from 'sonner'
 import { Switch } from '@/components/ui/switch'
+import { fmtDate } from '@/lib/utils'
 import { Dialog } from '@/components/ui/dialog'
 
 export const Route = createFileRoute('/_auth/wordpress/')({
@@ -259,7 +261,12 @@ function Step1({
 
 // ── Step 2: WordPress Setup ───────────────────────────────────────────────────
 
-const WP_VERSIONS = ['6.7.2 (Latest)', '6.6.2', '6.5.5', '6.4.3']
+const WP_VERSIONS = [
+  { value: 'latest',  label: '6.7.2 (Latest)' },
+  { value: '6.6.2',   label: '6.6.2' },
+  { value: '6.5.5',   label: '6.5.5' },
+  { value: '6.4.3',   label: '6.4.3' },
+]
 const LANGUAGES = [
   { code: 'en_US', label: 'English (US)' },
   { code: 'en_GB', label: 'English (UK)' },
@@ -286,11 +293,11 @@ function Step2({
         <div>
           <FieldLabel label="WordPress Version" />
           <select
-            value={form.wp_version ?? '6.7.2 (Latest)'}
+            value={form.wp_version ?? 'latest'}
             onChange={(e) => { setForm({ ...form, wp_version: e.target.value }) }}
             className="w-full rounded-lg border border-tundra-ink-200 px-3 py-2 text-sm focus:border-[#21759B] focus:outline-none"
           >
-            {WP_VERSIONS.map((v) => <option key={v} value={v}>{v}</option>)}
+            {WP_VERSIONS.map((v) => <option key={v.value} value={v.value}>{v.label}</option>)}
           </select>
         </div>
         <div>
@@ -507,7 +514,7 @@ function Step3({
       <div className="rounded-xl border border-tundra-ink-100 bg-tundra-ink-50 p-4">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-tundra-ink-400">Installation Summary</p>
         <div className="space-y-1 text-xs text-tundra-ink-500">
-          <p><span className="font-medium text-tundra-ink">Version:</span> {form.wp_version ?? '6.7.2 (Latest)'}</p>
+          <p><span className="font-medium text-tundra-ink">Version:</span> {WP_VERSIONS.find((v) => v.value === (form.wp_version ?? 'latest'))?.label ?? 'Latest'}</p>
           <p><span className="font-medium text-tundra-ink">Language:</span> {LANGUAGES.find((l) => l.code === (form.language ?? 'en_US'))?.label ?? 'English (US)'}</p>
           <p><span className="font-medium text-tundra-ink">DB Prefix:</span> <span className="font-mono">{form.db_prefix ?? 'wp_'}</span></p>
           <p><span className="font-medium text-tundra-ink">Multisite:</span> {form.multisite ? 'Enabled' : 'Disabled'}</p>
@@ -534,7 +541,7 @@ function InstallModal({
   const [step, setStep] = useState(1)
   const [form, setForm] = useState<Partial<InstallPayload>>({
     installation_path: '/',
-    wp_version: '6.7.2 (Latest)',
+    wp_version: 'latest',
     language: 'en_US',
     db_prefix: 'wp_',
     auto_updates: 'minor',
@@ -771,6 +778,7 @@ function Pagination({
 
 function WordPressPage() {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [search, setSearch] = useState('')
   const [filterState, setFilterState] = useState<string>('')
@@ -799,16 +807,40 @@ function WordPressPage() {
   })
 
   const installMutation = useMutation({
-    mutationFn: (body: InstallPayload) =>
-      fetch('/api/v1/wordpress/installations', {
+    mutationFn: (body: InstallPayload) => {
+      // Normalize version: "6.7.2 (Latest)" → "latest", "6.6.2" → "6.6.2"
+      const rawVersion = body.wp_version ?? ''
+      const wp_version = rawVersion.includes('Latest') ? 'latest' : rawVersion.split(' ')[0]
+
+      const apiBody = {
+        site_id:       body.site_id,
+        wp_path:       body.installation_path ?? '/',   // field rename: installation_path → wp_path
+        wp_version,
+        site_title:    body.site_title,
+        admin_user:    body.admin_username,             // field rename: admin_username → admin_user
+        admin_email:   body.admin_email,
+        admin_password: body.admin_password,
+        db_prefix:     body.db_prefix,
+        language:      body.language,
+        multisite:     body.multisite,
+      }
+      return fetch('/api/v1/wordpress/installations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }).then((r) => r.json()),
-    onSuccess: () => {
+        body: JSON.stringify(apiBody),
+        credentials: 'include',
+      }).then((r) => {
+        if (!r.ok) return r.json().then((e) => { throw new Error(e?.message ?? 'Install failed') })
+        return r.json() as Promise<{ id: string; state: string }>
+      })
+    },
+    onSuccess: (data) => {
       void qc.invalidateQueries({ queryKey: ['wp-installations'] })
       setShowModal(false)
+      toast.success('WordPress installation started')
+      void navigate({ to: '/wordpress/$installId', params: { installId: data.id } })
     },
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Installation failed'),
   })
 
   const removeMutation = useMutation({
@@ -1178,7 +1210,7 @@ function WordPressPage() {
                         )}
                       </td>
                       <td className="hidden px-4 py-3 text-xs text-tundra-ink-400 lg:table-cell whitespace-nowrap">
-                        {new Date(inst.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {fmtDate(inst.created_at)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1.5">
@@ -1282,7 +1314,7 @@ function WordPressPage() {
                       <div className="flex items-center justify-between px-4 py-2 text-xs">
                         <span className="text-tundra-ink-400">Installed</span>
                         <span className="text-tundra-ink-500">
-                          {new Date(inst.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {fmtDate(inst.created_at)}
                         </span>
                       </div>
                     </div>

@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
 import type { ListResponse, Site, Server } from '@/lib/api-types'
 import { resolveBadge } from '@/lib/source-badge'
+import { fmtDate } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/sites/')({
   component: SitesPage,
@@ -506,7 +507,7 @@ function SitesPage() {
                         </td>
                         {/* Date */}
                         <td className="hidden px-4 py-3 text-xs text-tundra-ink-400 whitespace-nowrap lg:table-cell">
-                          {new Date(s.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          {fmtDate(s.created_at)}
                         </td>
                         {/* Actions */}
                         <td className="px-4 py-3">
@@ -575,7 +576,7 @@ function SitesPage() {
                         )}
 
                         <p className="mt-1 text-xs text-tundra-ink-300">
-                          {new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {fmtDate(s.created_at)}
                         </p>
                       </div>
 
