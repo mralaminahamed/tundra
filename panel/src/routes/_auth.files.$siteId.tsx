@@ -16,6 +16,7 @@ import {
   LayoutGridIcon,
   SearchIcon,
   ArrowLeftIcon,
+  GlobeIcon,
   PencilIcon,
   TypeIcon,
   DownloadIcon,
@@ -566,8 +567,9 @@ function FileBrowser() {
 
           {/* Site domain */}
           {site && (
-            <span className="shrink-0 rounded-md border border-tundra-ink-200 bg-tundra-ink-50 px-2 py-0.5 font-mono text-xs font-medium text-tundra-ink">
-              {site.primary_domain}
+            <span className="flex shrink-0 items-center gap-1.5 rounded-md border border-tundra-ink-200 bg-tundra-ink-50 px-2 py-0.5 text-xs font-medium text-tundra-ink">
+              <GlobeIcon className="h-3 w-3 shrink-0 text-tundra-ink-400" />
+              <span className="font-mono">{site.primary_domain}</span>
             </span>
           )}
 
