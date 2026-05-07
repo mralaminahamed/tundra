@@ -12,6 +12,13 @@ pub async fn run(pool: &PgPool) -> anyhow::Result<()> {
         return Ok(());
     };
 
+    // Fix previously-seeded rows that incorrectly stored document_root as wp_path
+    sqlx::query(
+        "UPDATE plugin_wordpress_installations SET wp_path = '/' WHERE wp_path = '/var/www/html'",
+    )
+    .execute(pool)
+    .await?;
+
     // Only seed installations for sites whose application uses a WordPress/WooCommerce template
     let sites: Vec<(Uuid, String)> = sqlx::query_as(
         "SELECT s.id, s.primary_domain \
@@ -461,11 +468,12 @@ pub async fn run(pool: &PgPool) -> anyhow::Result<()> {
         };
 
         // Insert installation — skip if site already has one
+        // wp_path is the subpath WITHIN document_root: '/' = install at root
         let install_id: Option<(Uuid,)> = sqlx::query_as(
             "INSERT INTO plugin_wordpress_installations \
                (site_id, wp_version, wp_path, db_name, db_user, db_host, \
                 admin_email, site_title, site_url, state, installed_by) \
-             VALUES ($1, $2, '/var/www/html', $3, $4, 'localhost', $5, $6, $7, 'active', $8) \
+             VALUES ($1, $2, '/', $3, $4, 'localhost', $5, $6, $7, 'active', $8) \
              ON CONFLICT (site_id) DO NOTHING \
              RETURNING id",
         )
