@@ -13,7 +13,9 @@ CREATE TABLE plugin_wordpress_backups (
 
 CREATE INDEX plugin_wordpress_backups_installation_idx ON plugin_wordpress_backups (installation_id);
 
-SELECT add_updated_at_trigger('plugin_wordpress_backups');
+CREATE TRIGGER trg_wp_backups_updated_at
+    BEFORE UPDATE ON plugin_wordpress_backups
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Backup schedule settings (one row per installation)
 CREATE TABLE plugin_wordpress_backup_schedules (
@@ -22,3 +24,7 @@ CREATE TABLE plugin_wordpress_backup_schedules (
     retention       int  NOT NULL DEFAULT 7,
     updated_at      timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE TRIGGER trg_wp_backup_schedules_updated_at
+    BEFORE UPDATE ON plugin_wordpress_backup_schedules
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
