@@ -33,6 +33,9 @@ struct InstallationRow {
     error_message: Option<String>,
     created_at: time::OffsetDateTime,
     updated_at: time::OffsetDateTime,
+    // joined fields
+    php_version: Option<String>,
+    ssl_active: bool,
 }
 
 #[derive(sqlx::FromRow)]
@@ -119,6 +122,8 @@ fn installation_json(r: &InstallationRow) -> serde_json::Value {
         "error_message": r.error_message,
         "created_at": fmt_dt(r.created_at),
         "updated_at": fmt_dt(r.updated_at),
+        "php_version": r.php_version,
+        "ssl_active": r.ssl_active,
     })
 }
 
@@ -160,11 +165,19 @@ pub async fn list_installations(
     State(pool): State<PgPool>,
 ) -> Result<impl IntoResponse, ApiError> {
     let rows = sqlx::query_as::<_, InstallationRow>(
-        "SELECT id, site_id, wp_version, wp_path, db_name, db_user, db_host,
-                db_prefix, admin_email, admin_user, site_title, site_url,
-                multisite, state, error_message, created_at, updated_at
-         FROM plugin_wordpress_installations
-         ORDER BY created_at DESC",
+        "SELECT i.id, i.site_id, i.wp_version, i.wp_path, i.db_name, i.db_user, i.db_host,
+                i.db_prefix, i.admin_email, i.admin_user, i.site_title, i.site_url,
+                i.multisite, i.state, i.error_message, i.created_at, i.updated_at,
+                a.runtime_version AS php_version,
+                COALESCE((
+                    SELECT cert_pem != '' AND not_after > now()
+                    FROM certificates
+                    WHERE site_id = i.site_id AND cert_pem != ''
+                    ORDER BY not_after DESC LIMIT 1
+                ), false) AS ssl_active
+         FROM plugin_wordpress_installations i
+         LEFT JOIN applications a ON a.site_id = i.site_id
+         ORDER BY i.created_at DESC",
     )
     .fetch_all(&pool)
     .await
@@ -296,10 +309,19 @@ pub async fn get_installation(
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse, ApiError> {
     let row = sqlx::query_as::<_, InstallationRow>(
-        "SELECT id, site_id, wp_version, wp_path, db_name, db_user, db_host,
-                db_prefix, admin_email, admin_user, site_title, site_url,
-                multisite, state, error_message, created_at, updated_at
-         FROM plugin_wordpress_installations WHERE id = $1",
+        "SELECT i.id, i.site_id, i.wp_version, i.wp_path, i.db_name, i.db_user, i.db_host,
+                i.db_prefix, i.admin_email, i.admin_user, i.site_title, i.site_url,
+                i.multisite, i.state, i.error_message, i.created_at, i.updated_at,
+                a.runtime_version AS php_version,
+                COALESCE((
+                    SELECT cert_pem != '' AND not_after > now()
+                    FROM certificates
+                    WHERE site_id = i.site_id AND cert_pem != ''
+                    ORDER BY not_after DESC LIMIT 1
+                ), false) AS ssl_active
+         FROM plugin_wordpress_installations i
+         LEFT JOIN applications a ON a.site_id = i.site_id
+         WHERE i.id = $1",
     )
     .bind(id)
     .fetch_optional(&pool)

@@ -26,7 +26,8 @@ pub async fn provision(pool: PgPool, req: ProvisionRequest) {
     let id = req.installation_id;
     match run(&pool, &req).await {
         Ok(actual_version) => {
-            let site_url = format!("https://{}", req.primary_domain);
+            let subpath = if req.wp_subpath == "/" { String::new() } else { req.wp_subpath.clone() };
+            let site_url = format!("https://{}{}", req.primary_domain, subpath);
             let _ = sqlx::query(
                 "UPDATE plugin_wordpress_installations
                  SET state = 'active', wp_version = $1, site_url = $2, updated_at = now()
