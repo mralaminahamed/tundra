@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { type WpBackup } from '@/components/wp-shared'
 import { fmtBytes, fmtDateTime } from '@/lib/utils'
@@ -15,7 +15,7 @@ function WpBackupsTab() {
   const { installId } = Route.useParams()
   const qc = useQueryClient()
   const [note, setNote] = useState('')
-  const [schedule, setSchedule] = useState<Schedule>({ frequency: 'daily', retention: 7 })
+  const [schedule, setSchedule] = useState<Schedule>({ frequency: 'disabled', retention: 7 })
 
   const { data: backups = [], isLoading } = useQuery<WpBackup[]>({
     queryKey: ['wp-backups', installId],
@@ -32,13 +32,13 @@ function WpBackupsTab() {
     queryKey: ['wp-backup-schedule', installId],
     queryFn: () =>
       fetch(`/api/v1/wordpress/installations/${installId}/backup-schedule`)
-        .then((r) => r.ok ? r.json() as Promise<Schedule> : Promise.resolve<Schedule>({ frequency: 'daily', retention: 7 })),
+        .then((r) => r.ok ? r.json() as Promise<Schedule> : Promise.resolve<Schedule>({ frequency: 'disabled', retention: 7 })),
   })
 
-  // Sync schedule state when loaded
-  if (scheduleData && scheduleData.frequency !== schedule.frequency) {
-    setSchedule(scheduleData)
-  }
+  // Sync schedule state when API data loads
+  useEffect(() => {
+    if (scheduleData) setSchedule(scheduleData)
+  }, [scheduleData])
 
   const createMut = useMutation({
     mutationFn: () =>

@@ -56,7 +56,7 @@ impl WpEnv {
     }
 
     pub async fn run(&self, base_args: &[&str]) -> Result<String, String> {
-        let mut args: Vec<&str> = base_args.to_vec();
+        let mut args = base_args.to_vec();
         args.push("--path");
         args.push(&self.install_path);
         args.push("--allow-root");
@@ -77,7 +77,7 @@ impl WpEnv {
     }
 
     pub async fn run_json(&self, base_args: &[&str]) -> Result<serde_json::Value, String> {
-        let mut args: Vec<&str> = base_args.to_vec();
+        let mut args = base_args.to_vec();
         args.push("--format=json");
         args.push("--path");
         args.push(&self.install_path);
@@ -545,9 +545,8 @@ pub async fn export_wp_db(
     let env = WpEnv::load(&pool, id).await?;
 
     // wp db export - streams SQL to stdout
-    let mut args: Vec<&str> = vec!["db", "export", "-", "--path", &env.install_path, "--allow-root"];
     let out = Command::new(&env.wp_bin)
-        .args(&args)
+        .args(["db", "export", "-", "--path", &env.install_path, "--allow-root"])
         .output()
         .await
         .map_err(|e| wp_cli_error(e.to_string()))?;
@@ -570,9 +569,6 @@ pub async fn export_wp_db(
     Ok(response)
 }
 
-// Unused variable fix for args (moves into closure)
-fn _silence(_: Vec<&str>) {}
-
 // ── Backups ────────────────────────────────────────────────────────────────────
 
 #[derive(Deserialize)]
@@ -585,10 +581,9 @@ pub async fn list_wp_backups(
     State(pool): State<PgPool>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse, ApiError> {
-    #[derive(sqlx::FromRow, Serialize)]
+    #[derive(sqlx::FromRow)]
     struct BackupRow {
         id: Uuid,
-        #[serde(rename = "type")]
         backup_type: String,
         status: String,
         note: Option<String>,
@@ -643,8 +638,8 @@ pub async fn create_wp_backup(
             Err(_) => return,
         };
 
-        // Backup dir inside install path
-        let backup_dir = format!("{}/wp-backups", env.install_path);
+        // Backup dir OUTSIDE webroot to prevent HTTP access to SQL dumps
+        let backup_dir = format!("/tmp/tundra/wp-backups/{}", id);
         let _ = tokio::fs::create_dir_all(&backup_dir).await;
         let file_path = format!("{}/{}.sql", backup_dir, backup_id);
 

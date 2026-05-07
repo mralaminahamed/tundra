@@ -434,6 +434,20 @@ pub async fn patch_wp_plugin(
         if affected.rows_affected() == 0 {
             return Err(ApiError::not_found("wordpress plugin"));
         }
+
+        // Best-effort: run WP-CLI activate/deactivate in background
+        let pool2 = pool.clone();
+        let slug2 = slug.clone();
+        tokio::spawn(async move {
+            let env = match crate::routes::wp_actions::WpEnv::load(&pool2, id).await {
+                Ok(e) => e,
+                Err(_) => return,
+            };
+            let cmd = if active { "activate" } else { "deactivate" };
+            if let Err(e) = env.run(&["plugin", cmd, &slug2]).await {
+                tracing::warn!(installation_id = %id, slug = %slug2, error = %e, "wp plugin {} failed", cmd);
+            }
+        });
     }
     Ok(StatusCode::NO_CONTENT)
 }
