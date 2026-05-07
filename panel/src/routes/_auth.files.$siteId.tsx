@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Site } from '@/lib/api-types'
@@ -8,6 +9,7 @@ import { Dialog } from '@/components/ui/dialog'
 import { fmtBytes, fmtDate, fmtRelative } from '@/lib/utils'
 import {
   FolderIcon as FolderIconBase,
+  FolderOpenIcon,
   FileIcon as FileIconBase,
   ChevronRightIcon,
   CloseIcon,
@@ -16,12 +18,15 @@ import {
   LayoutGridIcon,
   SearchIcon,
   ArrowLeftIcon,
+  ArrowRightIcon,
   GlobeIcon,
   PencilIcon,
   TypeIcon,
   DownloadIcon,
   TrashIcon,
   CopyIcon,
+  LockIcon,
+  ExternalLinkIcon,
 } from '@/components/icons'
 
 export const Route = createFileRoute('/_auth/files/$siteId')({
@@ -54,6 +59,8 @@ type Modal =
 
 type SortKey = 'name' | 'size' | 'modified' | 'type'
 type ViewMode = 'list' | 'grid'
+
+type ContextMenuState = { x: number; y: number; entry: FileEntry } | null
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -156,6 +163,78 @@ function FileIcon({ type, name, large = false }: { type: string; name: string; l
     <div className={`${sz} flex items-center justify-center rounded-lg bg-tundra-ink-100`}>
       <FileIconBase className={large ? 'h-5 w-5 text-tundra-ink-400' : 'h-4 w-4 text-tundra-ink-400'} />
     </div>
+  )
+}
+
+// ── Context menu ──────────────────────────────────────────────────────────────
+
+type CtxItem =
+  | { kind: 'action'; label: string; icon: React.ReactNode; danger?: boolean; onClick: () => void }
+  | { kind: 'sep' }
+
+function ContextMenu({ x, y, items, onClose }: {
+  x: number; y: number; items: CtxItem[]; onClose: () => void
+}) {
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Flip near screen edges once mounted
+  useEffect(() => {
+    const el = menuRef.current
+    if (!el) return
+    const { width, height } = el.getBoundingClientRect()
+    let left = x, top = y
+    if (x + width  > window.innerWidth  - 8) left = x - width
+    if (y + height > window.innerHeight - 8) top  = y - height
+    el.style.left = `${Math.max(8, left)}px`
+    el.style.top  = `${Math.max(8, top)}px`
+  }, [x, y])
+
+  // Close on outside click or Escape
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose()
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('mousedown', onDown, true)
+    document.addEventListener('keydown', onKey, true)
+    return () => {
+      document.removeEventListener('mousedown', onDown, true)
+      document.removeEventListener('keydown', onKey, true)
+    }
+  }, [onClose])
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      style={{ position: 'fixed', left: x, top: y, zIndex: 9999 }}
+      className="min-w-[180px] overflow-hidden rounded-xl border border-tundra-ink-200 bg-white py-1 shadow-xl ring-1 ring-black/5"
+    >
+      {items.map((item, i) =>
+        item.kind === 'sep'
+          ? <div key={i} className="my-1 h-px bg-tundra-ink-100" />
+          : (
+            <button
+              key={i}
+              type="button"
+              onClick={() => { item.onClick(); onClose() }}
+              className={[
+                'flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs font-medium transition-colors',
+                item.danger
+                  ? 'text-red-600 hover:bg-red-50'
+                  : 'text-tundra-ink-700 hover:bg-tundra-ink-50',
+              ].join(' ')}
+            >
+              <span className={`shrink-0 ${item.danger ? 'text-red-500' : 'text-tundra-ink-400'}`}>
+                {item.icon}
+              </span>
+              {item.label}
+            </button>
+          )
+      )}
+    </div>,
+    document.body,
   )
 }
 
@@ -466,6 +545,7 @@ function FileBrowser() {
   const [viewMode,     setViewMode]     = useState<ViewMode>('list')
   const [sortKey,      setSortKey]      = useState<SortKey>('name')
   const [sortDir,      setSortDir]      = useState<'asc' | 'desc'>('asc')
+  const [contextMenu,  setContextMenu]  = useState<ContextMenuState>(null)
 
   const invalidateDir = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['site-files', siteId, path] })
@@ -639,6 +719,39 @@ function FileBrowser() {
 
   function enterDir(name: string) {
     goToPath(filePath(path, name))
+  }
+
+  function buildContextItems(entry: FileEntry): CtxItem[] {
+    const isDir   = entry.type === 'dir'
+    const canEdit = entry.type === 'file' && isTextFile(entry.name)
+    const items: CtxItem[] = []
+
+    if (isDir) {
+      items.push({ kind: 'action', label: 'Open', icon: <FolderOpenIcon className="h-3.5 w-3.5" />, onClick: () => { enterDir(entry.name) } })
+      items.push({ kind: 'sep' })
+    } else if (canEdit) {
+      items.push({ kind: 'action', label: 'Edit', icon: <PencilIcon className="h-3.5 w-3.5" />, onClick: () => { openEdit(entry.name) } })
+      items.push({ kind: 'action', label: 'Open in new tab', icon: <ExternalLinkIcon className="h-3.5 w-3.5" />, onClick: () => { openEdit(entry.name) } })
+      items.push({ kind: 'sep' })
+    }
+
+    items.push({ kind: 'action', label: 'Rename', icon: <TypeIcon className="h-3.5 w-3.5" />, onClick: () => { setNewName(entry.name); setModal({ type: 'rename', name: entry.name }) } })
+    items.push({ kind: 'action', label: 'Copy to…', icon: <CopyIcon className="h-3.5 w-3.5" />, onClick: () => { setModal({ type: 'copy', names: [entry.name] }) } })
+    items.push({ kind: 'action', label: 'Move to…', icon: <ArrowRightIcon className="h-3.5 w-3.5" />, onClick: () => { setModal({ type: 'move', names: [entry.name] }) } })
+    items.push({ kind: 'sep' })
+    items.push({ kind: 'action', label: isDir ? 'Download as Zip' : 'Download', icon: <DownloadIcon className="h-3.5 w-3.5" />, onClick: () => { downloadEntry(entry.name) } })
+    items.push({ kind: 'sep' })
+    items.push({ kind: 'action', label: 'Permissions…', icon: <LockIcon className="h-3.5 w-3.5" />, onClick: () => { setModal({ type: 'chmod', name: entry.name, perms: entry.perms }) } })
+    items.push({ kind: 'sep' })
+    items.push({ kind: 'action', label: 'Delete', icon: <TrashIcon className="h-3.5 w-3.5" />, danger: true, onClick: () => { setModal({ type: 'delete', names: [entry.name] }) } })
+
+    return items
+  }
+
+  function openContextMenu(e: React.MouseEvent, entry: FileEntry) {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenu({ x: e.clientX, y: e.clientY, entry })
   }
 
   function downloadEntry(name: string) {
@@ -887,6 +1000,7 @@ function FileBrowser() {
                   return (
                     <tr key={f.name}
                       className={`group transition-colors ${isSel ? 'bg-tundra-lichen/5' : 'hover:bg-tundra-ink-50/60'}`}
+                      onContextMenu={(e) => { openContextMenu(e, f) }}
                     >
                       {/* Checkbox — visible on hover or when checked */}
                       <td className="px-3 py-2.5">
@@ -1008,6 +1122,7 @@ function FileBrowser() {
                           if (f.type === 'dir') enterDir(f.name)
                           else if (canEdit) openEdit(f.name)
                         }}
+                        onContextMenu={(e) => { openContextMenu(e, f) }}
                         className={[
                           'group relative flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-3 transition-colors select-none',
                           isSel ? 'bg-tundra-lichen/10 ring-2 ring-tundra-lichen/30' : 'hover:bg-tundra-ink-100/60',
@@ -1168,6 +1283,15 @@ function FileBrowser() {
           onDone={(dest) => { moveMutation.mutate({ names: modal.names, dest }) }}
           isPending={moveMutation.isPending}
           onClose={() => { setModal(null) }}
+        />
+      )}
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={buildContextItems(contextMenu.entry)}
+          onClose={() => { setContextMenu(null) }}
         />
       )}
     </div>
