@@ -37,6 +37,7 @@ struct InstallationRow {
     php_version: Option<String>,
     ssl_active: bool,
     disk_usage_mb: Option<i64>,
+    install_path: Option<String>,
 }
 
 #[derive(sqlx::FromRow)]
@@ -126,6 +127,7 @@ fn installation_json(r: &InstallationRow) -> serde_json::Value {
         "php_version": r.php_version,
         "ssl_active": r.ssl_active,
         "disk_usage_mb": r.disk_usage_mb,
+        "install_path": r.install_path,
     })
 }
 
@@ -177,9 +179,11 @@ pub async fn list_installations(
                     WHERE site_id = i.site_id AND cert_pem != ''
                     ORDER BY not_after DESC LIMIT 1
                 ), false) AS ssl_active,
-                i.disk_usage_mb
+                i.disk_usage_mb,
+                s.document_root || CASE WHEN i.wp_path = '/' THEN '' ELSE i.wp_path END AS install_path
          FROM plugin_wordpress_installations i
          LEFT JOIN applications a ON a.site_id = i.site_id
+         LEFT JOIN sites s ON s.id = i.site_id
          ORDER BY i.created_at DESC",
     )
     .fetch_all(&pool)
@@ -322,9 +326,11 @@ pub async fn get_installation(
                     WHERE site_id = i.site_id AND cert_pem != ''
                     ORDER BY not_after DESC LIMIT 1
                 ), false) AS ssl_active,
-                i.disk_usage_mb
+                i.disk_usage_mb,
+                s.document_root || CASE WHEN i.wp_path = '/' THEN '' ELSE i.wp_path END AS install_path
          FROM plugin_wordpress_installations i
          LEFT JOIN applications a ON a.site_id = i.site_id
+         LEFT JOIN sites s ON s.id = i.site_id
          WHERE i.id = $1",
     )
     .bind(id)

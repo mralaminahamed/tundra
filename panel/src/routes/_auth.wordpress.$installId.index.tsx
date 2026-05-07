@@ -143,7 +143,7 @@ function WpOverviewTab() {
               {[
                 { label: 'WordPress',    value: install.wp_version ?? '—' },
                 { label: 'PHP',          value: install.php_version ?? '—' },
-                { label: 'Path',         value: install.wp_path, mono: true },
+                { label: 'Path',         value: install.install_path ?? install.wp_path, mono: true },
                 { label: 'Database',     value: install.db_name ?? '—', mono: true },
                 { label: 'DB Host',      value: install.db_host ?? 'localhost', mono: true },
                 { label: 'DB User',      value: install.db_user ?? '—', mono: true },

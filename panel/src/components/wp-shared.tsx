@@ -18,6 +18,7 @@ export interface WpInstallation {
   site_title: string | null
   site_url: string | null
   multisite: boolean
+  install_path: string | null
   ssl_active: boolean
   disk_usage_mb: number | null
   state: 'provisioning' | 'active' | 'error' | 'removing'
