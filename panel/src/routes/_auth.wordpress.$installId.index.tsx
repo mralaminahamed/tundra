@@ -142,7 +142,7 @@ function WpOverviewTab() {
             <div className="divide-y divide-tundra-ink-100">
               {[
                 { label: 'WordPress',    value: install.wp_version ?? '—' },
-                { label: 'PHP',          value: install.php_version ?? '8.2' },
+                { label: 'PHP',          value: install.php_version ?? '—' },
                 { label: 'Path',         value: install.wp_path, mono: true },
                 { label: 'Database',     value: install.db_name ?? '—', mono: true },
                 { label: 'DB Host',      value: install.db_host ?? 'localhost', mono: true },
@@ -150,7 +150,7 @@ function WpOverviewTab() {
                 { label: 'Table Prefix', value: install.db_prefix ?? 'wp_', mono: true },
                 { label: 'Admin Email',  value: install.admin_email ?? '—' },
                 { label: 'Multisite',    value: install.multisite ? 'Enabled' : 'Disabled' },
-                { label: 'SSL',          value: install.ssl_active === false ? 'Not configured' : 'Active', highlight: install.ssl_active === false ? 'warn' : 'ok' as 'warn' | 'ok' },
+                { label: 'SSL',          value: install.ssl_active ? 'Active' : 'Not configured', highlight: install.ssl_active ? 'ok' : 'warn' as 'warn' | 'ok' },
                 { label: 'Disk Usage',   value: install.disk_usage_mb != null ? `${install.disk_usage_mb} MB` : '—' },
               ].map(({ label, value, mono, highlight }) => (
                 <div key={label} className="flex items-center gap-4 px-4 py-2.5 text-sm">
@@ -223,10 +223,10 @@ function WpOverviewTab() {
           )}
 
           <div className={`rounded-xl border p-4 ${
-            install.ssl_active === false ? 'border-yellow-200 bg-yellow-50' : 'border-tundra-lichen-200 bg-tundra-lichen-50'
+            !install.ssl_active ? 'border-yellow-200 bg-yellow-50' : 'border-tundra-lichen-200 bg-tundra-lichen-50'
           }`}>
             <div className="flex items-center gap-2">
-              {install.ssl_active === false ? (
+              {!install.ssl_active ? (
                 <svg className="h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                   <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -236,11 +236,11 @@ function WpOverviewTab() {
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
               )}
-              <span className={`text-sm font-semibold ${install.ssl_active === false ? 'text-yellow-800' : 'text-tundra-lichen-800'}`}>
-                {install.ssl_active === false ? 'SSL not configured' : 'SSL / HTTPS active'}
+              <span className={`text-sm font-semibold ${!install.ssl_active ? 'text-yellow-800' : 'text-tundra-lichen-800'}`}>
+                {!install.ssl_active ? 'SSL not configured' : 'SSL / HTTPS active'}
               </span>
             </div>
-            {install.ssl_active === false && (
+            {!install.ssl_active && (
               <button type="button"
                 onClick={() => { void navigate({ to: '/sites/$siteId/ssl', params: { siteId: install.site_id } }) }}
                 className="mt-2 text-xs font-medium text-yellow-700 underline">

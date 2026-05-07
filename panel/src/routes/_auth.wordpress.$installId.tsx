@@ -101,8 +101,8 @@ function WpInstallLayout() {
           )}
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-tundra-ink-400">
             {install?.wp_version && <span>WordPress {install.wp_version}</span>}
-            {(install?.php_version ?? '8.2') && (
-              <><span className="text-tundra-ink-200">·</span><span>PHP {install?.php_version ?? '8.2'}</span></>
+            {install?.php_version && (
+              <><span className="text-tundra-ink-200">·</span><span>PHP {install.php_version}</span></>
             )}
             {install?.admin_email && (
               <><span className="text-tundra-ink-200">·</span><span>{install.admin_email}</span></>

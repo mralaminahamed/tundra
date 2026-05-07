@@ -7,7 +7,7 @@ export interface WpInstallation {
   id: string
   site_id: string
   wp_version: string | null
-  php_version: string | null    // not yet in API; reserved for future
+  php_version: string | null
   wp_path: string
   db_name: string | null
   db_user: string | null
@@ -18,8 +18,8 @@ export interface WpInstallation {
   site_title: string | null
   site_url: string | null
   multisite: boolean
-  ssl_active: boolean | null    // not yet in API; reserved for future
-  disk_usage_mb: number | null  // not yet in API; reserved for future
+  ssl_active: boolean
+  disk_usage_mb: number | null
   state: 'provisioning' | 'active' | 'error' | 'removing'
   error_message: string | null
   created_at: string
