@@ -170,6 +170,24 @@ async fn run(
     // ── Step 5: sync installed themes ─────────────────────────────────────────
     sync_themes(pool, req.installation_id, &install_path, &wp).await;
 
+    // ── Step 6: compute disk usage ────────────────────────────────────────────
+    if let Ok(out) = Command::new("du")
+        .args(["-sm", &install_path])
+        .output()
+        .await
+    {
+        let s = String::from_utf8_lossy(&out.stdout);
+        if let Some(mb) = s.split_whitespace().next().and_then(|v| v.parse::<i64>().ok()) {
+            let _ = sqlx::query(
+                "UPDATE plugin_wordpress_installations SET disk_usage_mb = $1 WHERE id = $2",
+            )
+            .bind(mb)
+            .bind(req.installation_id)
+            .execute(pool)
+            .await;
+        }
+    }
+
     Ok(version)
 }
 

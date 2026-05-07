@@ -36,6 +36,7 @@ struct InstallationRow {
     // joined fields
     php_version: Option<String>,
     ssl_active: bool,
+    disk_usage_mb: Option<i64>,
 }
 
 #[derive(sqlx::FromRow)]
@@ -124,6 +125,7 @@ fn installation_json(r: &InstallationRow) -> serde_json::Value {
         "updated_at": fmt_dt(r.updated_at),
         "php_version": r.php_version,
         "ssl_active": r.ssl_active,
+        "disk_usage_mb": r.disk_usage_mb,
     })
 }
 
@@ -174,7 +176,8 @@ pub async fn list_installations(
                     FROM certificates
                     WHERE site_id = i.site_id AND cert_pem != ''
                     ORDER BY not_after DESC LIMIT 1
-                ), false) AS ssl_active
+                ), false) AS ssl_active,
+                i.disk_usage_mb
          FROM plugin_wordpress_installations i
          LEFT JOIN applications a ON a.site_id = i.site_id
          ORDER BY i.created_at DESC",
@@ -318,7 +321,8 @@ pub async fn get_installation(
                     FROM certificates
                     WHERE site_id = i.site_id AND cert_pem != ''
                     ORDER BY not_after DESC LIMIT 1
-                ), false) AS ssl_active
+                ), false) AS ssl_active,
+                i.disk_usage_mb
          FROM plugin_wordpress_installations i
          LEFT JOIN applications a ON a.site_id = i.site_id
          WHERE i.id = $1",
