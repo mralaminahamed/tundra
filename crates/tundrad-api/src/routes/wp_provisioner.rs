@@ -164,7 +164,110 @@ async fn run(
     .execute(pool)
     .await;
 
+    // ── Step 5: sync installed themes ─────────────────────────────────────────
+    sync_themes(pool, req.installation_id, &install_path, &wp).await;
+
     Ok(version)
+}
+
+/// Sync installed themes: try wp-cli first (needs live DB), fall back to
+/// scanning the themes directory and reading style.css headers.
+async fn sync_themes(pool: &PgPool, installation_id: Uuid, install_path: &str, wp: &str) {
+    #[derive(serde::Deserialize)]
+    struct WpTheme {
+        name: String,
+        title: Option<String>,
+        status: String,
+        version: Option<String>,
+        update: Option<String>,
+        update_version: Option<String>,
+        author: Option<String>,
+    }
+
+    // Try wp-cli first (works when MySQL is available)
+    let wp_cli_ok = async {
+        let out = Command::new(wp)
+            .args([
+                "theme", "list",
+                "--format=json",
+                "--fields=name,title,status,version,update,update_version,author",
+                &format!("--path={}", install_path),
+                "--allow-root",
+            ])
+            .output()
+            .await
+            .ok()?;
+        if !out.status.success() { return None; }
+        let themes: Vec<WpTheme> = serde_json::from_slice(&out.stdout).ok()?;
+        Some(themes)
+    }.await;
+
+    if let Some(themes) = wp_cli_ok {
+        for t in &themes {
+            let active = t.status == "active";
+            let has_update = t.update.as_deref() == Some("available");
+            let name = t.title.as_deref().unwrap_or(&t.name);
+            let _ = sqlx::query(
+                "INSERT INTO plugin_wordpress_themes
+                     (installation_id, slug, name, version, author,
+                      active, update_available, new_version, screenshot_url)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NULL)
+                 ON CONFLICT (installation_id, slug) DO UPDATE
+                     SET active = EXCLUDED.active, version = EXCLUDED.version,
+                         update_available = EXCLUDED.update_available,
+                         new_version = EXCLUDED.new_version, last_synced_at = now()",
+            )
+            .bind(installation_id).bind(&t.name).bind(name)
+            .bind(&t.version).bind(&t.author).bind(active)
+            .bind(has_update).bind(&t.update_version)
+            .execute(pool).await;
+        }
+        tracing::info!(installation_id = %installation_id, count = themes.len(), "themes synced via wp-cli");
+        return;
+    }
+
+    // Fallback: scan wp-content/themes/, read style.css Name/Version/Author headers
+    let themes_dir = format!("{}/wp-content/themes", install_path);
+    let mut rd = match tokio::fs::read_dir(&themes_dir).await {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+
+    let mut idx = 0usize;
+    while let Ok(Some(entry)) = rd.next_entry().await {
+        let slug = entry.file_name().to_string_lossy().into_owned();
+        let css = format!("{}/{}/style.css", themes_dir, slug);
+        let contents = tokio::fs::read_to_string(&css).await.unwrap_or_default();
+
+        let get = |key: &str| -> Option<String> {
+            contents.lines()
+                .find(|l| l.trim_start().to_lowercase().starts_with(&format!("{}:", key.to_lowercase())))
+                .map(|l| l.splitn(2, ':').nth(1).unwrap_or("").trim().to_owned())
+                .filter(|s| !s.is_empty())
+        };
+
+        let name = get("Theme Name").unwrap_or_else(|| slug.clone());
+        let version = get("Version");
+        let author = get("Author");
+        // First theme discovered is set active (default theme that WP activates on install)
+        let active = idx == 0;
+
+        let _ = sqlx::query(
+            "INSERT INTO plugin_wordpress_themes
+                 (installation_id, slug, name, version, author,
+                  active, update_available, screenshot_url)
+             VALUES ($1, $2, $3, $4, $5, $6, false, NULL)
+             ON CONFLICT (installation_id, slug) DO NOTHING",
+        )
+        .bind(installation_id).bind(&slug).bind(&name)
+        .bind(&version).bind(&author).bind(active)
+        .execute(pool).await;
+
+        idx += 1;
+    }
+    if idx > 0 {
+        tracing::info!(installation_id = %installation_id, count = idx, "themes synced via filesystem scan");
+    }
 }
 
 /// Run a wp-cli command, return Ok(()) or Err with combined stdout+stderr.
