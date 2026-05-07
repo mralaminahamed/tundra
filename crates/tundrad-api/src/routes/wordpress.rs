@@ -246,7 +246,7 @@ pub async fn install_wordpress(
     let wp_version = body.wp_version.clone().unwrap_or_else(|| "latest".to_owned());
     let multisite = body.multisite.unwrap_or(false);
 
-    // Fetch site document_root + primary_domain for the provisioner
+    // Fetch site document_root + primary_domain for credential derivation
     let (document_root, primary_domain): (String, String) =
         sqlx::query_as("SELECT document_root, primary_domain FROM sites WHERE id = $1")
             .bind(body.site_id)
@@ -257,17 +257,41 @@ pub async fn install_wordpress(
                 ApiError::internal()
             })?;
 
-    let id: Uuid = sqlx::query_scalar(
+    // Pre-generate installation UUID so we can derive per-install credentials
+    let id = uuid::Uuid::now_v7();
+
+    // Auto-generate per-install DB credentials if not provided by caller
+    let db_name = body.db_name.clone().unwrap_or_else(|| {
+        let slug: String = primary_domain
+            .chars()
+            .map(|c| if c.is_alphanumeric() { c } else { '_' })
+            .collect::<String>()
+            .to_lowercase();
+        format!("wp_{}", &slug[..slug.len().min(48)])
+    });
+    let db_user = body.db_user.clone().unwrap_or_else(|| {
+        format!("wp_{}", &id.simple().to_string()[..12])
+    });
+    let db_password = body.db_password.clone().unwrap_or_else(|| {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut h = DefaultHasher::new();
+        id.hash(&mut h);
+        format!("Wp{:x}X!", h.finish())
+    });
+
+    sqlx::query(
         "INSERT INTO plugin_wordpress_installations
-             (site_id, wp_path, db_name, db_user, db_host, db_prefix,
+             (id, site_id, wp_path, db_name, db_user, db_password, db_host, db_prefix,
               admin_email, admin_user, site_title, language, multisite, installed_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-         RETURNING id",
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
     )
+    .bind(id)
     .bind(body.site_id)
     .bind(&wp_subpath)
-    .bind(&body.db_name)
-    .bind(&body.db_user)
+    .bind(&db_name)
+    .bind(&db_user)
+    .bind(&db_password)
     .bind(&db_host)
     .bind(&db_prefix)
     .bind(&body.admin_email)
@@ -276,25 +300,25 @@ pub async fn install_wordpress(
     .bind(&language)
     .bind(multisite)
     .bind(session.operator_id)
-    .fetch_one(&pool)
+    .execute(&pool)
     .await
     .map_err(|e| {
         tracing::error!(error = %e, "insert wp installation");
         ApiError::internal()
     })?;
 
-    // Spawn provisioner — runs WP-CLI in background, updates state when done
+    // Spawn provisioner — creates MySQL DB/user, then runs WP-CLI
     tokio::spawn(crate::routes::wp_provisioner::provision(
         pool.clone(),
         crate::routes::wp_provisioner::ProvisionRequest {
             installation_id: id,
             document_root,
-            primary_domain,
+            primary_domain: primary_domain.clone(),
             wp_subpath,
             wp_version,
-            db_name: body.db_name.clone().unwrap_or_else(|| "wordpress".to_owned()),
-            db_user: body.db_user.clone().unwrap_or_else(|| "wordpress".to_owned()),
-            db_password: body.db_password.clone().unwrap_or_default(),
+            db_name,
+            db_user,
+            db_password,
             db_host,
             db_prefix,
             admin_user,

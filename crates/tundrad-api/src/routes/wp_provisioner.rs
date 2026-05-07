@@ -66,6 +66,32 @@ async fn run(
 
     let wp = wp_bin();
 
+    // ── Step 0: create MySQL database + user ──────────────────────────────────
+    tracing::info!(installation_id = %req.installation_id, db = %req.db_name, "creating MySQL database and user");
+    {
+        let root_host = std::env::var("TUNDRA_WP_MYSQL_HOST").unwrap_or_else(|_| req.db_host.clone());
+        let root_pass = std::env::var("TUNDRA_WP_MYSQL_ROOT_PASSWORD")
+            .or_else(|_| std::env::var("TUNDRA_WP_MYSQL_PASSWORD"))
+            .unwrap_or_default();
+        let sql = format!(
+            "CREATE DATABASE IF NOT EXISTS `{db}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\
+             CREATE USER IF NOT EXISTS '{user}'@'%' IDENTIFIED BY '{pass}';\
+             GRANT ALL PRIVILEGES ON `{db}`.* TO '{user}'@'%';\
+             FLUSH PRIVILEGES;",
+            db   = req.db_name.replace('`', ""),
+            user = req.db_user.replace('\'', ""),
+            pass = req.db_password.replace('\'', "\\'"),
+        );
+        let mut cmd = tokio::process::Command::new("mysql");
+        cmd.env("MYSQL_PWD", &root_pass)
+            .args(["-h", &root_host, "-u", "root", "--skip-ssl", "-e", &sql]);
+        let out = cmd.output().await?;
+        if !out.status.success() {
+            let err = String::from_utf8_lossy(&out.stderr);
+            return Err(format!("mysql setup failed: {err}").into());
+        }
+    }
+
     // ── Step 1: wp core download ───────────────────────────────────────────────
     tracing::info!(installation_id = %req.installation_id, path = %install_path, "wp core download");
 
@@ -155,13 +181,14 @@ async fn run(
         actual_version
     };
 
-    // Store resolved db_name, db_user, admin_user (request may have had None)
+    // Ensure db_name/db_user/db_password/admin_user are persisted
     let _ = sqlx::query(
         "UPDATE plugin_wordpress_installations
-         SET db_name = $1, db_user = $2, admin_user = $3 WHERE id = $4",
+         SET db_name = $1, db_user = $2, db_password = $3, admin_user = $4 WHERE id = $5",
     )
     .bind(&req.db_name)
     .bind(&req.db_user)
+    .bind(&req.db_password)
     .bind(&req.admin_user)
     .bind(req.installation_id)
     .execute(pool)

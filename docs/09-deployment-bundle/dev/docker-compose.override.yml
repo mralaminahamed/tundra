@@ -42,6 +42,8 @@ services:
       # WP MySQL access — override localhost → mysql container, known dev password
       TUNDRA_WP_MYSQL_HOST: mysql
       TUNDRA_WP_MYSQL_PASSWORD: wordpress
+      # Root password used by provisioner to CREATE DATABASE / CREATE USER
+      TUNDRA_WP_MYSQL_ROOT_PASSWORD: devsecret
     volumes:
       - workload-srv:/srv/sites   # file-manager API reads/writes site files
     command:
