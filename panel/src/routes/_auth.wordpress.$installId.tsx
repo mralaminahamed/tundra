@@ -53,11 +53,9 @@ function WpInstallLayout() {
 
   const updateCount = [...plugins, ...themes].filter((x) => x.update_available).length
 
-  const TAB_LINK_BASE = 'shrink-0 border-b-2 px-3 py-2.5 text-sm font-medium -mb-px transition-colors'
-  const TAB_ACTIVE = 'border-tundra-lichen text-tundra-lichen-700'
-  const TAB_INACTIVE = 'border-transparent text-tundra-ink-400 hover:text-tundra-ink'
-  const TAB_DANGER_ACTIVE = 'border-red-500 text-red-600'
-  const TAB_DANGER_INACTIVE = 'border-transparent text-tundra-ink-400 hover:text-red-500'
+  const TAB = 'group shrink-0 border-b-2 border-transparent px-3 py-2.5 text-sm font-medium -mb-px transition-colors text-tundra-ink-400 hover:text-tundra-ink aria-[current=page]:border-tundra-lichen aria-[current=page]:text-tundra-lichen'
+  const TAB_DANGER = 'group shrink-0 border-b-2 border-transparent px-3 py-2.5 text-sm font-medium -mb-px transition-colors text-tundra-ink-400 hover:text-red-500 aria-[current=page]:border-red-500 aria-[current=page]:text-red-600'
+  const BADGE = 'ml-1.5 rounded-full bg-tundra-ink-100 px-1.5 py-0.5 text-xs text-tundra-ink-500 group-aria-[current=page]:bg-tundra-lichen-100 group-aria-[current=page]:text-tundra-lichen-700'
 
   return (
     <div className="pb-10">
@@ -161,58 +159,28 @@ function WpInstallLayout() {
 
       {/* Tab navigation */}
       <div className="mb-6 flex gap-0.5 overflow-x-auto border-b border-tundra-ink-200">
-        <Link
-          to="/wordpress/$installId"
-          params={{ installId }}
-          activeOptions={{ exact: true }}
-          activeProps={{ className: `${TAB_LINK_BASE} ${TAB_ACTIVE}` }}
-          inactiveProps={{ className: `${TAB_LINK_BASE} ${TAB_INACTIVE}` }}
-        >
+        <Link to="/wordpress/$installId" params={{ installId }} className={TAB} activeOptions={{ exact: true }}>
           Overview
         </Link>
-        <Link
-          to="/wordpress/$installId/plugins"
-          params={{ installId }}
-          activeProps={{ className: `${TAB_LINK_BASE} ${TAB_ACTIVE}` }}
-          inactiveProps={{ className: `${TAB_LINK_BASE} ${TAB_INACTIVE}` }}
-        >
+        <Link to="/wordpress/$installId/plugins" params={{ installId }} className={TAB}>
           Plugins
-          {plugins.length > 0 && (
-            <span className="ml-1.5 rounded-full bg-tundra-ink-100 px-1.5 py-0.5 text-xs text-tundra-ink-500">
-              {plugins.length}
-            </span>
-          )}
+          {plugins.length > 0 && <span className={BADGE}>{plugins.length}</span>}
         </Link>
-        <Link
-          to="/wordpress/$installId/themes"
-          params={{ installId }}
-          activeProps={{ className: `${TAB_LINK_BASE} ${TAB_ACTIVE}` }}
-          inactiveProps={{ className: `${TAB_LINK_BASE} ${TAB_INACTIVE}` }}
-        >
+        <Link to="/wordpress/$installId/themes" params={{ installId }} className={TAB}>
           Themes
-          {themes.length > 0 && (
-            <span className="ml-1.5 rounded-full bg-tundra-ink-100 px-1.5 py-0.5 text-xs text-tundra-ink-500">
-              {themes.length}
-            </span>
-          )}
+          {themes.length > 0 && <span className={BADGE}>{themes.length}</span>}
         </Link>
-        {(['database', 'security', 'users', 'backups', 'settings'] as const).map((slug) => (
+        {(['database', 'security', 'users', 'backups', 'settings', 'staging'] as const).map((slug) => (
           <Link
             key={slug}
             to={`/wordpress/$installId/${slug}` as '/wordpress/$installId/database'}
             params={{ installId }}
-            activeProps={{ className: `${TAB_LINK_BASE} ${TAB_ACTIVE}` }}
-            inactiveProps={{ className: `${TAB_LINK_BASE} ${TAB_INACTIVE}` }}
+            className={TAB}
           >
             {slug.charAt(0).toUpperCase() + slug.slice(1)}
           </Link>
         ))}
-        <Link
-          to="/wordpress/$installId/danger"
-          params={{ installId }}
-          activeProps={{ className: `${TAB_LINK_BASE} ${TAB_DANGER_ACTIVE}` }}
-          inactiveProps={{ className: `${TAB_LINK_BASE} ${TAB_DANGER_INACTIVE}` }}
-        >
+        <Link to="/wordpress/$installId/danger" params={{ installId }} className={TAB_DANGER}>
           Danger Zone
         </Link>
       </div>

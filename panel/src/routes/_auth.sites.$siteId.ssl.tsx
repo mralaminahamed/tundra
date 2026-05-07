@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Switch } from '@/components/ui/switch'
+import { Toggle } from '@/components/site-shared'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/ssl')({
   component: SiteSslTab,
@@ -10,18 +10,6 @@ export const Route = createFileRoute('/_auth/sites/$siteId/ssl')({
 function SiteSslTab() {
   const [forceHttps, setForceHttps] = useState(true)
   const [hstsEnabled, setHstsEnabled] = useState(false)
-
-  function Toggle({ label, desc, checked, onChange }: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void }) {
-    return (
-      <div className="flex items-start justify-between gap-4 py-3">
-        <div>
-          <p className="text-sm font-medium text-tundra-ink">{label}</p>
-          {desc && <p className="text-xs text-tundra-ink-400">{desc}</p>}
-        </div>
-        <Switch checked={checked} onChange={onChange} />
-      </div>
-    )
-  }
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
@@ -73,9 +61,9 @@ function SiteSslTab() {
             <span className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-400">HTTPS Settings</span>
           </div>
           <div className="divide-y divide-tundra-ink-100 px-4">
-            <Toggle label="Force HTTPS" desc="Redirect all HTTP traffic to HTTPS automatically"
+            <Toggle label="Force HTTPS" description="Redirect all HTTP traffic to HTTPS automatically"
               checked={forceHttps} onChange={(v) => { setForceHttps(v); toast.success(`Force HTTPS ${v ? 'enabled' : 'disabled'}`) }} />
-            <Toggle label="HSTS" desc="Strict Transport Security — instructs browsers to only use HTTPS"
+            <Toggle label="HSTS" description="Strict Transport Security — instructs browsers to only use HTTPS"
               checked={hstsEnabled} onChange={(v) => { setHstsEnabled(v); toast.success(`HSTS ${v ? 'enabled' : 'disabled'}`) }} />
           </div>
         </div>

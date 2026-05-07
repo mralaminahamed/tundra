@@ -1,5 +1,5 @@
 // Shared types and components for the WordPress detail sub-routes.
-import { Switch } from '@/components/ui/switch'
+export { Toggle } from '@/components/site-shared'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -101,29 +101,6 @@ export function UpdateBadge({ newVersion }: { newVersion: string }) {
   )
 }
 
-export function Toggle({
-  label,
-  description,
-  checked,
-  onChange,
-  disabled,
-}: {
-  label: string
-  description?: string
-  checked: boolean
-  onChange: (v: boolean) => void
-  disabled?: boolean
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4 py-3">
-      <div>
-        <p className="text-sm font-medium text-tundra-ink">{label}</p>
-        {description && <p className="mt-0.5 text-xs text-tundra-ink-400">{description}</p>}
-      </div>
-      <Switch checked={checked} onChange={onChange} disabled={disabled} />
-    </div>
-  )
-}
 
 export function SitePreview({ url }: { url: string | null }) {
   return (

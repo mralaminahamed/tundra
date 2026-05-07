@@ -200,8 +200,8 @@ function AuthLayout() {
                   key={item.to}
                   to={item.to}
                   title={collapsed ? item.label : undefined}
-                  className={`flex items-center gap-2.5 rounded-md transition-colors text-sm ${collapsed ? 'justify-center px-0 py-2.5' : 'px-2 py-2'}`}
-                  activeProps={{ className: 'bg-tundra-lichen-50 text-tundra-lichen font-medium' }}
+                  className={`flex items-center gap-2.5 rounded-md transition-colors text-sm font-medium ${collapsed ? 'justify-center px-0 py-2.5' : 'px-2 py-2'}`}
+                  activeProps={{ className: 'bg-tundra-lichen-50 text-tundra-lichen' }}
                   inactiveProps={{ className: 'text-tundra-ink-500 hover:bg-tundra-ink-50 hover:text-tundra-ink' }}
                 >
                   <Icon path={ICONS[item.icon]} size={16} />

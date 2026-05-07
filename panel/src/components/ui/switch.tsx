@@ -27,8 +27,8 @@ export function Switch({ checked, onChange, disabled, id, className }: SwitchPro
     >
       <span
         className={cn(
-          'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform',
-          checked ? 'translate-x-4' : 'translate-x-0',
+          'absolute left-0.5 top-px h-4 w-4 rounded-full bg-white shadow transition-transform',
+          checked ? 'translate-x-3.5' : 'translate-x-0',
         )}
       />
     </button>

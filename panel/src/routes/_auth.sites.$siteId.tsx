@@ -65,19 +65,15 @@ function SiteDetailLayout() {
 
   const server = serverMap.get(site.server_id)
 
-  const TAB_BASE  = 'shrink-0 border-b-2 px-3 py-2.5 text-sm font-medium -mb-px transition-colors'
-  const TAB_ON    = 'border-tundra-lichen text-tundra-lichen-700'
-  const TAB_OFF   = 'border-transparent text-tundra-ink-400 hover:text-tundra-ink'
-  const TAB_DANGER_ON  = 'border-red-500 text-red-600'
-  const TAB_DANGER_OFF = 'border-transparent text-tundra-ink-400 hover:text-red-500'
+  const TAB        = 'shrink-0 border-b-2 border-transparent px-3 py-2.5 text-sm font-medium -mb-px transition-colors text-tundra-ink-400 hover:text-tundra-ink aria-[current=page]:border-tundra-lichen aria-[current=page]:text-tundra-lichen'
+  const TAB_DANGER = 'shrink-0 border-b-2 border-transparent px-3 py-2.5 text-sm font-medium -mb-px transition-colors text-tundra-ink-400 hover:text-red-500 aria-[current=page]:border-red-500 aria-[current=page]:text-red-600'
 
   const tabLink = (to: string, label: string, danger = false) => (
     <Link
       key={to}
       to={to as '/sites/$siteId'}
       params={{ siteId }}
-      activeProps={{ className: `${TAB_BASE} ${danger ? TAB_DANGER_ON : TAB_ON}` }}
-      inactiveProps={{ className: `${TAB_BASE} ${danger ? TAB_DANGER_OFF : TAB_OFF}` }}
+      className={danger ? TAB_DANGER : TAB}
       activeOptions={to === '/sites/$siteId' ? { exact: true } : undefined}
     >
       {label}
