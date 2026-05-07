@@ -137,30 +137,39 @@ function WpSettingsTab() {
   )
 }
 
-function WpTools({ installId }: { installId: string }) {
-  const flushMut = useMutation({
-    mutationFn: () =>
-      fetch(`/api/v1/wordpress/installations/${installId}/settings`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-        credentials: 'include',
-      }),
-    onSuccess: () => toast.success('Flush queued'),
-    onError:   () => toast.error('Failed'),
-  })
+function wpToolPost(installId: string, path: string) {
+  return () =>
+    fetch(`/api/v1/wordpress/installations/${installId}/tools/${path}`, {
+      method: 'POST', credentials: 'include',
+    }).then((r) => r.json() as Promise<{ ok: boolean; message: string }>)
+}
 
+function WpTools({ installId }: { installId: string }) {
   const verifyMut = useMutation({
     mutationFn: () =>
       fetch(`/api/v1/wordpress/installations/${installId}/core/verify`, {
-        method: 'POST',
-        credentials: 'include',
+        method: 'POST', credentials: 'include',
       }).then((r) => r.json() as Promise<{ ok: boolean; message: string }>),
-    onSuccess: (d) => {
-      if (d.ok) toast.success('Core files verified — no issues found')
-      else      toast.error(`Integrity issue: ${d.message}`)
-    },
+    onSuccess: (d) => d.ok ? toast.success('Core verified — no issues') : toast.error(`Issue: ${d.message}`),
     onError: () => toast.error('Verification failed'),
+  })
+
+  const flushMut = useMutation({
+    mutationFn: wpToolPost(installId, 'flush-rewrites'),
+    onSuccess: () => toast.success('Rewrite rules flushed'),
+    onError:   () => toast.error('Flush failed'),
+  })
+
+  const saltsMut = useMutation({
+    mutationFn: wpToolPost(installId, 'regenerate-salts'),
+    onSuccess: () => toast.success('Auth keys regenerated — all users will be logged out'),
+    onError:   () => toast.error('Failed to regenerate salts'),
+  })
+
+  const cacheMut = useMutation({
+    mutationFn: wpToolPost(installId, 'clear-cache'),
+    onSuccess: () => toast.success('Object cache flushed'),
+    onError:   () => toast.error('Failed to clear cache'),
   })
 
   return (
@@ -174,16 +183,16 @@ function WpTools({ installId }: { installId: string }) {
           onClick={() => verifyMut.mutate()} />
         <ToolRow label="Flush Rewrite Rules" desc="Rebuild permalink structure"
           action="Flush" isPending={flushMut.isPending}
-          onClick={() => {
-            // wp rewrite flush via search-replace stub — real impl would call wp rewrite flush
-            toast.info('Flush rewrite rules — coming soon')
-          }} />
-        <ToolRow label="Regenerate Salts"    desc="Refresh wp-config.php auth keys and salts"
-          action="Regenerate" onClick={() => toast.info('Regenerate salts coming soon')} />
-        <ToolRow label="Clear Object Cache"  desc="Flush Redis / Memcached object cache"
-          action="Clear"      onClick={() => toast.info('Clear cache coming soon')} />
+          onClick={() => flushMut.mutate()} />
+        <ToolRow label="Regenerate Salts" desc="Refresh wp-config.php auth keys and salts"
+          action="Regenerate" isPending={saltsMut.isPending}
+          onClick={() => saltsMut.mutate()} />
+        <ToolRow label="Clear Object Cache" desc="Flush Redis / Memcached object cache"
+          action="Clear" isPending={cacheMut.isPending}
+          onClick={() => cacheMut.mutate()} />
         <ToolRow label="Export wp-config.php" desc="Download a sanitized copy"
-          action="Export"     onClick={() => toast.info('Export coming soon')} />
+          action="Export"
+          onClick={() => { window.location.href = `/api/v1/wordpress/installations/${installId}/tools/wp-config` }} />
       </div>
     </div>
   )

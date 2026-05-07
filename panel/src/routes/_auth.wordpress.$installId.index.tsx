@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
@@ -37,6 +37,7 @@ function QuickActionBtn({
 function WpOverviewTab() {
   const { installId } = Route.useParams()
   const qc = useQueryClient()
+  const navigate = useNavigate()
 
   const updateAllMut = useMutation({
     mutationFn: () =>
@@ -240,7 +241,8 @@ function WpOverviewTab() {
               </span>
             </div>
             {install.ssl_active === false && (
-              <button type="button" onClick={() => toast.info('SSL setup coming soon')}
+              <button type="button"
+                onClick={() => { void navigate({ to: '/sites/$siteId/ssl', params: { siteId: install.site_id } }) }}
                 className="mt-2 text-xs font-medium text-yellow-700 underline">
                 Install SSL certificate →
               </button>

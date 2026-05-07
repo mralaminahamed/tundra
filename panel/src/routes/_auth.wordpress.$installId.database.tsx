@@ -167,8 +167,9 @@ function WpDatabaseTab() {
           <div className="divide-y divide-tundra-ink-100">
             <DbActionRow label="Optimize Tables"    desc="Reclaim space and improve performance"   action="Optimize" isPending={optimizeMut.isPending} onClick={() => optimizeMut.mutate()} />
             <DbActionRow label="Repair Tables"      desc="Fix corrupted or crashed tables"          action="Repair"   isPending={repairMut.isPending}   onClick={() => repairMut.mutate()} />
-            <DbActionRow label="Export Database"    desc="Download a full SQL dump"                 action="Export"   onClick={() => toast.info('DB export coming soon')} />
-            <DbActionRow label="Change DB Password" desc="Rotate the database user password"        action="Change"   onClick={() => toast.info('DB password change coming soon')} />
+            <DbActionRow label="Export Database"    desc="Download a full SQL dump"                 action="Export"
+              onClick={() => { window.location.href = `/api/v1/wordpress/installations/${installId}/database/export` }} />
+            <DbActionRow label="Change DB Password" desc="Rotate the database user password"        action="Change"   onClick={() => toast.info('DB password change requires MySQL access — coming soon')} />
           </div>
         </div>
       </div>

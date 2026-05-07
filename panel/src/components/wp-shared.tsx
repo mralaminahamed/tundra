@@ -63,7 +63,7 @@ export interface WpUser {
 export interface WpBackup {
   id: string
   created_at: string
-  size_bytes: number
+  size_bytes: number | null
   type: 'manual' | 'scheduled'
   status: 'complete' | 'running' | 'failed'
   note: string | null

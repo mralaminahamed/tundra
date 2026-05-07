@@ -1,8 +1,9 @@
 use axum::{
     Json,
+    body::Body,
     extract::{Path, State},
-    http::StatusCode,
-    response::IntoResponse,
+    http::{header, StatusCode},
+    response::{IntoResponse, Response},
 };
 use serde::{Deserialize, Serialize};
 use tokio::process::Command;
@@ -457,4 +458,369 @@ pub async fn verify_wp_core(
         Ok(msg)  => Ok(Json(serde_json::json!({ "ok": true,  "message": msg }))),
         Err(msg) => Ok(Json(serde_json::json!({ "ok": false, "message": msg }))),
     }
+}
+
+// ── Settings tools ─────────────────────────────────────────────────────────────
+
+pub async fn flush_rewrites(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+    let msg = env.run(&["rewrite", "flush"]).await.map_err(wp_cli_error)?;
+    Ok(Json(serde_json::json!({ "ok": true, "message": msg })))
+}
+
+pub async fn regenerate_salts(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+    let msg = env.run(&["config", "shuffle-salts"]).await.map_err(wp_cli_error)?;
+    Ok(Json(serde_json::json!({ "ok": true, "message": msg })))
+}
+
+pub async fn clear_cache(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+    let msg = env.run(&["cache", "flush"]).await.map_err(wp_cli_error)?;
+    Ok(Json(serde_json::json!({ "ok": true, "message": msg })))
+}
+
+pub async fn export_wp_config(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+    let config_path = format!("{}/wp-config.php", env.install_path);
+
+    let raw = tokio::fs::read_to_string(&config_path).await.map_err(|_| {
+        ApiError::new(StatusCode::NOT_FOUND, "wp_config.not_found", "wp-config.php not found")
+    })?;
+
+    // Sanitize: blank out DB_PASSWORD and any secret keys before returning
+    let sanitized = raw
+        .lines()
+        .map(|line| {
+            if line.contains("DB_PASSWORD") || line.contains("AUTH_KEY")
+                || line.contains("SECURE_AUTH_KEY") || line.contains("LOGGED_IN_KEY")
+                || line.contains("NONCE_KEY") || line.contains("AUTH_SALT")
+                || line.contains("SECURE_AUTH_SALT") || line.contains("LOGGED_IN_SALT")
+                || line.contains("NONCE_SALT")
+            {
+                "// [redacted]".to_owned()
+            } else {
+                line.to_owned()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "text/plain; charset=utf-8")
+        .header(
+            header::CONTENT_DISPOSITION,
+            "attachment; filename=\"wp-config.php\"",
+        )
+        .body(Body::from(sanitized))
+        .map_err(|_| ApiError::internal())?;
+
+    Ok(response)
+}
+
+// ── Database export ────────────────────────────────────────────────────────────
+
+pub async fn export_wp_db(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let env = WpEnv::load(&pool, id).await?;
+
+    // wp db export - streams SQL to stdout
+    let mut args: Vec<&str> = vec!["db", "export", "-", "--path", &env.install_path, "--allow-root"];
+    let out = Command::new(&env.wp_bin)
+        .args(&args)
+        .output()
+        .await
+        .map_err(|e| wp_cli_error(e.to_string()))?;
+
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        return Err(wp_cli_error(err.trim().to_owned()));
+    }
+
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "application/sql")
+        .header(
+            header::CONTENT_DISPOSITION,
+            format!("attachment; filename=\"wp-db-{}.sql\"", id),
+        )
+        .body(Body::from(out.stdout))
+        .map_err(|_| ApiError::internal())?;
+
+    Ok(response)
+}
+
+// Unused variable fix for args (moves into closure)
+fn _silence(_: Vec<&str>) {}
+
+// ── Backups ────────────────────────────────────────────────────────────────────
+
+#[derive(Deserialize)]
+pub struct CreateBackupRequest {
+    pub note: Option<String>,
+}
+
+pub async fn list_wp_backups(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    #[derive(sqlx::FromRow, Serialize)]
+    struct BackupRow {
+        id: Uuid,
+        #[serde(rename = "type")]
+        backup_type: String,
+        status: String,
+        note: Option<String>,
+        size_bytes: Option<i64>,
+        created_at: time::OffsetDateTime,
+    }
+
+    let rows = sqlx::query_as::<_, BackupRow>(
+        "SELECT id, type AS backup_type, status, note, size_bytes, created_at
+         FROM plugin_wordpress_backups
+         WHERE installation_id = $1
+         ORDER BY created_at DESC
+         LIMIT 50",
+    )
+    .bind(id)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| { tracing::error!(%e); ApiError::internal() })?;
+
+    let data: Vec<_> = rows.iter().map(|r| serde_json::json!({
+        "id": r.id,
+        "type": r.backup_type,
+        "status": r.status,
+        "note": r.note,
+        "size_bytes": r.size_bytes,
+        "created_at": crate::serde_util::fmt_dt(r.created_at),
+    })).collect();
+
+    Ok(Json(serde_json::json!({ "data": data })))
+}
+
+pub async fn create_wp_backup(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+    Json(body): Json<CreateBackupRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let backup_id: Uuid = sqlx::query_scalar(
+        "INSERT INTO plugin_wordpress_backups (installation_id, note, status)
+         VALUES ($1, $2, 'running') RETURNING id",
+    )
+    .bind(id)
+    .bind(&body.note)
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| { tracing::error!(%e); ApiError::internal() })?;
+
+    let pool2 = pool.clone();
+    tokio::spawn(async move {
+        let env = match WpEnv::load(&pool2, id).await {
+            Ok(e)  => e,
+            Err(_) => return,
+        };
+
+        // Backup dir inside install path
+        let backup_dir = format!("{}/wp-backups", env.install_path);
+        let _ = tokio::fs::create_dir_all(&backup_dir).await;
+        let file_path = format!("{}/{}.sql", backup_dir, backup_id);
+
+        match env.run(&["db", "export", &file_path]).await {
+            Ok(_) => {
+                let size = tokio::fs::metadata(&file_path).await
+                    .map(|m| m.len() as i64).ok();
+                let _ = sqlx::query(
+                    "UPDATE plugin_wordpress_backups
+                     SET status = 'complete', file_path = $1, size_bytes = $2, updated_at = now()
+                     WHERE id = $3",
+                )
+                .bind(&file_path)
+                .bind(size)
+                .bind(backup_id)
+                .execute(&pool2)
+                .await;
+            }
+            Err(e) => {
+                let _ = sqlx::query(
+                    "UPDATE plugin_wordpress_backups
+                     SET status = 'failed', error = $1, updated_at = now()
+                     WHERE id = $2",
+                )
+                .bind(&e)
+                .bind(backup_id)
+                .execute(&pool2)
+                .await;
+            }
+        }
+    });
+
+    Ok((StatusCode::ACCEPTED, Json(serde_json::json!({
+        "id": backup_id,
+        "status": "running",
+    }))))
+}
+
+pub async fn download_wp_backup(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path((id, backup_id)): Path<(Uuid, Uuid)>,
+) -> Result<impl IntoResponse, ApiError> {
+    let file_path: Option<String> = sqlx::query_scalar(
+        "SELECT file_path FROM plugin_wordpress_backups
+         WHERE id = $1 AND installation_id = $2 AND status = 'complete'",
+    )
+    .bind(backup_id)
+    .bind(id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|_| ApiError::internal())?;
+
+    let file_path = file_path.ok_or_else(|| ApiError::not_found("backup"))?;
+
+    let bytes = tokio::fs::read(&file_path).await.map_err(|_| {
+        ApiError::new(StatusCode::NOT_FOUND, "backup.file_missing", "backup file not found on disk")
+    })?;
+
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "application/sql")
+        .header(
+            header::CONTENT_DISPOSITION,
+            format!("attachment; filename=\"backup-{}.sql\"", backup_id),
+        )
+        .body(Body::from(bytes))
+        .map_err(|_| ApiError::internal())?;
+
+    Ok(response)
+}
+
+pub async fn restore_wp_backup(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path((id, backup_id)): Path<(Uuid, Uuid)>,
+) -> Result<impl IntoResponse, ApiError> {
+    let file_path: Option<String> = sqlx::query_scalar(
+        "SELECT file_path FROM plugin_wordpress_backups
+         WHERE id = $1 AND installation_id = $2 AND status = 'complete'",
+    )
+    .bind(backup_id)
+    .bind(id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|_| ApiError::internal())?;
+
+    let file_path = file_path.ok_or_else(|| ApiError::not_found("backup"))?;
+
+    let env = WpEnv::load(&pool, id).await?;
+    env.run(&["db", "import", &file_path])
+        .await
+        .map_err(wp_cli_error)?;
+
+    Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+pub async fn delete_wp_backup(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path((id, backup_id)): Path<(Uuid, Uuid)>,
+) -> Result<impl IntoResponse, ApiError> {
+    let file_path: Option<String> = sqlx::query_scalar(
+        "SELECT file_path FROM plugin_wordpress_backups
+         WHERE id = $1 AND installation_id = $2",
+    )
+    .bind(backup_id)
+    .bind(id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|_| ApiError::internal())?;
+
+    if let Some(ref path) = file_path {
+        let _ = tokio::fs::remove_file(path).await;
+    }
+
+    sqlx::query("DELETE FROM plugin_wordpress_backups WHERE id = $1 AND installation_id = $2")
+        .bind(backup_id)
+        .bind(id)
+        .execute(&pool)
+        .await
+        .map_err(|_| ApiError::internal())?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ── Backup schedule ────────────────────────────────────────────────────────────
+
+#[derive(Deserialize)]
+pub struct BackupScheduleRequest {
+    pub frequency: String, // "disabled" | "daily" | "weekly" | "monthly"
+    pub retention: i32,
+}
+
+pub async fn get_backup_schedule(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let row: Option<(String, i32)> = sqlx::query_as(
+        "SELECT frequency, retention FROM plugin_wordpress_backup_schedules WHERE installation_id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|_| ApiError::internal())?;
+
+    let (frequency, retention) = row.unwrap_or_else(|| ("disabled".to_owned(), 7));
+    Ok(Json(serde_json::json!({ "frequency": frequency, "retention": retention })))
+}
+
+pub async fn save_backup_schedule(
+    AuthSession(_s): AuthSession,
+    State(pool): State<PgPool>,
+    Path(id): Path<Uuid>,
+    Json(body): Json<BackupScheduleRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let valid = ["disabled", "daily", "weekly", "monthly"];
+    if !valid.contains(&body.frequency.as_str()) {
+        return Err(ApiError::bad_request("invalid frequency"));
+    }
+
+    sqlx::query(
+        "INSERT INTO plugin_wordpress_backup_schedules (installation_id, frequency, retention)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (installation_id) DO UPDATE
+             SET frequency = EXCLUDED.frequency,
+                 retention = EXCLUDED.retention,
+                 updated_at = now()",
+    )
+    .bind(id)
+    .bind(&body.frequency)
+    .bind(body.retention)
+    .execute(&pool)
+    .await
+    .map_err(|_| ApiError::internal())?;
+
+    Ok(Json(serde_json::json!({ "frequency": body.frequency, "retention": body.retention })))
 }

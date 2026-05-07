@@ -434,6 +434,52 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/wordpress/installations/{id}/core/verify",
             post(routes::wp_actions::verify_wp_core),
         )
+        // Settings tools
+        .route(
+            "/api/v1/wordpress/installations/{id}/tools/flush-rewrites",
+            post(routes::wp_actions::flush_rewrites),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/tools/regenerate-salts",
+            post(routes::wp_actions::regenerate_salts),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/tools/clear-cache",
+            post(routes::wp_actions::clear_cache),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/tools/wp-config",
+            get(routes::wp_actions::export_wp_config),
+        )
+        // Database export
+        .route(
+            "/api/v1/wordpress/installations/{id}/database/export",
+            get(routes::wp_actions::export_wp_db),
+        )
+        // Backups
+        .route(
+            "/api/v1/wordpress/installations/{id}/backups",
+            get(routes::wp_actions::list_wp_backups)
+                .post(routes::wp_actions::create_wp_backup),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/backups/{backup_id}/download",
+            get(routes::wp_actions::download_wp_backup),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/backups/{backup_id}/restore",
+            post(routes::wp_actions::restore_wp_backup),
+        )
+        .route(
+            "/api/v1/wordpress/installations/{id}/backups/{backup_id}",
+            delete(routes::wp_actions::delete_wp_backup),
+        )
+        // Backup schedule
+        .route(
+            "/api/v1/wordpress/installations/{id}/backup-schedule",
+            get(routes::wp_actions::get_backup_schedule)
+                .put(routes::wp_actions::save_backup_schedule),
+        )
         // ── MCP (Model Context Protocol) ───────────────────────────────────
         .route("/mcp", post(mcp_post))
         // ── Alert rules ────────────────────────────────────────────────────
