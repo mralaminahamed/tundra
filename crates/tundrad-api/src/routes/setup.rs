@@ -4,7 +4,7 @@ use sqlx::PgPool;
 
 use crate::error::ApiError;
 use tundrad_domain::operator::{NewOperator, OperatorRole};
-use tundrad_repo::{OperatorRepo, SessionRepo};
+use tundrad_repo::OperatorRepo;
 
 // ─── Response types ───────────────────────────────────────────────────────────
 
