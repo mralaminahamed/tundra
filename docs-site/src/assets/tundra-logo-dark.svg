@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 28" fill="none">
+  <path d="M4 6h8v16H8V10H4V6zm8 0h4v4h-4V6z" fill="#7a8a5c"/>
+  <path d="M18 6h12v4h-4v12h-4V10h-4V6z" fill="#1c1f1a"/>
+  <text x="36" y="20" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="700" fill="#1c1f1a" letter-spacing="-0.3">tundra</text>
+</svg>
