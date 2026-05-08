@@ -1177,12 +1177,15 @@ function useLivePhpVersions(): { groups: VersionGroup[]; loading: boolean } {
   return { groups, loading: isLoading }
 }
 
-function AppStep({ values, setFieldValue, onRuntimeKindChange }: {
+function AppStep({ values, setFieldValue, onRuntimeKindChange, selectedTemplate }: {
   values: FormValues; setFieldValue: SetFieldValue
   onRuntimeKindChange: (kind: string) => void
+  selectedTemplate: TemplateManifest | undefined
 }) {
   const hints       = (RUNTIME_HINTS as Record<string, (typeof RUNTIME_HINTS)[RuntimeKind]>)[values.kind] ?? RUNTIME_HINTS.static
   const isWordpress = values.sourceKind === 'wordpress'
+  const isTemplate  = values.sourceKind === 'template' && !!selectedTemplate
+  const isLocked    = isWordpress || isTemplate
   const isPhp       = values.kind === 'php' || values.kind === 'laravel'
   const { groups: phpGroups, loading: phpLoading } = useLivePhpVersions()
 
@@ -1193,12 +1196,25 @@ function AppStep({ values, setFieldValue, onRuntimeKindChange }: {
     <div className="space-y-6">
       <div>
         <SectionLabel>Application type</SectionLabel>
+        {/* Lock banner */}
+        {isLocked && (
+          <div className="mb-3 flex items-center gap-2.5 rounded-xl border border-tundra-ink-200 bg-tundra-ink-50/70 px-4 py-2.5">
+            <svg className="h-4 w-4 shrink-0 text-tundra-ink-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <p className="text-xs text-tundra-ink-500">
+              {isWordpress
+                ? 'Runtime locked to PHP by WordPress.'
+                : <>Runtime locked to <strong className="text-tundra-ink">{hints.label}</strong> by template <strong className="text-tundra-ink">{selectedTemplate?.name}</strong>.</>}
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {(Object.keys(RUNTIME_HINTS) as RuntimeKind[]).map((rt) => {
             const h = RUNTIME_HINTS[rt]; const active = values.kind === rt
+            const locked = isLocked && !active
             return (
               <button key={rt} type="button"
                 onClick={() => {
+                  if (isLocked) return
                   const firstVer = rt === 'php' || rt === 'laravel' ? phpGroups[0]?.versions[0] ?? '' : (RUNTIME_HINTS[rt].versionGroups[0]?.versions[0] ?? '')
                   setFieldValue('kind', rt)
                   setFieldValue('runtimeVersion', firstVer)
@@ -1209,9 +1225,9 @@ function AppStep({ values, setFieldValue, onRuntimeKindChange }: {
                   active
                     ? 'border-tundra-lichen bg-tundra-lichen/5 ring-2 ring-tundra-lichen/20 shadow-sm'
                     : 'border-tundra-ink-200 bg-white hover:border-tundra-lichen hover:bg-tundra-ink-50/50',
-                  isWordpress && rt !== 'php' ? 'opacity-40 cursor-not-allowed' : '',
+                  locked ? 'opacity-35 cursor-not-allowed' : '',
                 ].join(' ')}
-                disabled={isWordpress && rt !== 'php'}
+                disabled={locked}
               >
                 <span className={active ? 'text-tundra-lichen' : 'text-tundra-ink-400'}>{h.icon}</span>
                 <span className={`text-sm font-semibold ${active ? 'text-tundra-lichen-700' : 'text-tundra-ink'}`}>{h.label}</span>
@@ -1219,7 +1235,6 @@ function AppStep({ values, setFieldValue, onRuntimeKindChange }: {
             )
           })}
         </div>
-        {isWordpress && <p className={HINT}>WordPress requires PHP — other runtimes are disabled.</p>}
         <ErrorMessage name="kind" component="p" className="mt-2 text-xs text-red-500" />
       </div>
 
@@ -1836,6 +1851,7 @@ function CreateSitePage() {
                     <AppStep
                       values={values} setFieldValue={setFieldValue}
                       onRuntimeKindChange={setRuntimeKind}
+                      selectedTemplate={selectedTemplate}
                     />
                   )}
                   {step === 2 && <DomainStep values={values} setFieldValue={setFieldValue} servers={servers} />}
