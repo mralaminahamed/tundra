@@ -1,0 +1,61 @@
+# Ubuntu 24.04 image with systemd for testing installer/install.sh
+#
+# Build:
+#   docker build -f docker/Dockerfile.installer-test -t tundra-installer-test .
+#
+# Run (requires privileged for systemd + cgroups):
+#   docker run --privileged --rm -it tundra-installer-test
+#
+# Or use: docker compose -f docker/docker-compose.installer-test.yml up --build
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV container=docker
+
+# Install systemd and base tools.
+# Remove services that conflict with Docker's limited init environment.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        systemd \
+        systemd-sysv \
+        dbus \
+        curl \
+        ca-certificates \
+        gnupg \
+        lsb-release \
+        jq \
+        zstd \
+        sudo \
+        iproute2 \
+        procps \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    # Strip units that don't make sense inside Docker
+    && find /lib/systemd/system/sysinit.target.wants/ -mindepth 1 ! -name 'systemd-tmpfiles-setup.service' -delete \
+    && find /etc/systemd/system/*.wants/ -mindepth 1 -delete \
+    && rm -f \
+        /lib/systemd/system/multi-user.target.wants/* \
+        /etc/systemd/system/multi-user.target.wants/* \
+        /lib/systemd/system/local-fs.target.wants/* \
+        /lib/systemd/system/sockets.target.wants/*udev* \
+        /lib/systemd/system/sockets.target.wants/*initctl* \
+        /lib/systemd/system/basic.target.wants/* \
+        /lib/systemd/system/anaconda.target.wants/* \
+        /lib/systemd/system/plymouth* \
+        /lib/systemd/system/decrypt* \
+    && systemctl set-default multi-user.target
+
+# cgroupv2 tmpfs mount point
+VOLUME ["/sys/fs/cgroup"]
+
+# Binaries injected via docker-compose / test.sh
+VOLUME ["/tundra-bins"]
+
+# The installer is mounted read-only
+VOLUME ["/installer"]
+
+STOPSIGNAL SIGRTMIN+3
+
+# Default: start systemd. The installer runs as a one-shot unit started from
+# docker-compose or test.sh via `docker exec`.
+CMD ["/sbin/init"]

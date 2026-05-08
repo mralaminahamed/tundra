@@ -1,0 +1,29 @@
+name: tundra-installer-test
+
+services:
+  ubuntu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.installer-test
+    image: tundra-installer-test:latest
+    container_name: tundra-installer-test
+    hostname: tundra-test-node
+    privileged: true               # required: systemd needs cgroup access
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - ../installer:/installer:ro # installer script (read-only)
+      - tundra-bins:/tundra-bins   # stub/real binaries injected by test.sh
+    environment:
+      # Point installer to local binaries; skip GitHub download
+      - TUNDRA_BINARIES_DIR=/tundra-bins
+      - TUNDRA_VERSION=0.0.0-test
+    tmpfs:
+      - /run
+      - /run/lock
+      - /tmp
+    # Keep running so we can exec into it
+    stdin_open: true
+    tty: true
+
+volumes:
+  tundra-bins:

@@ -13,6 +13,9 @@ set -euo pipefail
 TUNDRA_VERSION="${TUNDRA_VERSION:-latest}"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 TUNDRA_HOME="${TUNDRA_HOME:-/var/lib/tundra}"
+# If set, binaries are copied from this local directory instead of downloaded from GitHub.
+# Used by the Docker installer test (installer/test.sh).
+TUNDRA_BINARIES_DIR="${TUNDRA_BINARIES_DIR:-}"
 TUNDRA_CONFIG_DIR="/etc/tundra"
 TUNDRA_RUN_DIR="/var/run/tundra"
 TUNDRA_USER="tundra"
@@ -390,6 +393,17 @@ command_exists tundrad && INSTALLED_VER="$(tundrad --version 2>&1 | grep -oP '\d
 
 if [[ "${INSTALLED_VER}" == "${TUNDRA_VERSION}" ]]; then
     info "Tundra ${TUNDRA_VERSION} already installed — skipping download"
+elif [[ -n "${TUNDRA_BINARIES_DIR}" ]]; then
+    # Local test mode: copy binaries from TUNDRA_BINARIES_DIR instead of downloading
+    info "TUNDRA_BINARIES_DIR set — using local binaries from ${TUNDRA_BINARIES_DIR}"
+    for bin in tundrad tundra tundra-agent tundra-self-backup tundra-restore; do
+        if [[ -f "${TUNDRA_BINARIES_DIR}/${bin}" ]]; then
+            install -m 0755 "${TUNDRA_BINARIES_DIR}/${bin}" "${INSTALL_DIR}/${bin}"
+            info "Installed ${bin} (local)"
+        else
+            warn "Local binary not found: ${TUNDRA_BINARIES_DIR}/${bin}"
+        fi
+    done
 else
     info "Downloading ${TARBALL}..."
     curl -fsSL -o "${DOWNLOAD_TMP}/${TARBALL}"     "${DOWNLOAD_BASE}/${TARBALL}"
