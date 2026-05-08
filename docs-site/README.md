@@ -1,49 +1,48 @@
-# Starlight Starter Kit: Basics
+# Tundra Docs
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+Documentation site for [Tundra](https://github.com/mralaminahamed/tundra) — built with [Astro Starlight](https://starlight.astro.build).
 
-```
-pnpm create astro@latest -- --template starlight
-```
+**Live:** [mralaminahamed.github.io/tundra](https://mralaminahamed.github.io/tundra)
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+---
 
-## 🚀 Project Structure
+## Development
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```bash
+pnpm install
+pnpm dev          # http://localhost:4321/tundra
+pnpm build        # production build → dist/
+pnpm preview      # preview built site
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## Structure
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+```
+src/
+  assets/               SVG logos (light + dark variants)
+  content/docs/
+    getting-started/    Install, first server, first site, upgrading
+    guides/             Operator guides (sites, WordPress, DNS, mail, …)
+    self-hosting/       Docker Compose, systemd, config, security
+    plugins/            Plugin overview, using, building, MCP
+    api/                REST, auth, errors, WebSocket
+    contributing/       Architecture, local dev, testing, constraints
+  styles/
+    custom.css          Tundra brand tokens + dark mode overrides
+public/
+  favicon.svg
+astro.config.mjs        Starlight config — sidebar, logo, themes
+```
 
-Static assets, like favicons, can be placed in the `public/` directory.
+## Deployment
 
-## 🧞 Commands
+Automatically deployed to GitHub Pages on every push to `main` that touches `docs-site/**` via `.github/workflows/docs.yml`.
 
-All commands are run from the root of the project, from a terminal:
+No manual steps — merge to main and the site updates.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+## Adding a page
 
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+1. Create a `.md` or `.mdx` file in `src/content/docs/<section>/`
+2. Add frontmatter: `title`, `description`, optional `sidebar.order`
+3. Add the slug to the matching `sidebar` array in `astro.config.mjs`
+4. Use `.mdx` if the page needs Starlight components (`Aside`, `Steps`, `Tabs`, `Card`)
