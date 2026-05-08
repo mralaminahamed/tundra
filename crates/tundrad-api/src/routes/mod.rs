@@ -1,3 +1,4 @@
+pub mod agent;
 pub mod alert_rules;
 pub mod audit_log;
 pub mod auth;

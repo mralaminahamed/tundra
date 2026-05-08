@@ -299,13 +299,11 @@ function MailboxesSection({ mailDomain }: MailboxesSectionProps) {
         method: 'POST',
         body: { password },
       }),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       toast.success('Password updated')
       setResetId(null)
       setResetPw('')
       void qc.invalidateQueries({ queryKey: ['mail-mailboxes', mailDomain.id] })
-      // suppress unused warning
-      void id
     },
     onError: () => toast.error('Failed to reset password'),
   })
@@ -412,7 +410,7 @@ function MailboxesSection({ mailDomain }: MailboxesSectionProps) {
             <button
               type="button"
               disabled={!newMb.local_part || !newMb.password || createMut.isPending}
-              onClick={() => createMut.mutate()}
+              onClick={() => { createMut.mutate() }}
               className="rounded-lg bg-tundra-lichen px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-tundra-lichen-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {createMut.isPending ? 'Creating…' : 'Create'}
@@ -429,7 +427,7 @@ function MailboxesSection({ mailDomain }: MailboxesSectionProps) {
           {!showCreate && (
             <button
               type="button"
-              onClick={() => setShowCreate(true)}
+              onClick={() => { setShowCreate(true) }}
               className="mt-3 text-xs font-medium text-tundra-lichen hover:underline"
             >
               Create first mailbox →
@@ -471,7 +469,7 @@ function MailboxesSection({ mailDomain }: MailboxesSectionProps) {
                               className={`h-full rounded-full transition-all ${
                                 pct > 85 ? 'bg-red-500' : pct > 60 ? 'bg-yellow-400' : 'bg-tundra-lichen'
                               }`}
-                              style={{ width: `${pct}%` }}
+                              style={{ width: `${String(pct)}%` }}
                             />
                           </div>
                           <span className="text-xs text-tundra-ink-400">{pct}%</span>
@@ -693,7 +691,7 @@ function AliasesSection({ mailDomain }: AliasesSectionProps) {
             <button
               type="button"
               disabled={!newAlias.source || !destinationsValid || createMut.isPending}
-              onClick={() => createMut.mutate()}
+              onClick={() => { createMut.mutate() }}
               className="rounded-lg bg-tundra-lichen px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-tundra-lichen-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {createMut.isPending ? 'Creating…' : 'Create'}
@@ -710,7 +708,7 @@ function AliasesSection({ mailDomain }: AliasesSectionProps) {
           {!showCreate && (
             <button
               type="button"
-              onClick={() => setShowCreate(true)}
+              onClick={() => { setShowCreate(true) }}
               className="mt-3 text-xs font-medium text-tundra-lichen hover:underline"
             >
               Create first alias →
@@ -758,14 +756,14 @@ function AliasesSection({ mailDomain }: AliasesSectionProps) {
                           <button
                             type="button"
                             disabled={deleteMut.isPending}
-                            onClick={() => deleteMut.mutate(a.id)}
+                            onClick={() => { deleteMut.mutate(a.id) }}
                             className="rounded border border-red-300 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
                           >
                             {deleteMut.isPending ? '…' : 'Delete'}
                           </button>
                           <button
                             type="button"
-                            onClick={() => setConfirmDeleteId(null)}
+                            onClick={() => { setConfirmDeleteId(null) }}
                             className="rounded border border-tundra-ink-200 px-2.5 py-1 text-xs text-tundra-ink-400 hover:bg-tundra-ink-50"
                           >
                             Cancel
@@ -775,7 +773,7 @@ function AliasesSection({ mailDomain }: AliasesSectionProps) {
                         <div className="flex justify-end">
                           <button
                             type="button"
-                            onClick={() => setConfirmDeleteId(a.id)}
+                            onClick={() => { setConfirmDeleteId(a.id) }}
                             className="rounded border border-red-200 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 transition-colors"
                           >
                             Delete
@@ -811,14 +809,14 @@ function SiteEmailTab() {
   const { data: mailDomainsData, isLoading: mdLoading } = useQuery({
     queryKey: ['mail-domains', primaryDomain],
     queryFn: () =>
-      api<ListResponse<MailDomain>>(`/mail/domains?apex=${encodeURIComponent(primaryDomain!)}`, {}),
+      api<ListResponse<MailDomain>>(`/mail/domains?apex=${encodeURIComponent(primaryDomain ?? '')}`, {}),
     enabled: !!primaryDomain,
   })
 
   const mailDomain = mailDomainsData?.data[0] ?? null
 
   const deleteDomainMut = useMutation({
-    mutationFn: () => api(`/mail/domains/${mailDomain!.id}`, { method: 'DELETE' }),
+    mutationFn: () => api(`/mail/domains/${mailDomain?.id ?? ''}`, { method: 'DELETE' }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['mail-domains', primaryDomain] })
       toast.success('Mail domain removed')
@@ -839,7 +837,7 @@ function SiteEmailTab() {
       <div className="space-y-6">
         <MailDomainSetup
           primaryDomain={primaryDomain}
-          onCreated={() => void qc.invalidateQueries({ queryKey: ['mail-domains', primaryDomain] })}
+          onCreated={() => { void qc.invalidateQueries({ queryKey: ['mail-domains', primaryDomain] }) }}
         />
       </div>
     )
@@ -850,7 +848,7 @@ function SiteEmailTab() {
       {/* Mail domain status */}
       <MailDomainCard
         mailDomain={mailDomain}
-        onDelete={() => deleteDomainMut.mutate()}
+        onDelete={() => { deleteDomainMut.mutate() }}
         isDeleting={deleteDomainMut.isPending}
       />
 
@@ -861,7 +859,7 @@ function SiteEmailTab() {
             <button
               key={t}
               type="button"
-              onClick={() => setSubTab(t)}
+              onClick={() => { setSubTab(t) }}
               className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium capitalize transition-colors ${
                 subTab === t
                   ? 'border-tundra-lichen text-tundra-lichen-700'

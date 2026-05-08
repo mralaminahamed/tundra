@@ -1,3 +1,4 @@
+pub mod agent_auth;
 pub mod audit_redact;
 pub mod error;
 pub mod extractors;
@@ -580,6 +581,15 @@ pub fn router(pool: PgPool) -> Router {
         .route(
             "/api/v1/alert-deliveries",
             get(routes::alert_rules::list_alert_deliveries),
+        )
+        // ── Agent endpoints ────────────────────────────────────────────────
+        .route(
+            "/api/v1/agent/deployments",
+            get(routes::agent::list_queued_deployments),
+        )
+        .route(
+            "/api/v1/agent/deployments/{id}/status",
+            patch(routes::agent::update_deployment_status),
         )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))

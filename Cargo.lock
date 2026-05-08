@@ -5075,12 +5075,14 @@ name = "tundra-agent-bin"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "clap",
  "tokio",
  "tracing",
  "tracing-subscriber",
  "tundra-agent-logs",
  "tundra-agent-metrics",
+ "tundra-agent-providers",
  "tundra-agent-reconciler",
  "tundra-agent-rpc",
 ]
@@ -5127,6 +5129,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "reqwest",
  "serde",
  "serde_json",
  "thiserror 2.0.18",

@@ -31,7 +31,7 @@ pub use scheduled_task::{ScheduledTaskRepo, UpdateScheduledTask};
 pub use server::{AgentCredentialsRepo, ServerRepo};
 pub use server_metrics::ServerMetricsRepo;
 pub use session::SessionRepo;
-pub use site::SiteRepo;
+pub use site::{QueuedDeployment, SiteRepo};
 pub use site_move::SiteMoveRepo;
 
 /// Re-export the pool type so callers don't need to depend on sqlx directly.

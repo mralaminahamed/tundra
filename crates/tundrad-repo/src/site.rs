@@ -2,6 +2,27 @@ use crate::{PgPool, RepoError};
 use tundrad_domain::site::{Application, Deployment, Site};
 use uuid::Uuid;
 
+// ── QueuedDeployment (agent-facing projection) ────────────────────────────────
+
+/// A flattened view of a queued deployment, joined with its application and site.
+/// Returned by [`SiteRepo::list_queued_for_server`] for agent polling.
+#[derive(Debug, sqlx::FromRow)]
+pub struct QueuedDeployment {
+    pub deployment_id: Uuid,
+    pub site_id: Uuid,
+    pub application_id: Uuid,
+    pub kind: String,
+    pub runtime_version: Option<String>,
+    pub build_command: Option<String>,
+    pub start_command: Option<String>,
+    pub health_check_path: String,
+    pub source_kind: String,
+    pub source_config: serde_json::Value,
+    pub source_ref: Option<String>,
+    pub document_root: String,
+    pub primary_domain: String,
+}
+
 // ── Site ──────────────────────────────────────────────────────────────────────
 
 #[derive(sqlx::FromRow)]
@@ -299,5 +320,73 @@ impl<'a> SiteRepo<'a> {
         .fetch_one(self.pool)
         .await?
         .try_into()
+    }
+
+    /// Update the status (and optional timestamps/error) of a deployment.
+    /// Used by the agent to report progress back to the control plane.
+    pub async fn update_deployment_status(
+        &self,
+        deployment_id: Uuid,
+        status: &str,
+        started_at: Option<time::OffsetDateTime>,
+        finished_at: Option<time::OffsetDateTime>,
+        error: Option<&str>,
+    ) -> Result<Deployment, RepoError> {
+        sqlx::query_as::<_, DeploymentRow>(
+            "UPDATE deployments \
+             SET status=$2, \
+                 started_at=COALESCE($3,started_at), \
+                 finished_at=COALESCE($4,finished_at), \
+                 error=COALESCE($5,error) \
+             WHERE id=$1 \
+             RETURNING id, application_id, site_id, triggered_by, triggered_by_id, \
+               source_ref, status, started_at, finished_at, error, created_at",
+        )
+        .bind(deployment_id)
+        .bind(status)
+        .bind(started_at)
+        .bind(finished_at)
+        .bind(error)
+        .fetch_one(self.pool)
+        .await?
+        .try_into()
+    }
+
+    /// Return up to `limit` queued deployments for sites hosted on `server_id`,
+    /// ordered oldest-first. Consumed by the per-node agent.
+    pub async fn list_queued_for_server(
+        &self,
+        server_id: Uuid,
+        limit: i64,
+    ) -> Result<Vec<QueuedDeployment>, RepoError> {
+        sqlx::query_as::<_, QueuedDeployment>(
+            "SELECT \
+                 d.id            AS deployment_id, \
+                 d.site_id, \
+                 d.application_id, \
+                 a.kind, \
+                 a.runtime_version, \
+                 a.build_command, \
+                 a.start_command, \
+                 a.health_check_path, \
+                 a.source_kind, \
+                 a.source_config, \
+                 d.source_ref, \
+                 s.document_root, \
+                 s.primary_domain \
+             FROM deployments d \
+             JOIN applications a ON a.id = d.application_id \
+             JOIN sites s ON s.id = d.site_id \
+             WHERE d.status = 'queued' \
+               AND s.server_id = $1 \
+               AND s.deleted_at IS NULL \
+             ORDER BY d.created_at ASC \
+             LIMIT $2",
+        )
+        .bind(server_id)
+        .bind(limit)
+        .fetch_all(self.pool)
+        .await
+        .map_err(RepoError::from)
     }
 }
