@@ -1,0 +1,18 @@
+id: "caa-letsencrypt"
+name: "CAA — Let's Encrypt"
+category: "security"
+description: "Restricts TLS certificate issuance to Let's Encrypt only."
+color: "yellow"
+records:
+  - name: "@"
+    record_type: "CAA"
+    content: "0 issue \"letsencrypt.org\""
+    ttl: 3600
+  - name: "@"
+    record_type: "CAA"
+    content: "0 issuewild \"letsencrypt.org\""
+    ttl: 3600
+  - name: "@"
+    record_type: "CAA"
+    content: "0 iodef \"mailto:security@{DOMAIN}\""
+    ttl: 3600

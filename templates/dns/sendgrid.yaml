@@ -1,0 +1,15 @@
+id: "sendgrid"
+name: "SendGrid"
+category: "email"
+description: "SPF + DMARC baseline for SendGrid. DKIM CNAMEs are account-specific."
+color: "teal"
+note: "Add 3 account-specific DKIM CNAME records from SendGrid → Settings → Sender Authentication."
+records:
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:sendgrid.net ~all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

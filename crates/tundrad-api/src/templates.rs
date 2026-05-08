@@ -45,17 +45,17 @@ fn parse(src: &str) -> TemplateManifest {
 /// Return all built-in templates embedded at compile time, sorted by `id`.
 pub fn builtin_templates() -> Vec<TemplateManifest> {
     let mut templates = vec![
-        parse(include_str!("../../../templates/astro.yaml")),
-        parse(include_str!("../../../templates/directus.yaml")),
-        parse(include_str!("../../../templates/django.yaml")),
-        parse(include_str!("../../../templates/ghost.yaml")),
-        parse(include_str!("../../../templates/hugo.yaml")),
-        parse(include_str!("../../../templates/laravel.yaml")),
-        parse(include_str!("../../../templates/nextjs.yaml")),
-        parse(include_str!("../../../templates/rails.yaml")),
-        parse(include_str!("../../../templates/static.yaml")),
-        parse(include_str!("../../../templates/strapi.yaml")),
-        parse(include_str!("../../../templates/sveltekit.yaml")),
+        parse(include_str!("../../../templates/sites/astro.yaml")),
+        parse(include_str!("../../../templates/sites/directus.yaml")),
+        parse(include_str!("../../../templates/sites/django.yaml")),
+        parse(include_str!("../../../templates/sites/ghost.yaml")),
+        parse(include_str!("../../../templates/sites/hugo.yaml")),
+        parse(include_str!("../../../templates/sites/laravel.yaml")),
+        parse(include_str!("../../../templates/sites/nextjs.yaml")),
+        parse(include_str!("../../../templates/sites/rails.yaml")),
+        parse(include_str!("../../../templates/sites/static.yaml")),
+        parse(include_str!("../../../templates/sites/strapi.yaml")),
+        parse(include_str!("../../../templates/sites/sveltekit.yaml")),
     ];
     templates.sort_by(|a, b| a.id.cmp(&b.id));
     templates

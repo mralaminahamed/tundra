@@ -1,0 +1,11 @@
+id: "bimi"
+name: "BIMI (Email Logo)"
+category: "email"
+description: "Brand Indicators for Message Identification — shows your logo next to emails in Gmail and Apple Mail."
+color: "indigo"
+note: "Prerequisites: DMARC at p=quarantine or p=reject with pct=100, SPF and DKIM passing. Logo must be SVG Tiny 1.2 P/S format, under 32 KB, square. Gmail requires a VMC or CMC certificate (from DigiCert/Entrust). Replace the logo URL and certificate URL with your actual hosted files."
+records:
+  - name: "default._bimi"
+    record_type: "TXT"
+    content: "v=BIMI1; l=https://{DOMAIN}/logo.svg; a=https://{DOMAIN}/bimi-cert.pem;"
+    ttl: 3600

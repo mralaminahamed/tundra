@@ -1,0 +1,15 @@
+id: "amazon-ses"
+name: "Amazon SES"
+category: "email"
+description: "SPF + DMARC for Amazon SES. DKIM CNAME records come from AWS Console."
+color: "orange"
+note: "Add 3 DKIM CNAME records from AWS Console → SES → Verified identities → your domain → DKIM."
+records:
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:amazonses.com ~all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

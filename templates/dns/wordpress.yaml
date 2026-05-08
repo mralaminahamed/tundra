@@ -1,0 +1,22 @@
+id: "wordpress"
+name: "WordPress"
+category: "web"
+description: "A + www + SPF + DMARC quarantine. Complete setup for WordPress."
+color: "indigo"
+records:
+  - name: "@"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "www"
+    record_type: "CNAME"
+    content: "@"
+    ttl: 3600
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 a mx ~all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=quarantine; pct=100; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

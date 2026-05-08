@@ -1,0 +1,14 @@
+id: "basic-web"
+name: "Basic Web"
+category: "web"
+description: "A record + www CNAME. Minimum for any website."
+color: "blue"
+records:
+  - name: "@"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "www"
+    record_type: "CNAME"
+    content: "@"
+    ttl: 3600

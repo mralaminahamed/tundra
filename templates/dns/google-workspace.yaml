@@ -1,0 +1,40 @@
+id: "google-workspace"
+name: "Google Workspace"
+category: "email"
+description: "5 priority-tiered MX + SPF + DMARC for Gmail / Google Workspace."
+color: "red"
+note: "Add your DKIM TXT record from Google Admin Console → Apps → Google Workspace → Gmail → Authenticate email."
+records:
+  - name: "@"
+    record_type: "MX"
+    content: "aspmx.l.google.com"
+    ttl: 3600
+    priority: 1
+  - name: "@"
+    record_type: "MX"
+    content: "alt1.aspmx.l.google.com"
+    ttl: 3600
+    priority: 5
+  - name: "@"
+    record_type: "MX"
+    content: "alt2.aspmx.l.google.com"
+    ttl: 3600
+    priority: 5
+  - name: "@"
+    record_type: "MX"
+    content: "alt3.aspmx.l.google.com"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "MX"
+    content: "alt4.aspmx.l.google.com"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:_spf.google.com ~all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

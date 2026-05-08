@@ -1,0 +1,19 @@
+id: "sveltekit"
+name: "SvelteKit"
+description: "SvelteKit 2 full-stack Svelte framework. Supports SSR, SSG, and hybrid rendering via adapters. Runs as a Node.js server."
+version: "1.0.0"
+runtime:
+  kind: "nodejs"
+  version: "22"
+source:
+  kind: "skeleton"
+build_command: "npm run build"
+start_command: "node build/index.js"
+listen_port: 3000
+env:
+  NODE_ENV: "production"
+post_create:
+  - "npm install"
+  - "npm run build"
+tags: ["nodejs", "svelte", "sveltekit", "ssr", "fullstack"]
+icon: "sveltekit"

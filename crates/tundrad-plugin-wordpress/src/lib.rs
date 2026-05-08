@@ -3,8 +3,8 @@ use tundra_plugin_sdk::{HostServices, Plugin, PluginCapability, PluginError, Plu
 
 pub struct WordPressPlugin;
 
-pub const WORDPRESS_YAML: &str = include_str!("../../../templates/wordpress.yaml");
-pub const WOOCOMMERCE_YAML: &str = include_str!("../../../templates/woocommerce.yaml");
+pub const WORDPRESS_YAML: &str = include_str!("../../../templates/sites/wordpress.yaml");
+pub const WOOCOMMERCE_YAML: &str = include_str!("../../../templates/sites/woocommerce.yaml");
 
 #[async_trait]
 impl Plugin for WordPressPlugin {

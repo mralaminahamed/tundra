@@ -1,0 +1,25 @@
+id: "protonmail"
+name: "ProtonMail"
+category: "email"
+description: "2 MX records + SPF for ProtonMail custom domain email."
+color: "purple"
+note: "Add 3 DKIM CNAME records from Proton Settings → Custom Domains → DKIM tab. Format: protonmail._domainkey → protonmail.domainkey.<hash>.domains.proton.ch"
+records:
+  - name: "@"
+    record_type: "MX"
+    content: "mail.protonmail.ch"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "MX"
+    content: "mailsec.protonmail.ch"
+    ttl: 3600
+    priority: 20
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:_spf.protonmail.ch mx ~all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

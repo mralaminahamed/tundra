@@ -1,0 +1,26 @@
+id: "cloudflare-email"
+name: "Cloudflare Email Routing"
+category: "email"
+description: "3 MX records + SPF for routing email through Cloudflare Email Routing."
+color: "orange"
+note: "Enable Email Routing in the Cloudflare dashboard first — it will add these records automatically. Add manually only if they are missing."
+records:
+  - name: "@"
+    record_type: "MX"
+    content: "route1.mx.cloudflare.net"
+    ttl: 3600
+    priority: 2
+  - name: "@"
+    record_type: "MX"
+    content: "route2.mx.cloudflare.net"
+    ttl: 3600
+    priority: 19
+  - name: "@"
+    record_type: "MX"
+    content: "route3.mx.cloudflare.net"
+    ttl: 3600
+    priority: 75
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:_spf.mx.cloudflare.net ~all"
+    ttl: 3600

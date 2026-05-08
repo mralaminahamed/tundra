@@ -1,0 +1,26 @@
+id: "github-pages"
+name: "GitHub Pages"
+category: "deploy"
+description: "4 A records pointing to GitHub Pages IPs + www CNAME."
+color: "gray"
+records:
+  - name: "@"
+    record_type: "A"
+    content: "185.199.108.153"
+    ttl: 3600
+  - name: "@"
+    record_type: "A"
+    content: "185.199.109.153"
+    ttl: 3600
+  - name: "@"
+    record_type: "A"
+    content: "185.199.110.153"
+    ttl: 3600
+  - name: "@"
+    record_type: "A"
+    content: "185.199.111.153"
+    ttl: 3600
+  - name: "www"
+    record_type: "CNAME"
+    content: "{DOMAIN}"
+    ttl: 3600

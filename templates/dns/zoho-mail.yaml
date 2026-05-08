@@ -1,0 +1,30 @@
+id: "zoho-mail"
+name: "Zoho Mail"
+category: "email"
+description: "3 MX records + SPF + DMARC for Zoho Mail."
+color: "purple"
+note: "Add DKIM TXT from Zoho Admin Console → Domains → Email Authentication."
+records:
+  - name: "@"
+    record_type: "MX"
+    content: "mx.zoho.com"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "MX"
+    content: "mx2.zoho.com"
+    ttl: 3600
+    priority: 20
+  - name: "@"
+    record_type: "MX"
+    content: "mx3.zoho.com"
+    ttl: 3600
+    priority: 50
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:zohomail.com ~all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

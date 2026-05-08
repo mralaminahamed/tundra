@@ -1,0 +1,19 @@
+id: "postmark"
+name: "Postmark"
+category: "email"
+description: "SPF + custom Return-Path CNAME for Postmark transactional email. Enables full DMARC alignment."
+color: "yellow"
+note: "Add the DKIM TXT record from Postmark → Sender Signatures → your domain. The selector format is YYYYMMDDHHMMSSpm._domainkey and the key is account-specific."
+records:
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:spf.mtasv.net ~all"
+    ttl: 3600
+  - name: "pm-bounces"
+    record_type: "CNAME"
+    content: "pm.mtasv.net"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

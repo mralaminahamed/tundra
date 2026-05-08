@@ -1,0 +1,19 @@
+id: "dual-stack"
+name: "Dual Stack (IPv4 + IPv6)"
+category: "web"
+description: "A + AAAA + www for full IPv4/IPv6 support."
+color: "blue"
+note: "Edit the AAAA record after import to set your server's IPv6 address."
+records:
+  - name: "@"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "@"
+    record_type: "AAAA"
+    content: "YOUR_IPV6_ADDRESS"
+    ttl: 3600
+  - name: "www"
+    record_type: "CNAME"
+    content: "@"
+    ttl: 3600

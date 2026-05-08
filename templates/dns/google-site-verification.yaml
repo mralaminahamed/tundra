@@ -1,0 +1,11 @@
+id: "google-site-verification"
+name: "Google Search Console"
+category: "utility"
+description: "TXT record for verifying domain ownership in Google Search Console."
+color: "blue"
+note: "Replace YOUR_VERIFICATION_TOKEN with the token shown in Google Search Console → Add Property → Domain → DNS verification. Format: google-site-verification=<token>. Propagation can take up to 48h; Google usually verifies within minutes."
+records:
+  - name: "@"
+    record_type: "TXT"
+    content: "google-site-verification=YOUR_VERIFICATION_TOKEN"
+    ttl: 3600

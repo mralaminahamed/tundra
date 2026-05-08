@@ -1,0 +1,15 @@
+id: "fly-io"
+name: "Fly.io"
+category: "deploy"
+description: "A + AAAA records for a Fly.io app with a custom domain."
+color: "blue"
+note: "Fly.io requires per-app dedicated IPs. Run: flyctl ips allocate-v4 -a <app-name> and flyctl ips allocate-v6 -a <app-name>, then replace the placeholder values below. IPv4 costs $2/month. After pointing DNS, run: flyctl certs create {DOMAIN}"
+records:
+  - name: "@"
+    record_type: "A"
+    content: "YOUR_FLY_IPV4"
+    ttl: 3600
+  - name: "@"
+    record_type: "AAAA"
+    content: "YOUR_FLY_IPV6"
+    ttl: 3600

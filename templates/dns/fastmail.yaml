@@ -1,0 +1,25 @@
+id: "fastmail"
+name: "Fastmail"
+category: "email"
+description: "2 MX records + SPF (-all) for Fastmail custom domain email."
+color: "teal"
+note: "Add 3 DKIM CNAME records from Fastmail Settings → Domains. Format: fm1._domainkey → fm1.{DOMAIN}.dkim.fmhosted.com (repeat for fm2, fm3). Do NOT proxy these through Cloudflare."
+records:
+  - name: "@"
+    record_type: "MX"
+    content: "in1-smtp.messagingengine.com"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "MX"
+    content: "in2-smtp.messagingengine.com"
+    ttl: 3600
+    priority: 20
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:spf.messagingengine.com -all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

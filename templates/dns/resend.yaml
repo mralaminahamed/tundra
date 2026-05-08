@@ -1,0 +1,19 @@
+id: "resend"
+name: "Resend"
+category: "email"
+description: "DKIM CNAME + SPF for Resend transactional email."
+color: "gray"
+note: "Copy the exact record values from the Resend dashboard → Domains. The DKIM selector is typically 'resend' but may vary. Configure your sending subdomain (e.g. send.{DOMAIN}) there too."
+records:
+  - name: "resend._domainkey"
+    record_type: "CNAME"
+    content: "resend._domainkey.resend.com"
+    ttl: 3600
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:_spf.resend.com -all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

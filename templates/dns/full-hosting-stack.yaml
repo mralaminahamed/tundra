@@ -1,0 +1,35 @@
+id: "full-hosting-stack"
+name: "Full Hosting Stack"
+category: "web"
+description: "Plesk-style default: A + www + mail + webmail + ftp + MX + SPF. Everything a shared hosting domain needs."
+color: "green"
+records:
+  - name: "@"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "www"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "mail"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "webmail"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "ftp"
+    record_type: "CNAME"
+    content: "{DOMAIN}"
+    ttl: 3600
+  - name: "@"
+    record_type: "MX"
+    content: "mail.{DOMAIN}"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 +a +mx ~all"
+    ttl: 3600

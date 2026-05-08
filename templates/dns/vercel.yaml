@@ -1,0 +1,14 @@
+id: "vercel"
+name: "Vercel"
+category: "deploy"
+description: "A @ (76.76.21.21) + www CNAME for Vercel deployments."
+color: "gray"
+records:
+  - name: "@"
+    record_type: "A"
+    content: "76.76.21.21"
+    ttl: 3600
+  - name: "www"
+    record_type: "CNAME"
+    content: "cname.vercel-dns.com"
+    ttl: 3600

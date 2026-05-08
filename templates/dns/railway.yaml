@@ -1,0 +1,11 @@
+id: "railway"
+name: "Railway"
+category: "deploy"
+description: "CNAME pointing to a Railway service with a custom domain."
+color: "gray"
+note: "Copy the exact CNAME target from Railway dashboard → your service → Settings → Domains. Format: <unique-id>.up.railway.app. Railway also requires a domain ownership TXT record shown in the same panel."
+records:
+  - name: "www"
+    record_type: "CNAME"
+    content: "YOUR-ID.up.railway.app"
+    ttl: 3600

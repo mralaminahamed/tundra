@@ -1,0 +1,11 @@
+id: "dmarc-enforce"
+name: "DMARC Enforce (p=reject)"
+category: "security"
+description: "Full DMARC enforcement with aggregate + forensic reporting. Hard-rejects unauthenticated mail."
+color: "red"
+note: "Do NOT start at p=reject. Ramp up: p=none (monitor) → p=quarantine → p=reject. As of 2025, Gmail and Microsoft 365 permanently reject mail from domains with broken DMARC. Replace the rua/ruf email addresses with your own reporting mailbox or a third-party DMARC reporter."
+records:
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=reject; rua=mailto:dmarc-agg@{DOMAIN}; ruf=mailto:dmarc-fail@{DOMAIN}; adkim=s; aspf=s; pct=100"
+    ttl: 3600

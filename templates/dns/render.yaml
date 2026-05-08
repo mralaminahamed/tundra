@@ -1,0 +1,11 @@
+id: "render"
+name: "Render"
+category: "deploy"
+description: "CNAME for www + ALIAS for apex domain pointing to Render."
+color: "green"
+note: "Replace YOUR-SERVICE with your Render service subdomain (e.g. my-api), shown in Render dashboard → Custom Domains. Apex (@) requires ALIAS/ANAME support — use Cloudflare CNAME Flattening or your registrar's ALIAS record. Render is IPv4 only; remove any AAAA records."
+records:
+  - name: "www"
+    record_type: "CNAME"
+    content: "YOUR-SERVICE.onrender.com"
+    ttl: 3600

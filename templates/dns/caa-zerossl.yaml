@@ -1,0 +1,18 @@
+id: "caa-zerossl"
+name: "CAA — ZeroSSL"
+category: "security"
+description: "Restricts TLS certificate issuance to ZeroSSL (sectigo.com)."
+color: "yellow"
+records:
+  - name: "@"
+    record_type: "CAA"
+    content: "0 issue \"sectigo.com\""
+    ttl: 3600
+  - name: "@"
+    record_type: "CAA"
+    content: "0 issuewild \"sectigo.com\""
+    ttl: 3600
+  - name: "@"
+    record_type: "CAA"
+    content: "0 iodef \"mailto:security@{DOMAIN}\""
+    ttl: 3600

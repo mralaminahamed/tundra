@@ -1,0 +1,11 @@
+id: "netlify"
+name: "Netlify"
+category: "deploy"
+description: "www CNAME to your Netlify site. Update the placeholder after import."
+color: "teal"
+note: "Apex (root @) domain requires an ALIAS or ANAME record — not all DNS providers support this. Check your provider's docs, or use Netlify DNS."
+records:
+  - name: "www"
+    record_type: "CNAME"
+    content: "YOUR-SITE.netlify.app"
+    ttl: 3600

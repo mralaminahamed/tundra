@@ -1,0 +1,15 @@
+id: "subdomain-delegation"
+name: "Subdomain NS Delegation"
+category: "utility"
+description: "Delegate a subdomain zone to external nameservers. Add NS records in the parent zone."
+color: "gray"
+note: "Replace 'sub' in the name field with your actual subdomain. Replace ns1/ns2.otherprovider.com with the nameservers of the delegating provider. If the NS hostnames are within the delegated subdomain itself, add glue A records too. Cloudflare: disable proxy on NS-delegated names."
+records:
+  - name: "sub"
+    record_type: "NS"
+    content: "ns1.otherprovider.com."
+    ttl: 3600
+  - name: "sub"
+    record_type: "NS"
+    content: "ns2.otherprovider.com."
+    ttl: 3600

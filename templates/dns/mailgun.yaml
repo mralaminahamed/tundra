@@ -1,0 +1,29 @@
+id: "mailgun"
+name: "Mailgun"
+category: "email"
+description: "2 MX + SPF + tracking CNAME + DMARC for Mailgun transactional email."
+color: "teal"
+note: "Add DKIM TXT records from Mailgun Dashboard → Sending → Domains → your domain."
+records:
+  - name: "@"
+    record_type: "MX"
+    content: "mxa.mailgun.org"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "MX"
+    content: "mxb.mailgun.org"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:mailgun.org ~all"
+    ttl: 3600
+  - name: "email"
+    record_type: "CNAME"
+    content: "mailgun.org"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

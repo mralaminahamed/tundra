@@ -1,0 +1,15 @@
+id: "mta-sts"
+name: "MTA-STS + TLS-RPT"
+category: "security"
+description: "Enforces encrypted SMTP delivery and enables TLS failure reporting."
+color: "purple"
+note: "MTA-STS also requires a policy file served over HTTPS at https://mta-sts.{DOMAIN}/.well-known/mta-sts.txt with content: version, mode, max_age, and mx fields."
+records:
+  - name: "_mta-sts"
+    record_type: "TXT"
+    content: "v=STSv1; id=20240101T000000Z"
+    ttl: 3600
+  - name: "_smtp._tls"
+    record_type: "TXT"
+    content: "v=TLSRPTv1; rua=mailto:tls@{DOMAIN}"
+    ttl: 3600

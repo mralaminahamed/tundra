@@ -1,0 +1,19 @@
+id: "parked-domain"
+name: "Parked Domain (No Email)"
+category: "security"
+description: "SPF -all + null MX + DMARC p=reject. Completely blocks email spoofing from parked or inactive domains."
+color: "gray"
+records:
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 -all"
+    ttl: 3600
+  - name: "@"
+    record_type: "MX"
+    content: "."
+    ttl: 3600
+    priority: 0
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=reject;"
+    ttl: 3600

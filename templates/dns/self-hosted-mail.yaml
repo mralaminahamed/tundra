@@ -1,0 +1,31 @@
+id: "self-hosted-mail"
+name: "Self-hosted Mail"
+category: "email"
+description: "MX → mail.{DOMAIN} + SPF (ip4 + mx) + DMARC for Postfix/Dovecot."
+color: "green"
+records:
+  - name: "@"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "www"
+    record_type: "CNAME"
+    content: "@"
+    ttl: 3600
+  - name: "mail"
+    record_type: "A"
+    content: "{IP}"
+    ttl: 3600
+  - name: "@"
+    record_type: "MX"
+    content: "mail.{DOMAIN}"
+    ttl: 3600
+    priority: 10
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 a mx ip4:{IP} ~all"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}; ruf=mailto:dmarc@{DOMAIN}"
+    ttl: 3600

@@ -1,0 +1,24 @@
+id: "microsoft-365"
+name: "Microsoft 365"
+category: "email"
+description: "MX + SPF + autodiscover CNAME + DMARC for Microsoft 365 / Outlook."
+color: "orange"
+note: "Add DKIM CNAME pairs (selector1/selector2._domainkey) from Microsoft 365 Admin Center → Settings → Domains."
+records:
+  - name: "@"
+    record_type: "MX"
+    content: "{DOMAIN}.mail.protection.outlook.com"
+    ttl: 3600
+    priority: 0
+  - name: "@"
+    record_type: "TXT"
+    content: "v=spf1 include:spf.protection.outlook.com ~all"
+    ttl: 3600
+  - name: "autodiscover"
+    record_type: "CNAME"
+    content: "autodiscover.outlook.com"
+    ttl: 3600
+  - name: "_dmarc"
+    record_type: "TXT"
+    content: "v=DMARC1; p=none; rua=mailto:dmarc@{DOMAIN}"
+    ttl: 3600
