@@ -263,19 +263,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--sl-color-bg-nav, #191d18);
-  border: 1px solid var(--sl-color-gray-6);
+  background: var(--sl-color-bg-nav);
+  border: 1px solid var(--sl-color-hairline);
   border-radius: 0.5rem;
   padding: 0.6rem 0.875rem;
   font-family: var(--sl-font-mono);
   font-size: 0.8125rem;
   max-width: 100%;
   overflow: hidden;
-}
-
-:root:not([data-theme='dark']) .hero-install {
-  background: #f0f2ef;
-  border-color: #d0d5ca;
 }
 
 .install-prompt {
@@ -286,7 +281,7 @@
 }
 
 .install-cmd {
-  color: var(--sl-color-gray-2);
+  color: var(--sl-color-text);
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -296,10 +291,6 @@
   border: none;
   font-size: inherit;
   font-family: inherit;
-}
-
-:root:not([data-theme='dark']) .install-cmd {
-  color: #3a4436;
 }
 
 .copy-btn {
@@ -315,7 +306,7 @@
   transition: color 0.15s;
 }
 
-.copy-btn:hover { color: var(--sl-color-white); }
+.copy-btn:hover { color: var(--sl-color-accent-high); }
 
 .hero-platforms {
   font-size: 0.75rem;
@@ -394,14 +385,10 @@
   justify-content: center;
   gap: 0;
   flex-wrap: wrap;
-  border-top: 1px solid var(--sl-color-gray-6);
-  border-bottom: 1px solid var(--sl-color-gray-6);
+  border-top: 1px solid var(--sl-color-hairline);
+  border-bottom: 1px solid var(--sl-color-hairline);
   margin-block: 0 3rem;
   padding-block: 1.5rem;
-}
-
-:root[data-theme='dark'] .hero-stats {
-  border-color: #2a312a;
 }
 
 .stat {
@@ -429,11 +416,7 @@
 .stat-divider {
   width: 1px;
   height: 2.5rem;
-  background: var(--sl-color-gray-6);
-}
-
-:root[data-theme='dark'] .stat-divider {
-  background: #2a312a;
+  background: var(--sl-color-hairline);
 }
 
 @media (max-width: 600px) {

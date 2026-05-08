@@ -232,6 +232,12 @@ details > summary > span {
   color: #bcc0b8;
 }
 
+/* ── Comparison table — center the check/dash columns ───────────────── */
+.sl-content table th:not(:first-child),
+.sl-content table td:not(:first-child) {
+  text-align: center;
+}
+
 /* ── Comparison marks ────────────────────────────────────────────────── */
 .cmp {
   display: inline-flex;
@@ -273,27 +279,57 @@ details > summary > span {
 }
 
 /* ── Cards ───────────────────────────────────────────────────────────────── */
+/* Starlight cycles --sl-card-border/-bg through purple/orange/green/red/blue
+   via :nth-child rules. Lock all cards to brand lichen for a unified look. */
+article.card,
 .sl-card {
+  --sl-card-border: var(--sl-color-accent) !important;
+  --sl-card-bg: color-mix(in srgb, var(--sl-color-accent) 14%, transparent) !important;
   border-radius: 0.75rem !important;
-  transition: border-color 0.15s, transform 0.15s;
+  border-color: var(--sl-color-hairline) !important;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
+article.card:hover,
 .sl-card:hover {
   border-color: var(--sl-color-accent) !important;
   transform: translateY(-1px);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
 }
 
-.sl-card .icon { color: var(--sl-color-accent) !important; }
+/* Icon tile — uniform lichen, larger, rounded.
+   box-sizing: border-box on the icon means padding eats inner SVG, so we use
+   content-box to keep the glyph at full 1em while the padding extends the tile. */
+article.card .icon,
+.sl-card .icon {
+  color: var(--sl-color-accent-high) !important;
+  background-color: color-mix(in srgb, var(--sl-color-accent) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--sl-color-accent) 35%, transparent) !important;
+  border-radius: 0.5rem !important;
+  box-sizing: content-box !important;
+  padding: 0.4em !important;
+  width: 1.25em !important;
+  height: 1.25em !important;
+  font-size: 1.5rem !important;
+}
 
+:root[data-theme='dark'] article.card .icon,
+:root[data-theme='dark'] .sl-card .icon {
+  color: #c5dba0 !important;
+  background-color: color-mix(in srgb, var(--sl-color-accent) 22%, transparent) !important;
+  border-color: color-mix(in srgb, var(--sl-color-accent) 45%, transparent) !important;
+}
+
+:root[data-theme='dark'] article.card,
 :root[data-theme='dark'] .sl-card {
-  background: #161914 !important;
-  border-color: #252a22 !important;
+  background: #14171210 !important;
+  border-color: var(--sl-color-hairline) !important;
 }
 
+:root[data-theme='dark'] article.card:hover,
 :root[data-theme='dark'] .sl-card:hover {
-  background: #1a1e16 !important;
+  background: color-mix(in srgb, var(--sl-color-accent) 4%, transparent) !important;
   border-color: var(--sl-color-accent) !important;
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--sl-color-accent) 15%, transparent);
 }
 
 /* ── Aside ───────────────────────────────────────────────────────────────── */
