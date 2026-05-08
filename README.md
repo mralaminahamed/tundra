@@ -67,16 +67,16 @@ tundra acceptance run --url https://panel.example.com --section all
 
 ## Documentation
 
-### Guides (`guidelines/`)
+**Docs site:** [mralaminahamed.github.io/tundra](https://mralaminahamed.github.io/tundra/)
 
 | Guide | Audience |
 |-------|---------|
-| [Getting Started](guidelines/getting-started.md) | Operators — install, first server, first site, plugins, upgrade |
-| [Local Development](guidelines/local-development.md) | Running from source, Docker Compose, port map, config reference |
-| [Developer Guide](guidelines/developer-guide.md) | Contributors — workspace setup, architecture, conventions, hard constraints |
-| [MCP Integration](guidelines/mcp-integration.md) | AI integration — Claude Desktop, Claude Code, Cursor, Zed |
-| [Plugin Development](guidelines/plugin-development.md) | Plugin authors — core plugins, templates, WASM sandbox |
-| [API Reference](guidelines/api-reference.md) | Integrators — REST endpoints, auth, pagination, WebSocket |
+| [Getting Started](https://mralaminahamed.github.io/tundra/getting-started/introduction/) | Operators — install, first server, first site, upgrade |
+| [Self-Hosting](https://mralaminahamed.github.io/tundra/self-hosting/overview/) | Docker Compose, systemd, config reference, security |
+| [Developer Guide](https://mralaminahamed.github.io/tundra/contributing/developer-guide/) | Architecture, conventions, hard constraints |
+| [MCP Integration](https://mralaminahamed.github.io/tundra/plugins/mcp/) | Claude Code, Claude Desktop, Cursor, Zed |
+| [Plugin Development](https://mralaminahamed.github.io/tundra/plugins/building-plugins/) | WASM sandbox, WIT SDK, capabilities |
+| [API Reference](https://mralaminahamed.github.io/tundra/api/overview/) | REST endpoints, auth, pagination, WebSocket |
 
 ### Deep reference (`docs/`)
 

@@ -9,8 +9,8 @@ cp docs/09-deployment-bundle/dev/.env.example docs/09-deployment-bundle/dev/.env
 docker compose -f docs/09-deployment-bundle/dev/docker-compose.yml up -d
 ```
 
-Full setup: [`guidelines/local-development.md`](../guidelines/local-development.md)
-Architecture: [`guidelines/developer-guide.md`](../guidelines/developer-guide.md)
+Full setup: [docs → Local Development](https://mralaminahamed.github.io/tundra/contributing/local-dev/)
+Architecture: [docs → Developer Guide](https://mralaminahamed.github.io/tundra/contributing/developer-guide/)
 
 ## Before you open a PR
 
