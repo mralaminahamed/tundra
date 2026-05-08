@@ -72,6 +72,7 @@ RUN apt-get update \
 COPY --from=builder /build/target/release/tundrad           /usr/local/bin/tundrad
 COPY --from=builder /build/target/release/tundra-self-backup /usr/local/bin/tundra-self-backup
 COPY --from=builder /build/target/release/tundra-restore     /usr/local/bin/tundra-restore
+COPY docs/09-deployment-bundle/prod/scripts/entrypoint.sh    /usr/local/bin/tundra-entrypoint.sh
 
 USER tundra:tundra
 WORKDIR /var/lib/tundra
@@ -81,5 +82,5 @@ EXPOSE 7400 7447
 HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=4 \
   CMD ["/usr/local/bin/tundrad", "health", "--addr", "127.0.0.1:7400"]
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/usr/local/bin/tundrad", "serve"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/tundra-entrypoint.sh"]
+CMD ["serve"]

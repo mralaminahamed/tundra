@@ -8,7 +8,7 @@
 
 ARG NODE_VERSION=22
 ARG CADDY_VERSION=2.10
-ARG PNPM_VERSION=9
+ARG PNPM_VERSION=10.33.2
 
 # ---------------------------------------------------------------------------
 # Stage 1 — install pnpm + lockfile-only fetch (cached when lockfile unchanged)

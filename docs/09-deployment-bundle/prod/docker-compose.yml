@@ -141,8 +141,7 @@ services:
     container_name: tundra-tundrad
     <<: [*restart-policy, *json-logging]
     environment:
-      TUNDRAD_CONFIG: /etc/tundra/tundrad.toml
-      TUNDRAD_PROFILE: production
+      TUNDRA_CONFIG: /etc/tundra/tundrad.toml
       RUST_LOG: ${RUST_LOG:-tundrad=info,tower_http=info}
       RUST_BACKTRACE: "1"
     env_file:

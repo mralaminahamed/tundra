@@ -115,7 +115,7 @@ services:
       <<: *common-env
       DATABASE_URL: postgres://tundra:${POSTGRES_PASSWORD:-devsecret}@postgres:5432/tundra
       VALKEY_URL: redis://valkey:6379/0
-      TUNDRAD_CONFIG: /src/dev/config/tundrad.dev.toml
+      TUNDRA_CONFIG: /src/dev/config/tundrad.dev.toml
       CARGO_HOME: /cargo
       CARGO_TARGET_DIR: /target
     command:
@@ -176,7 +176,7 @@ services:
       - |
         set -euo pipefail
         corepack enable
-        corepack prepare pnpm@9 --activate
+        corepack prepare pnpm@10.33.2 --activate
         pnpm install
         exec pnpm run dev --host 0.0.0.0 --port 5173
     ports:

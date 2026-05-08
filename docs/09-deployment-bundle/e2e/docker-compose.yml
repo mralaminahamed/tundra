@@ -97,7 +97,7 @@ services:
       <<: *test-env
       DATABASE_URL: postgres://tundra:e2etest@postgres:5432/tundra
       VALKEY_URL: redis://valkey:6379/0
-      TUNDRAD_CONFIG: /etc/tundra/tundrad.toml
+      TUNDRA_CONFIG: /etc/tundra/tundrad.toml
     volumes:
       - ./config/tundrad.e2e.toml:/etc/tundra/tundrad.toml:ro
       - tundrad-data:/var/lib/tundra
