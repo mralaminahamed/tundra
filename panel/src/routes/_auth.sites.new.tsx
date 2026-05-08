@@ -1,14 +1,15 @@
 import { createFileRoute, useRouter, Link } from '@tanstack/react-router'
 import { Formik, Form, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import {
   GlobeIcon as Globe, DatabaseIcon as Database, FolderOpenIcon as FolderOpen,
   DownloadIcon as Download, SettingsIcon as Settings2, ShieldCheckIcon as ShieldCheck,
   KeyIcon as Key, CheckCircleIcon as CheckCircle2, LockIcon as Lock, UnlockIcon as Unlock,
   CloseIcon as X, PackageIcon as Package, UploadIcon as Upload,
-  CheckIcon, ChevronDownIcon,
+  CheckIcon,
   GithubIcon, GitlabIcon, BitbucketIcon, WordpressIcon,
   PhpIcon, LaravelIcon, NodejsIcon, PythonIcon, GoIcon, RubyIcon, DotnetIcon,
   ArrowLeftIcon, ArrowRightIcon,
@@ -48,42 +49,62 @@ function passwordStrength(pw: string): { label: string; color: string; width: st
 // ── Version data ──────────────────────────────────────────────────────────────
 
 interface VersionOption { value: string; label: string; recommended?: boolean }
+interface VersionGroup  { label: string; status?: 'active' | 'security' | 'eol'; versions: string[] }
 
-const PHP_VERSIONS: VersionOption[] = [
-  { value: '8.3', label: 'PHP 8.3', recommended: true },
-  { value: '8.2', label: 'PHP 8.2' },
-  { value: '8.1', label: 'PHP 8.1' },
-  { value: '8.0', label: 'PHP 8.0' },
-  { value: '7.4', label: 'PHP 7.4 (legacy)' },
+// PHP branch lifecycle (mirrors wp settings page)
+const PHP_EOL = new Set(['7.4', '8.0'])
+const PHP_SEC = new Set(['8.1'])
+function phpBranchStatus(b: string): 'active' | 'security' | 'eol' {
+  if (PHP_EOL.has(b)) return 'eol'
+  if (PHP_SEC.has(b)) return 'security'
+  return 'active'
+}
+
+function groupByBranch(versions: string[]): VersionGroup[] {
+  const map = new Map<string, string[]>()
+  for (const v of versions) {
+    const branch = v.split('.').slice(0, 2).join('.')
+    if (!map.has(branch)) map.set(branch, [])
+    map.get(branch)!.push(v)
+  }
+  return Array.from(map.entries()).map(([branch, vs]) => ({
+    label: branch, status: phpBranchStatus(branch), versions: vs,
+  }))
+}
+
+// PHP fallback when live API is unavailable
+const PHP_FALLBACK = ['8.3.21', '8.3.20', '8.2.28', '8.2.27', '8.1.32', '8.1.31', '8.0.30', '7.4.33']
+
+// Curated grouped lists for other runtimes
+const NODE_GROUPS: VersionGroup[] = [
+  { label: 'Node 22 LTS', status: 'active',   versions: ['22.14.0', '22.13.1', '22.12.0'] },
+  { label: 'Node 20 LTS', status: 'active',   versions: ['20.19.0', '20.18.3', '20.17.0'] },
+  { label: 'Node 18 LTS', status: 'security', versions: ['18.20.7', '18.20.6', '18.20.4'] },
+  { label: 'Node 16',     status: 'eol',      versions: ['16.20.2'] },
 ]
-const NODE_VERSIONS: VersionOption[] = [
-  { value: '22', label: 'Node 22 LTS', recommended: true },
-  { value: '20', label: 'Node 20 LTS' },
-  { value: '18', label: 'Node 18 LTS' },
-  { value: '16', label: 'Node 16 (EOL)' },
+const PYTHON_GROUPS: VersionGroup[] = [
+  { label: 'Python 3.13', status: 'active',   versions: ['3.13.3', '3.13.2', '3.13.1'] },
+  { label: 'Python 3.12', status: 'active',   versions: ['3.12.10', '3.12.9', '3.12.8'] },
+  { label: 'Python 3.11', status: 'active',   versions: ['3.11.12', '3.11.11', '3.11.10'] },
+  { label: 'Python 3.10', status: 'security', versions: ['3.10.17', '3.10.16'] },
+  { label: 'Python 3.9',  status: 'eol',      versions: ['3.9.21', '3.9.20'] },
 ]
-const PYTHON_VERSIONS: VersionOption[] = [
-  { value: '3.12', label: 'Python 3.12', recommended: true },
-  { value: '3.11', label: 'Python 3.11' },
-  { value: '3.10', label: 'Python 3.10' },
-  { value: '3.9',  label: 'Python 3.9' },
+const GO_GROUPS: VersionGroup[] = [
+  { label: 'Go 1.24', status: 'active',   versions: ['1.24.3', '1.24.2', '1.24.1'] },
+  { label: 'Go 1.23', status: 'active',   versions: ['1.23.8', '1.23.7'] },
+  { label: 'Go 1.22', status: 'eol',      versions: ['1.22.12'] },
 ]
-const GO_VERSIONS: VersionOption[] = [
-  { value: '1.24', label: 'Go 1.24', recommended: true },
-  { value: '1.23', label: 'Go 1.23' },
-  { value: '1.22', label: 'Go 1.22' },
+const RUBY_GROUPS: VersionGroup[] = [
+  { label: 'Ruby 3.4', status: 'active',   versions: ['3.4.3', '3.4.2', '3.4.1'] },
+  { label: 'Ruby 3.3', status: 'active',   versions: ['3.3.8', '3.3.7', '3.3.6'] },
+  { label: 'Ruby 3.2', status: 'security', versions: ['3.2.8', '3.2.7'] },
+  { label: 'Ruby 3.1', status: 'eol',      versions: ['3.1.7'] },
 ]
-const RUBY_VERSIONS: VersionOption[] = [
-  { value: '3.3', label: 'Ruby 3.3', recommended: true },
-  { value: '3.2', label: 'Ruby 3.2' },
-  { value: '3.1', label: 'Ruby 3.1' },
-  { value: '3.0', label: 'Ruby 3.0' },
-]
-const DOTNET_VERSIONS: VersionOption[] = [
-  { value: '9.0', label: '.NET 9.0', recommended: true },
-  { value: '8.0', label: '.NET 8.0 LTS' },
-  { value: '7.0', label: '.NET 7.0 (EOL)' },
-  { value: '6.0', label: '.NET 6.0 LTS' },
+const DOTNET_GROUPS: VersionGroup[] = [
+  { label: '.NET 9',   status: 'active',   versions: ['9.0.5', '9.0.4', '9.0.3'] },
+  { label: '.NET 8',   status: 'active',   versions: ['8.0.16', '8.0.15', '8.0.14'] },
+  { label: '.NET 7',   status: 'eol',      versions: ['7.0.20'] },
+  { label: '.NET 6',   status: 'eol',      versions: ['6.0.36'] },
 ]
 const WP_VERSIONS: VersionOption[] = [
   { value: 'latest', label: 'Latest (recommended)', recommended: true },
@@ -115,81 +136,215 @@ const PHP_EXT_DEFAULTS = ['mbstring', 'curl', 'openssl', 'zip', 'xml', 'gd', 'pd
 
 // ── VersionSelect ─────────────────────────────────────────────────────────────
 
+const STATUS_BADGE: Record<string, string> = {
+  eol:      'bg-red-100 text-red-600',
+  security: 'bg-yellow-100 text-yellow-700',
+}
+const STATUS_LABEL: Record<string, string> = { eol: 'EOL', security: 'Security' }
+
 function VersionSelect({
-  value, onChange, options, placeholder = 'Select version', allowCustom = true, className,
+  value, onChange, groups, options, placeholder = 'Select version',
+  allowCustom = true, loading = false, className,
 }: {
   value: string; onChange: (v: string) => void
-  options: VersionOption[]; placeholder?: string; allowCustom?: boolean; className?: string
+  groups?: VersionGroup[]; options?: VersionOption[]
+  placeholder?: string; allowCustom?: boolean; loading?: boolean; className?: string
 }) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-  const ref = useRef<HTMLDivElement>(null)
+  const [open, setOpen]           = useState(false)
+  const [query, setQuery]         = useState('')
+  const [highlighted, setHighlighted] = useState(0)
+  const [rect, setRect]           = useState<DOMRect | null>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const inputRef   = useRef<HTMLInputElement>(null)
+  const listRef    = useRef<HTMLDivElement>(null)
+  const portalRef  = useRef<HTMLDivElement>(null)
+
+  const updateRect = useCallback(() => {
+    if (triggerRef.current) setRect(triggerRef.current.getBoundingClientRect())
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    updateRect()
+    window.addEventListener('scroll', updateRect, true)
+    window.addEventListener('resize', updateRect)
+    return () => { window.removeEventListener('scroll', updateRect, true); window.removeEventListener('resize', updateRect) }
+  }, [open, updateRect])
 
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false)
+      if (!triggerRef.current?.contains(e.target as Node) && !portalRef.current?.contains(e.target as Node))
+        setOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const filtered = options.filter((o) =>
-    o.label.toLowerCase().includes(search.toLowerCase()) ||
-    o.value.toLowerCase().includes(search.toLowerCase())
-  )
-  const selected = options.find((o) => o.value === value)
-  const display = selected?.label ?? (value || placeholder)
+  // Flatten all versions for keyboard nav + search
+  const allVersions: string[] = useMemo(() => {
+    if (groups) return groups.flatMap((g) => g.versions)
+    return (options ?? []).map((o) => o.value)
+  }, [groups, options])
 
-  return (
-    <div ref={ref} className={`relative ${className ?? ''}`}>
-      <button
-        type="button"
-        onClick={() => { setOpen((o) => !o); setSearch('') }}
-        className={`${INPUT} flex items-center justify-between text-left`}
-      >
-        <span className={value ? 'text-tundra-ink' : 'text-tundra-ink-300'}>{display}</span>
-        <ChevronDownIcon className={`h-4 w-4 shrink-0 text-tundra-ink-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-tundra-ink-200 bg-white shadow-xl">
-          <div className="border-b border-tundra-ink-100 p-2">
-            <input
-              type="search" autoFocus
-              placeholder="Search versions…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-tundra-ink-200 bg-tundra-ink-50 px-3 py-1.5 text-xs outline-none focus:border-tundra-lichen"
-            />
-          </div>
-          <div className="max-h-52 overflow-y-auto py-1">
-            {filtered.map((o) => (
-              <button key={o.value} type="button"
-                onClick={() => { onChange(o.value); setOpen(false) }}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-tundra-ink-50 ${value === o.value ? 'text-tundra-lichen font-semibold' : 'text-tundra-ink'}`}
-              >
-                {value === o.value
-                  ? <CheckIcon className="h-3.5 w-3.5 shrink-0 text-tundra-lichen" />
-                  : <span className="h-3.5 w-3.5 shrink-0" />}
-                <span className="flex-1">{o.label}</span>
-                {o.recommended && value !== o.value && (
-                  <span className="rounded-full bg-tundra-lichen/10 px-1.5 py-0.5 text-[10px] font-semibold text-tundra-lichen">rec</span>
-                )}
-              </button>
-            ))}
-            {allowCustom && search && !options.find((o) => o.value === search) && (
+  const filtered: string[] = useMemo(() => {
+    if (!query) return allVersions
+    const q = query.toLowerCase()
+    return allVersions.filter((v) => v.toLowerCase().includes(q))
+  }, [allVersions, query])
+
+  const filteredGroups: VersionGroup[] = useMemo(() => {
+    if (!groups) return []
+    if (!query) return groups
+    return groups.map((g) => ({ ...g, versions: g.versions.filter((v) => v.toLowerCase().includes(query.toLowerCase())) })).filter((g) => g.versions.length > 0)
+  }, [groups, query])
+
+  function select(v: string) { onChange(v); setQuery(''); setOpen(false) }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!open) { if (e.key === 'ArrowDown' || e.key === 'Enter') { setOpen(true); return } return }
+    if (e.key === 'Escape')    { setOpen(false); return }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHighlighted((h) => Math.min(h + 1, filtered.length - 1)) }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); setHighlighted((h) => Math.max(h - 1, 0)) }
+    if (e.key === 'Enter' && filtered[highlighted]) { select(filtered[highlighted]!); return }
+  }
+
+  useEffect(() => {
+    const el = listRef.current?.querySelector(`[data-idx="${highlighted}"]`)
+    el?.scrollIntoView({ block: 'nearest' })
+  }, [highlighted])
+
+  useEffect(() => { setHighlighted(0) }, [query])
+
+  // Determine EOL/security status of current value
+  const valueBranch = value.split('.').slice(0, 2).join('.')
+  const valueGroup  = groups?.find((g) => g.versions.includes(value))
+  const valueStatus = valueGroup?.status ?? 'active'
+
+  // Trigger display label
+  const isLatest    = groups ? groups[0]?.versions[0] === value : (options?.[0]?.value === value)
+  const triggerLabel = loading ? 'Loading versions…'
+    : value ? `${value}${isLatest ? ' — latest' : ''}`
+    : placeholder
+
+  // Build portal dropdown
+  const dropdown = open && rect && createPortal(
+    <div
+      ref={portalRef}
+      style={{ position: 'fixed', top: rect.bottom + 4, left: rect.left, width: rect.width, zIndex: 9999 }}
+      className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white shadow-xl"
+    >
+      {/* Search */}
+      <div className="flex items-center gap-2 border-b border-tundra-ink-100 px-3 py-2">
+        <svg className="h-3.5 w-3.5 shrink-0 text-tundra-ink-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input
+          ref={inputRef} type="text" autoFocus
+          placeholder="Search — e.g. 8.3 or 8.3.21"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-1 bg-transparent font-mono text-xs text-tundra-ink placeholder:text-tundra-ink-300 focus:outline-none"
+        />
+        {query && (
+          <button type="button" onClick={() => setQuery('')} className="text-tundra-ink-300 hover:text-tundra-ink">
+            <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        )}
+      </div>
+      {/* List */}
+      <div ref={listRef} className="max-h-64 overflow-y-auto">
+        {groups ? (
+          filteredGroups.length === 0 ? (
+            <p className="px-4 py-3 text-xs text-tundra-ink-400">No versions match "{query}"</p>
+          ) : (() => {
+            let flatIdx = 0
+            return filteredGroups.map(({ label: gl, status, versions: vs }) => (
+              <div key={gl}>
+                <div className="sticky top-0 flex items-center justify-between bg-tundra-ink-50/95 px-3 py-1.5 backdrop-blur-sm">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-tundra-ink-500">{gl}</span>
+                  {status && status !== 'active' && (
+                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${STATUS_BADGE[status]}`}>
+                      {STATUS_LABEL[status]}
+                    </span>
+                  )}
+                </div>
+                {vs.map((v, i) => {
+                  const idx = flatIdx++
+                  return (
+                    <button key={v} type="button" data-idx={idx}
+                      onClick={() => select(v)}
+                      className={`flex w-full items-center justify-between px-4 py-2 text-left font-mono text-sm transition-colors ${
+                        idx === highlighted ? 'bg-tundra-lichen/10 text-tundra-lichen' : 'hover:bg-tundra-ink-50 text-tundra-ink'
+                      } ${v === value ? 'font-semibold' : ''}`}
+                    >
+                      <span>{v}</span>
+                      <span className="flex shrink-0 items-center gap-1.5 text-xs text-tundra-ink-400">
+                        {i === 0 && <span className="rounded bg-tundra-lichen-100 px-1.5 py-0.5 text-[10px] font-medium text-tundra-lichen-700">latest</span>}
+                        {v === value && <CheckIcon className="h-3.5 w-3.5 text-tundra-lichen" />}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            ))
+          })()
+        ) : (
+          <>
+            {(query ? filtered : (options ?? []).map((o) => o.value)).map((v, idx) => {
+              const opt = options?.find((o) => o.value === v)
+              return (
+                <button key={v} type="button" data-idx={idx}
+                  onClick={() => select(v)}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                    idx === highlighted ? 'bg-tundra-lichen/10 text-tundra-lichen' : 'hover:bg-tundra-ink-50 text-tundra-ink'
+                  } ${v === value ? 'font-semibold' : ''}`}
+                >
+                  {v === value ? <CheckIcon className="h-3.5 w-3.5 shrink-0 text-tundra-lichen" /> : <span className="h-3.5 w-3.5 shrink-0" />}
+                  <span className="flex-1">{opt?.label ?? v}</span>
+                  {idx === 0 && <span className="rounded bg-tundra-lichen-100 px-1.5 py-0.5 text-[10px] font-medium text-tundra-lichen-700">latest</span>}
+                </button>
+              )
+            })}
+            {allowCustom && query && !allVersions.includes(query) && (
               <button type="button"
-                onClick={() => { onChange(search); setOpen(false) }}
+                onClick={() => select(query)}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-tundra-ink-500 hover:bg-tundra-ink-50"
               >
                 <span className="h-3.5 w-3.5 shrink-0" />
-                Use custom: <code className="ml-1 font-mono text-xs">{search}</code>
+                Use custom: <code className="ml-1 font-mono text-xs">{query}</code>
               </button>
             )}
-            {filtered.length === 0 && !allowCustom && (
-              <p className="px-3 py-2 text-xs text-tundra-ink-300 italic">No matches</p>
-            )}
-          </div>
+          </>
+        )}
+      </div>
+    </div>,
+    document.body,
+  )
+
+  return (
+    <div className={`space-y-2 ${className ?? ''}`}>
+      <button
+        ref={triggerRef} type="button"
+        onClick={() => { setOpen((o) => !o); setTimeout(() => inputRef.current?.focus(), 10) }}
+        onKeyDown={handleKeyDown}
+        disabled={loading}
+        className={`${INPUT} flex items-center justify-between font-mono disabled:opacity-60`}
+      >
+        <span className={value ? 'text-tundra-ink' : 'text-tundra-ink-300'}>{triggerLabel}</span>
+        <svg className={`h-4 w-4 shrink-0 text-tundra-ink-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      {dropdown}
+      {/* EOL / security warning banner */}
+      {value && valueStatus !== 'active' && (
+        <div className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs ${
+          valueStatus === 'eol' ? 'border-red-200 bg-red-50 text-red-700' : 'border-yellow-200 bg-yellow-50 text-yellow-700'
+        }`}>
+          <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+          {valueStatus === 'eol'
+            ? `${valueBranch} is end-of-life — no security fixes.`
+            : `${valueBranch} receives security fixes only.`}
         </div>
       )}
     </div>
@@ -711,17 +866,17 @@ const WIZARD_PLUGINS: WizardPlugin[] = [wpPlugin, phpConfigPlugin, nodeConfigPlu
 type RuntimeKind = 'static' | 'php' | 'laravel' | 'nodejs' | 'python' | 'go' | 'ruby' | 'dotnet'
 
 const RUNTIME_HINTS: Record<RuntimeKind, {
-  label: string; versionOptions: VersionOption[]
+  label: string; versionGroups: VersionGroup[]
   buildHint: string; startHint: string; portHint: string; hasPort: boolean; icon: React.ReactNode
 }> = {
-  static:  { label: 'Static',  versionOptions: [],            buildHint: '',                                                  startHint: '',                                    portHint: '',     hasPort: false, icon: <Globe       size={16} /> },
-  php:     { label: 'PHP',     versionOptions: PHP_VERSIONS,  buildHint: 'composer install --no-dev',                         startHint: '',                                    portHint: '',     hasPort: false, icon: <PhpIcon     size={16} /> },
-  laravel: { label: 'Laravel', versionOptions: PHP_VERSIONS,  buildHint: 'composer install --no-dev && php artisan optimize', startHint: '',                                    portHint: '',     hasPort: false, icon: <LaravelIcon size={16} /> },
-  nodejs:  { label: 'Node.js', versionOptions: NODE_VERSIONS, buildHint: 'npm ci && npm run build',                          startHint: 'node dist/index.js',                  portHint: '3000', hasPort: true,  icon: <NodejsIcon  size={16} /> },
-  python:  { label: 'Python',  versionOptions: PYTHON_VERSIONS,buildHint: 'pip install -r requirements.txt',                 startHint: 'gunicorn app:app -b 0.0.0.0:$PORT',   portHint: '8000', hasPort: true,  icon: <PythonIcon  size={16} /> },
-  go:      { label: 'Go',      versionOptions: GO_VERSIONS,   buildHint: 'go build -o app .',                                startHint: './app',                               portHint: '8080', hasPort: true,  icon: <GoIcon      size={16} /> },
-  ruby:    { label: 'Ruby',    versionOptions: RUBY_VERSIONS, buildHint: 'bundle install',                                   startHint: 'bundle exec puma -C config/puma.rb',  portHint: '3000', hasPort: true,  icon: <RubyIcon    size={16} /> },
-  dotnet:  { label: '.NET',    versionOptions: DOTNET_VERSIONS,buildHint: 'dotnet publish -c Release -o out',                startHint: 'dotnet out/App.dll',                  portHint: '5000', hasPort: true,  icon: <DotnetIcon  size={16} /> },
+  static:  { label: 'Static',  versionGroups: [],            buildHint: '',                                                  startHint: '',                                    portHint: '',     hasPort: false, icon: <Globe       size={16} /> },
+  php:     { label: 'PHP',     versionGroups: [],            buildHint: 'composer install --no-dev',                         startHint: '',                                    portHint: '',     hasPort: false, icon: <PhpIcon     size={16} /> },
+  laravel: { label: 'Laravel', versionGroups: [],            buildHint: 'composer install --no-dev && php artisan optimize', startHint: '',                                    portHint: '',     hasPort: false, icon: <LaravelIcon size={16} /> },
+  nodejs:  { label: 'Node.js', versionGroups: NODE_GROUPS,  buildHint: 'npm ci && npm run build',                          startHint: 'node dist/index.js',                  portHint: '3000', hasPort: true,  icon: <NodejsIcon  size={16} /> },
+  python:  { label: 'Python',  versionGroups: PYTHON_GROUPS,buildHint: 'pip install -r requirements.txt',                  startHint: 'gunicorn app:app -b 0.0.0.0:$PORT',   portHint: '8000', hasPort: true,  icon: <PythonIcon  size={16} /> },
+  go:      { label: 'Go',      versionGroups: GO_GROUPS,    buildHint: 'go build -o app .',                                startHint: './app',                               portHint: '8080', hasPort: true,  icon: <GoIcon      size={16} /> },
+  ruby:    { label: 'Ruby',    versionGroups: RUBY_GROUPS,  buildHint: 'bundle install',                                   startHint: 'bundle exec puma -C config/puma.rb',  portHint: '3000', hasPort: true,  icon: <RubyIcon    size={16} /> },
+  dotnet:  { label: '.NET',    versionGroups: DOTNET_GROUPS,buildHint: 'dotnet publish -c Release -o out',                 startHint: 'dotnet out/App.dll',                  portHint: '5000', hasPort: true,  icon: <DotnetIcon  size={16} /> },
 }
 
 // ── Base schemas ──────────────────────────────────────────────────────────────
@@ -995,12 +1150,42 @@ function SourceStep({
 
 // ── Step 2: Application ───────────────────────────────────────────────────────
 
+function useLivePhpVersions(): { groups: VersionGroup[]; loading: boolean } {
+  const { data, isLoading } = useQuery<string[]>({
+    queryKey: ['php-net-releases'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/v1/proxy/php-releases', { credentials: 'include' })
+        if (!res.ok) throw new Error()
+        const raw = await res.json() as Record<string, unknown>
+        const sorted = Object.keys(raw).sort((a, b) => {
+          const pa = a.split('.').map(Number)
+          const pb = b.split('.').map(Number)
+          for (let i = 0; i < 3; i++) { const d = (pb[i] ?? 0) - (pa[i] ?? 0); if (d !== 0) return d }
+          return 0
+        })
+        return sorted.length >= 6 ? sorted : PHP_FALLBACK
+      } catch {
+        return PHP_FALLBACK
+      }
+    },
+    staleTime: 1000 * 60 * 10,
+  })
+  const groups = useMemo(() => groupByBranch(data ?? PHP_FALLBACK), [data])
+  return { groups, loading: isLoading }
+}
+
 function AppStep({ values, setFieldValue, onRuntimeKindChange }: {
   values: FormValues; setFieldValue: SetFieldValue
   onRuntimeKindChange: (kind: string) => void
 }) {
-  const hints = (RUNTIME_HINTS as Record<string, (typeof RUNTIME_HINTS)[RuntimeKind]>)[values.kind] ?? RUNTIME_HINTS.static
+  const hints       = (RUNTIME_HINTS as Record<string, (typeof RUNTIME_HINTS)[RuntimeKind]>)[values.kind] ?? RUNTIME_HINTS.static
   const isWordpress = values.sourceKind === 'wordpress'
+  const isPhp       = values.kind === 'php' || values.kind === 'laravel'
+  const { groups: phpGroups, loading: phpLoading } = useLivePhpVersions()
+
+  const versionGroups = isPhp ? phpGroups : hints.versionGroups
+  const hasVersions   = versionGroups.length > 0
 
   return (
     <div className="space-y-6">
@@ -1012,8 +1197,9 @@ function AppStep({ values, setFieldValue, onRuntimeKindChange }: {
             return (
               <button key={rt} type="button"
                 onClick={() => {
+                  const firstVer = rt === 'php' || rt === 'laravel' ? phpGroups[0]?.versions[0] ?? '' : (RUNTIME_HINTS[rt].versionGroups[0]?.versions[0] ?? '')
                   setFieldValue('kind', rt)
-                  setFieldValue('runtimeVersion', h.versionOptions[0]?.value ?? '')
+                  setFieldValue('runtimeVersion', firstVer)
                   onRuntimeKindChange(rt)
                 }}
                 className={[
@@ -1035,14 +1221,15 @@ function AppStep({ values, setFieldValue, onRuntimeKindChange }: {
         <ErrorMessage name="kind" component="p" className="mt-2 text-xs text-red-500" />
       </div>
 
-      {values.kind !== 'static' && hints.versionOptions.length > 0 && (
+      {values.kind !== 'static' && hasVersions && (
         <div>
           <label className={LABEL}>Runtime version</label>
           <VersionSelect
             value={values.runtimeVersion}
             onChange={(v) => setFieldValue('runtimeVersion', v)}
-            options={hints.versionOptions}
+            groups={versionGroups}
             placeholder={`Select ${hints.label} version`}
+            loading={isPhp && phpLoading}
             allowCustom
           />
           <ErrorMessage name="runtimeVersion" component="p" className="mt-1 text-xs text-red-500" />
