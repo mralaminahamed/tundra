@@ -455,7 +455,9 @@ starlight-toc a[aria-current='true'] {
 }
 
 /* ── Splash page wrapper ─────────────────────────────────────────────────── */
-.hero-wrapper + * { padding-top: 0 !important; }
+/* Strip Starlight's default top padding only on the markdown content after the
+   hero, not on hero siblings (stats row) that manage their own spacing. */
+.hero-wrapper + .sl-markdown-content { padding-top: 0 !important; }
 
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 50rem) {
