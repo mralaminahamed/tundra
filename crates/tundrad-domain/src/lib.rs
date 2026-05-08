@@ -23,7 +23,7 @@ pub use database::{
     Database, DatabaseServer, DbEngine, DbGrant, DbServerStatus, DbUser, NewDatabase,
     NewDatabaseServer, NewDbUser,
 };
-pub use domain::{DnsManagedBy, DnsRecord, Domain, NewDnsRecord, NewDomain};
+pub use domain::{DnsManagedBy, DnsRecord, Domain, NewDnsRecord, NewDomain, UpdateDomain};
 pub use mail::{
     Alias, DkimKey, MailDomain, MailQueueEntry, Mailbox, NewAlias, NewDkimKey, NewMailDomain,
     NewMailbox,

@@ -102,6 +102,7 @@ pub struct Application {
     pub health_check_path: String,
     pub source_kind: String,
     pub source_config: serde_json::Value,
+    pub resources_limits: serde_json::Value,
     pub current_release_id: Option<Uuid>,
     pub created_at: OffsetDateTime,
 }

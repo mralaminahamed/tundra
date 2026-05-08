@@ -16,6 +16,9 @@ struct OperatorRow {
     is_active: bool,
     last_login_at: Option<time::OffsetDateTime>,
     preferred_locale: String,
+    phone: Option<String>,
+    timezone: String,
+    job_title: Option<String>,
     created_at: time::OffsetDateTime,
     updated_at: time::OffsetDateTime,
     deleted_at: Option<time::OffsetDateTime>,
@@ -38,6 +41,9 @@ impl TryFrom<OperatorRow> for Operator {
             is_active: r.is_active,
             last_login_at: r.last_login_at,
             preferred_locale: r.preferred_locale,
+            phone: r.phone,
+            timezone: r.timezone,
+            job_title: r.job_title,
             created_at: r.created_at,
             updated_at: r.updated_at,
             deleted_at: r.deleted_at,
@@ -65,6 +71,7 @@ fn gen_public_id() -> String {
 const SELECT_COLS: &str = "id, public_id, email, email_verified_at, \
     full_name, role, password_hash, totp_secret_encrypted, \
     is_active, last_login_at, preferred_locale, \
+    phone, timezone, job_title, \
     created_at, updated_at, deleted_at";
 
 pub struct OperatorRepo<'a> {
@@ -181,5 +188,92 @@ impl<'a> OperatorRepo<'a> {
         } else {
             Ok(())
         }
+    }
+
+    pub async fn count(&self) -> Result<i64, RepoError> {
+        let (n,): (i64,) =
+            sqlx::query_as("SELECT COUNT(*) FROM operators WHERE deleted_at IS NULL")
+                .fetch_one(self.pool)
+                .await?;
+        Ok(n)
+    }
+
+    pub async fn list_all(&self) -> Result<Vec<Operator>, RepoError> {
+        let sql = format!(
+            "SELECT {SELECT_COLS} FROM operators \
+             WHERE deleted_at IS NULL ORDER BY created_at ASC"
+        );
+        sqlx::query_as::<_, OperatorRow>(&sql)
+            .fetch_all(self.pool)
+            .await?
+            .into_iter()
+            .map(TryInto::try_into)
+            .collect()
+    }
+
+    pub async fn update_profile(
+        &self,
+        id: Uuid,
+        full_name: Option<&str>,
+        email: Option<&str>,
+        phone: Option<Option<&str>>,
+        timezone: Option<&str>,
+        job_title: Option<Option<&str>>,
+        preferred_locale: Option<&str>,
+    ) -> Result<Operator, RepoError> {
+        // Build dynamic SET clause only for provided fields.
+        // Use COALESCE for non-nullable fields; direct bind for nullable clear.
+        let sql = format!(
+            "UPDATE operators \
+             SET full_name        = COALESCE($2, full_name), \
+                 email            = COALESCE($3, email), \
+                 phone            = CASE WHEN $4 THEN $5 ELSE phone END, \
+                 timezone         = COALESCE($6, timezone), \
+                 job_title        = CASE WHEN $7 THEN $8 ELSE job_title END, \
+                 preferred_locale = COALESCE($9, preferred_locale) \
+             WHERE id = $1 AND deleted_at IS NULL RETURNING {SELECT_COLS}"
+        );
+        sqlx::query_as::<_, OperatorRow>(&sql)
+            .bind(id)
+            .bind(full_name)
+            .bind(email)
+            .bind(phone.is_some())
+            .bind(phone.flatten())
+            .bind(timezone)
+            .bind(job_title.is_some())
+            .bind(job_title.flatten())
+            .bind(preferred_locale)
+            .fetch_optional(self.pool)
+            .await?
+            .ok_or(RepoError::NotFound)?
+            .try_into()
+    }
+
+    pub async fn update_role(&self, id: Uuid, role: &str) -> Result<Operator, RepoError> {
+        let sql = format!(
+            "UPDATE operators SET role = $2::operator_role \
+             WHERE id = $1 AND deleted_at IS NULL RETURNING {SELECT_COLS}"
+        );
+        sqlx::query_as::<_, OperatorRow>(&sql)
+            .bind(id)
+            .bind(role)
+            .fetch_optional(self.pool)
+            .await?
+            .ok_or(RepoError::NotFound)?
+            .try_into()
+    }
+
+    pub async fn set_active(&self, id: Uuid, active: bool) -> Result<Operator, RepoError> {
+        let sql = format!(
+            "UPDATE operators SET is_active = $2 \
+             WHERE id = $1 AND deleted_at IS NULL RETURNING {SELECT_COLS}"
+        );
+        sqlx::query_as::<_, OperatorRow>(&sql)
+            .bind(id)
+            .bind(active)
+            .fetch_optional(self.pool)
+            .await?
+            .ok_or(RepoError::NotFound)?
+            .try_into()
     }
 }

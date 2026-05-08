@@ -44,7 +44,10 @@ pub fn router(pool: PgPool) -> Router {
         // ── Operators ──────────────────────────────────────────────────────
         .route("/api/v1/operators", get(routes::operators::list))
         .route("/api/v1/operators", post(routes::operators::invite))
-        .route("/api/v1/operators/me", get(routes::operators::get_me))
+        .route(
+            "/api/v1/operators/me",
+            get(routes::operators::get_me).patch(routes::operators::patch_me),
+        )
         .route(
             "/api/v1/operators/me/passkeys/challenge",
             post(routes::operators::passkey_register_challenge),
@@ -61,7 +64,12 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/operators/me/passkeys/{id}",
             delete(routes::operators::passkey_delete),
         )
-        .route("/api/v1/operators/{id}", delete(routes::operators::delete))
+        .route(
+            "/api/v1/operators/{id}",
+            get(routes::operators::get)
+                .patch(routes::operators::update)
+                .delete(routes::operators::delete),
+        )
         // ── API tokens ─────────────────────────────────────────────────────
         .route(
             "/api/v1/operators/me/tokens",
@@ -115,9 +123,18 @@ pub fn router(pool: PgPool) -> Router {
         )
         .route(
             "/api/v1/sites/{id}/databases",
-            get(routes::databases::list_databases_by_site),
+            get(routes::databases::list_databases_by_site)
+                .post(routes::databases::create_database_for_site),
+        )
+        .route(
+            "/api/v1/sites/{id}/php",
+            get(routes::sites::get_php_settings).patch(routes::sites::update_php_settings),
         )
         // ── SSL / Certificates ─────────────────────────────────────────────
+        .route(
+            "/api/v1/sites/{id}/domains",
+            get(routes::domains::list_site_domains).post(routes::domains::create_site_domain),
+        )
         .route(
             "/api/v1/sites/{id}/ssl",
             get(routes::ssl::get_certificate).post(routes::ssl::request_certificate),
@@ -262,8 +279,14 @@ pub fn router(pool: PgPool) -> Router {
             get(routes::domains::list_domains).post(routes::domains::create_domain),
         )
         .route(
+            "/api/v1/domains/by-apex/{apex}",
+            get(routes::domains::get_domain_by_apex),
+        )
+        .route(
             "/api/v1/domains/{id}",
-            get(routes::domains::get_domain).delete(routes::domains::delete_domain),
+            get(routes::domains::get_domain)
+                .patch(routes::domains::patch_domain)
+                .delete(routes::domains::delete_domain),
         )
         .route(
             "/api/v1/domains/{id}/dns-records",
@@ -609,6 +632,45 @@ pub fn router(pool: PgPool) -> Router {
         )
         // ── Audit log ──────────────────────────────────────────────────────
         .route("/api/v1/audit-log", get(routes::audit_log::list))
+        .route("/api/v1/audit-log/export.csv", get(routes::audit_log::export_csv))
+        // ── Server system management ───────────────────────────────────────
+        .route("/api/v1/servers/{id}/firewall/rules",
+            get(routes::system::list_firewall_rules).post(routes::system::create_firewall_rule))
+        .route("/api/v1/servers/{id}/firewall/rules/{rule_id}",
+            delete(routes::system::delete_firewall_rule).patch(routes::system::toggle_firewall_rule))
+        .route("/api/v1/servers/{id}/firewall/bans",
+            get(routes::system::list_banned_ips))
+        .route("/api/v1/servers/{id}/firewall/bans/{ip}",
+            delete(routes::system::unban_ip))
+        .route("/api/v1/servers/{id}/packages",
+            get(routes::system::list_upgradable))
+        .route("/api/v1/servers/{id}/packages/upgrade",
+            post(routes::system::apply_updates))
+        .route("/api/v1/servers/{id}/processes",
+            get(routes::system::list_processes))
+        .route("/api/v1/servers/{id}/processes/{pid}",
+            delete(routes::system::kill_process))
+        .route("/ws/v1/servers/{id}/terminal",
+            get(routes::system::terminal_ws))
+        // ── Platform settings ──────────────────────────────────────────────
+        .route("/api/v1/settings/{section}", get(routes::settings::get_section))
+        .route("/api/v1/settings/general", patch(routes::settings::patch_general))
+        .route("/api/v1/settings/smtp", patch(routes::settings::patch_smtp))
+        .route(
+            "/api/v1/settings/notifications",
+            patch(routes::settings::patch_notifications),
+        )
+        .route(
+            "/api/v1/settings/security",
+            patch(routes::settings::patch_security_settings),
+        )
+        .route("/api/v1/settings/backups", patch(routes::settings::patch_backups))
+        .route("/api/v1/settings/branding", patch(routes::settings::patch_branding))
+        .route("/api/v1/settings/dns", patch(routes::settings::patch_dns))
+        .route("/api/v1/settings/defaults", patch(routes::settings::patch_defaults))
+        .route("/api/v1/settings/security_policy", patch(routes::settings::patch_security_policy))
+        .route("/api/v1/settings/smtp/test", post(routes::settings::test_smtp))
+        .route("/api/v1/settings/storage/test", post(routes::settings::test_storage))
         // ── WebSocket event gateway ────────────────────────────────────────
         .route("/ws/v1/events", get(ws::handler))
         // ── Middleware ─────────────────────────────────────────────────────

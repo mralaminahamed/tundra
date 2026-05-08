@@ -366,6 +366,145 @@ pub async fn trigger_deploy(
     Ok((StatusCode::ACCEPTED, Json(to_deploy_dto(&deploy))))
 }
 
+// ── PHP / Application configuration ──────────────────────────────────────────
+
+/// Flattened PHP config response — `version` maps to `runtime_version`;
+/// all other fields come from the `php` key inside `resources_limits`.
+#[derive(Serialize)]
+pub struct PhpSettingsDto {
+    pub version: String,
+    pub memory_limit: i64,
+    pub max_execution_time: i64,
+    pub upload_max_filesize: i64,
+    pub post_max_size: i64,
+    pub display_errors: bool,
+    pub opcache_enabled: bool,
+    pub session_save_handler: String,
+    pub enabled_extensions: Vec<String>,
+}
+
+#[derive(Deserialize)]
+pub struct PatchPhpRequest {
+    pub version: Option<String>,
+    pub memory_limit: Option<i64>,
+    pub max_execution_time: Option<i64>,
+    pub upload_max_filesize: Option<i64>,
+    pub post_max_size: Option<i64>,
+    pub display_errors: Option<bool>,
+    pub opcache_enabled: Option<bool>,
+    pub session_save_handler: Option<String>,
+    pub enabled_extensions: Option<Vec<String>>,
+}
+
+fn php_dto_from_app(app: &tundrad_domain::Application) -> PhpSettingsDto {
+    let php = app.resources_limits.get("php");
+    PhpSettingsDto {
+        version: app.runtime_version.clone(),
+        memory_limit:        php.and_then(|p| p.get("memory_limit")).and_then(|v| v.as_i64()).unwrap_or(256),
+        max_execution_time:  php.and_then(|p| p.get("max_execution_time")).and_then(|v| v.as_i64()).unwrap_or(30),
+        upload_max_filesize: php.and_then(|p| p.get("upload_max_filesize")).and_then(|v| v.as_i64()).unwrap_or(64),
+        post_max_size:       php.and_then(|p| p.get("post_max_size")).and_then(|v| v.as_i64()).unwrap_or(64),
+        display_errors:      php.and_then(|p| p.get("display_errors")).and_then(|v| v.as_bool()).unwrap_or(false),
+        opcache_enabled:     php.and_then(|p| p.get("opcache_enabled")).and_then(|v| v.as_bool()).unwrap_or(true),
+        session_save_handler: php.and_then(|p| p.get("session_save_handler")).and_then(|v| v.as_str()).unwrap_or("files").to_owned(),
+        enabled_extensions: php
+            .and_then(|p| p.get("enabled_extensions"))
+            .and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|x| x.as_str().map(str::to_owned)).collect())
+            .unwrap_or_else(|| vec![
+                "bcmath".into(), "gd".into(), "intl".into(), "mbstring".into(),
+                "mysqli".into(), "opcache".into(), "pdo_mysql".into(), "xml".into(), "zip".into(),
+            ]),
+    }
+}
+
+pub async fn get_php_settings(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Read, Resource::Site)
+        .map_err(ApiError::from)?;
+
+    let app = tundrad_repo::SiteRepo::new(&pool)
+        .find_application_by_site(id)
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok(Json(php_dto_from_app(&app)))
+}
+
+pub async fn update_php_settings(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+    Json(body): Json<PatchPhpRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Update, Resource::Site)
+        .map_err(ApiError::from)?;
+
+    // Fetch current app to merge resources_limits
+    let current = tundrad_repo::SiteRepo::new(&pool)
+        .find_application_by_site(id)
+        .await
+        .map_err(ApiError::from)?;
+
+    let mut php_cfg = current
+        .resources_limits
+        .get("php")
+        .cloned()
+        .unwrap_or_else(|| serde_json::json!({}));
+
+    macro_rules! patch_field {
+        ($field:ident) => {
+            if let Some(v) = body.$field {
+                php_cfg[stringify!($field)] = serde_json::json!(v);
+            }
+        };
+    }
+    patch_field!(memory_limit);
+    patch_field!(max_execution_time);
+    patch_field!(upload_max_filesize);
+    patch_field!(post_max_size);
+    patch_field!(display_errors);
+    patch_field!(opcache_enabled);
+    patch_field!(session_save_handler);
+    patch_field!(enabled_extensions);
+
+    let mut new_limits = current.resources_limits.clone();
+    new_limits["php"] = php_cfg;
+
+    let app = tundrad_repo::SiteRepo::new(&pool)
+        .update_application(id, body.version.as_deref(), Some(new_limits))
+        .await
+        .map_err(ApiError::from)?;
+
+    tundrad_repo::AuditLogRepo::new(&pool)
+        .append(tundrad_domain::NewAuditEntry {
+            actor: tundrad_domain::AuditActor::Operator(session.operator_id),
+            action: "site.php.update".to_owned(),
+            resource_type: Some("site".to_owned()),
+            resource_id: Some(id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::json!({ "runtime_version": app.runtime_version }),
+        })
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok(Json(php_dto_from_app(&app)))
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 fn to_site_dto(

@@ -35,6 +35,8 @@ impl std::str::FromStr for DnsManagedBy {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Domain {
     pub id: Uuid,
+    pub site_id: Option<Uuid>,
+    pub site_name: Option<String>,
     pub apex: String,
     pub dns_managed_by: DnsManagedBy,
     pub registration_expires_at: Option<OffsetDateTime>,
@@ -47,11 +49,20 @@ pub struct Domain {
 
 #[derive(Debug, Clone)]
 pub struct NewDomain {
+    pub site_id: Option<Uuid>,
     pub apex: String,
     pub dns_managed_by: DnsManagedBy,
     pub registration_expires_at: Option<OffsetDateTime>,
     pub auto_renew: bool,
     pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct UpdateDomain {
+    pub dns_managed_by: Option<DnsManagedBy>,
+    pub registration_expires_at: Option<Option<OffsetDateTime>>,
+    pub auto_renew: Option<bool>,
+    pub notes: Option<Option<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -208,6 +208,32 @@ impl<'a> DatabaseRepo<'a> {
         .map_err(RepoError::from)
     }
 
+    /// Create a database and link it to a site's application in one step.
+    pub async fn create_for_site(
+        &self,
+        site_id: Uuid,
+        database_server_id: Uuid,
+        name: String,
+        charset: Option<String>,
+        collation: Option<String>,
+    ) -> Result<Database, RepoError> {
+        sqlx::query_as::<_, DatabaseRow>(&format!(
+            "INSERT INTO databases (database_server_id, name, charset, \"collation\", application_id) \
+             SELECT $2, $3, $4, $5, a.id \
+             FROM applications a WHERE a.site_id = $1 LIMIT 1 \
+             RETURNING {DB_COLS}"
+        ))
+        .bind(site_id)
+        .bind(database_server_id)
+        .bind(&name)
+        .bind(charset.as_deref())
+        .bind(collation.as_deref())
+        .fetch_one(self.0)
+        .await
+        .map(Database::from)
+        .map_err(RepoError::from)
+    }
+
     pub async fn delete(&self, id: Uuid) -> Result<(), RepoError> {
         let rows = sqlx::query("DELETE FROM databases WHERE id = $1")
             .bind(id)

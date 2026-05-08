@@ -266,6 +266,46 @@ pub async fn delete_database_server(
 
 // ── Databases ─────────────────────────────────────────────────────────────────
 
+pub async fn create_database_for_site(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(site_id): Path<Uuid>,
+    Json(body): Json<CreateDatabaseRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Create, Resource::Database)
+        .map_err(ApiError::from)?;
+
+    let database_server_id: Uuid = body
+        .database_server_id
+        .parse()
+        .map_err(|_| ApiError::bad_request("invalid database_server_id"))?;
+
+    let db = tundrad_repo::DatabaseRepo::new(&pool)
+        .create_for_site(site_id, database_server_id, body.name, body.charset, body.collation)
+        .await
+        .map_err(ApiError::from)?;
+
+    tundrad_repo::AuditLogRepo::new(&pool)
+        .append(NewAuditEntry {
+            actor: AuditActor::Operator(session.operator_id),
+            action: "database.create".to_owned(),
+            resource_type: Some("database".to_owned()),
+            resource_id: Some(db.id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::json!({ "name": db.name, "site_id": site_id }),
+        })
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok((StatusCode::CREATED, Json(to_db_dto(db))))
+}
+
 pub async fn list_databases_by_site(
     State(pool): State<PgPool>,
     AuthSession(session): AuthSession,

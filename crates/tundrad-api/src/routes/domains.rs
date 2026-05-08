@@ -6,7 +6,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tundrad_auth::{Action, AuthzService, Resource};
-use tundrad_domain::{AuditActor, DnsManagedBy, NewAuditEntry, NewDnsRecord, NewDomain};
+use tundrad_domain::{AuditActor, DnsManagedBy, NewAuditEntry, NewDnsRecord, NewDomain, UpdateDomain};
 use tundrad_repo::PgPool;
 use uuid::Uuid;
 
@@ -17,6 +17,8 @@ use crate::{error::ApiError, extractors::AuthSession};
 #[derive(Serialize)]
 pub struct DomainDto {
     pub id: String,
+    pub site_id: Option<String>,
+    pub site_name: Option<String>,
     pub apex: String,
     pub dns_managed_by: String,
     pub registration_expires_at: Option<String>,
@@ -32,6 +34,15 @@ pub struct CreateDomainRequest {
     pub dns_managed_by: Option<String>,
     pub auto_renew: Option<bool>,
     pub notes: Option<String>,
+    pub registration_expires_at: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct PatchDomainRequest {
+    pub dns_managed_by: Option<String>,
+    pub auto_renew: Option<bool>,
+    pub notes: Option<serde_json::Value>,   // null = clear, string = set
+    pub registration_expires_at: Option<serde_json::Value>, // null = clear, string = set
 }
 
 #[derive(Serialize)]
@@ -73,6 +84,8 @@ pub struct BatchUpdateRequest {
 fn to_domain_dto(d: tundrad_domain::Domain) -> DomainDto {
     DomainDto {
         id: d.id.to_string(),
+        site_id: d.site_id.map(|u| u.to_string()),
+        site_name: d.site_name,
         apex: d.apex,
         dns_managed_by: d.dns_managed_by.as_str().to_owned(),
         registration_expires_at: d.registration_expires_at.map(|t| t.to_string()),
@@ -157,11 +170,18 @@ pub async fn create_domain(
         .parse::<DnsManagedBy>()
         .map_err(|_| ApiError::bad_request("invalid dns_managed_by"))?;
 
+    let expires = body.registration_expires_at
+        .as_deref()
+        .map(|s| time::OffsetDateTime::parse(s, &time::format_description::well_known::Rfc3339)
+            .map_err(|_| ApiError::bad_request("invalid registration_expires_at")))
+        .transpose()?;
+
     let domain = tundrad_repo::DomainRepo::new(&pool)
         .create(NewDomain {
+            site_id: None,
             apex: body.apex,
             dns_managed_by,
-            registration_expires_at: None,
+            registration_expires_at: expires,
             auto_renew: body.auto_renew.unwrap_or(true),
             notes: body.notes,
         })
@@ -213,6 +233,145 @@ pub async fn delete_domain(
         .await
         .map_err(ApiError::from)?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+pub async fn get_domain_by_apex(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(apex): Path<String>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService.require(&op.role, Action::Read, Resource::Domain).map_err(ApiError::from)?;
+    let domain = tundrad_repo::DomainRepo::new(&pool)
+        .find_by_apex(&apex)
+        .await
+        .map_err(ApiError::from)?;
+    Ok(Json(to_domain_dto(domain)))
+}
+
+pub async fn patch_domain(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+    Json(body): Json<PatchDomainRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Update, Resource::Domain)
+        .map_err(ApiError::from)?;
+
+    let dns_managed_by = body.dns_managed_by
+        .as_deref()
+        .map(|s| s.parse::<DnsManagedBy>().map_err(|_| ApiError::bad_request("invalid dns_managed_by")))
+        .transpose()?;
+
+    let registration_expires_at = match &body.registration_expires_at {
+        None => None,
+        Some(serde_json::Value::Null) => Some(None),
+        Some(serde_json::Value::String(s)) => {
+            let t = time::OffsetDateTime::parse(s, &time::format_description::well_known::Rfc3339)
+                .map_err(|_| ApiError::bad_request("invalid registration_expires_at"))?;
+            Some(Some(t))
+        }
+        _ => return Err(ApiError::bad_request("registration_expires_at must be null or a date string")),
+    };
+
+    let notes = match &body.notes {
+        None => None,
+        Some(serde_json::Value::Null) => Some(None),
+        Some(serde_json::Value::String(s)) => Some(Some(s.clone())),
+        _ => return Err(ApiError::bad_request("notes must be null or a string")),
+    };
+
+    let domain = tundrad_repo::DomainRepo::new(&pool)
+        .update(id, UpdateDomain { dns_managed_by, registration_expires_at, auto_renew: body.auto_renew, notes })
+        .await
+        .map_err(ApiError::from)?;
+
+    tundrad_repo::AuditLogRepo::new(&pool)
+        .append(NewAuditEntry {
+            actor: AuditActor::Operator(session.operator_id),
+            action: "domain.update".to_owned(),
+            resource_type: Some("domain".to_owned()),
+            resource_id: Some(id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::json!({}),
+        })
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok(Json(to_domain_dto(domain)))
+}
+
+// ── Site-scoped domain handlers ───────────────────────────────────────────────
+
+pub async fn list_site_domains(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(site_id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService.require(&op.role, Action::Read, Resource::Domain).map_err(ApiError::from)?;
+    let domains = tundrad_repo::DomainRepo::new(&pool)
+        .list_by_site(site_id)
+        .await
+        .map_err(ApiError::from)?;
+    let data: Vec<_> = domains.into_iter().map(to_domain_dto).collect();
+    Ok(Json(serde_json::json!({ "data": data })))
+}
+
+pub async fn create_site_domain(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(site_id): Path<Uuid>,
+    Json(body): Json<CreateDomainRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService.require(&op.role, Action::Create, Resource::Domain).map_err(ApiError::from)?;
+
+    let dns_managed_by = body.dns_managed_by.as_deref().unwrap_or("tundra")
+        .parse::<DnsManagedBy>()
+        .map_err(|_| ApiError::bad_request("invalid dns_managed_by"))?;
+
+    let domain = tundrad_repo::DomainRepo::new(&pool)
+        .create(NewDomain {
+            site_id: Some(site_id),
+            apex: body.apex,
+            dns_managed_by,
+            registration_expires_at: None,
+            auto_renew: body.auto_renew.unwrap_or(true),
+            notes: body.notes,
+        })
+        .await
+        .map_err(ApiError::from)?;
+
+    tundrad_repo::AuditLogRepo::new(&pool)
+        .append(NewAuditEntry {
+            actor: AuditActor::Operator(session.operator_id),
+            action: "domain.create".to_owned(),
+            resource_type: Some("domain".to_owned()),
+            resource_id: Some(domain.id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::json!({ "apex": domain.apex, "site_id": site_id }),
+        })
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok((StatusCode::CREATED, Json(to_domain_dto(domain))))
 }
 
 // ── DNS record handlers ───────────────────────────────────────────────────────

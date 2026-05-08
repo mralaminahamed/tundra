@@ -1,5 +1,5 @@
 use crate::{PgPool, RepoError};
-use tundrad_domain::domain::{DnsRecord, Domain, NewDnsRecord, NewDomain};
+use tundrad_domain::domain::{DnsRecord, Domain, NewDnsRecord, NewDomain, UpdateDomain};
 use uuid::Uuid;
 
 // ── Domain ────────────────────────────────────────────────────────────────────
@@ -7,6 +7,8 @@ use uuid::Uuid;
 #[derive(sqlx::FromRow)]
 struct DomainRow {
     id: Uuid,
+    site_id: Option<Uuid>,
+    site_name: Option<String>,
     apex: String,
     dns_managed_by: String,
     registration_expires_at: Option<time::OffsetDateTime>,
@@ -22,6 +24,8 @@ impl TryFrom<DomainRow> for Domain {
     fn try_from(r: DomainRow) -> Result<Self, Self::Error> {
         Ok(Domain {
             id: r.id,
+            site_id: r.site_id,
+            site_name: r.site_name,
             apex: r.apex,
             dns_managed_by: r.dns_managed_by.parse().map_err(RepoError::Conflict)?,
             registration_expires_at: r.registration_expires_at,
@@ -34,8 +38,10 @@ impl TryFrom<DomainRow> for Domain {
     }
 }
 
-const DOMAIN_COLS: &str = "id, apex, dns_managed_by, registration_expires_at, \
-    auto_renew, ns_locked, notes, created_at, updated_at";
+const DOMAIN_COLS: &str = "d.id, d.site_id, s.name AS site_name, d.apex, d.dns_managed_by, \
+    d.registration_expires_at, d.auto_renew, d.ns_locked, d.notes, d.created_at, d.updated_at";
+
+const DOMAIN_JOIN: &str = "domains d LEFT JOIN sites s ON s.id = d.site_id";
 
 // ── DnsRecord ─────────────────────────────────────────────────────────────────
 
@@ -44,7 +50,6 @@ struct DnsRecordRow {
     id: Uuid,
     domain_id: Uuid,
     name: String,
-    #[sqlx(rename = "type")]
     record_type: String,
     ttl: i32,
     priority: Option<i32>,
@@ -87,7 +92,7 @@ impl<'a> DomainRepo<'a> {
 
     pub async fn list(&self) -> Result<Vec<Domain>, RepoError> {
         sqlx::query_as::<_, DomainRow>(&format!(
-            "SELECT {DOMAIN_COLS} FROM domains ORDER BY created_at DESC"
+            "SELECT {DOMAIN_COLS} FROM {DOMAIN_JOIN} ORDER BY d.created_at DESC"
         ))
         .fetch_all(self.pool)
         .await?
@@ -97,17 +102,19 @@ impl<'a> DomainRepo<'a> {
     }
 
     pub async fn find_by_id(&self, id: Uuid) -> Result<Domain, RepoError> {
-        sqlx::query_as::<_, DomainRow>(&format!("SELECT {DOMAIN_COLS} FROM domains WHERE id = $1"))
-            .bind(id)
-            .fetch_optional(self.pool)
-            .await?
-            .ok_or(RepoError::NotFound)?
-            .try_into()
+        sqlx::query_as::<_, DomainRow>(&format!(
+            "SELECT {DOMAIN_COLS} FROM {DOMAIN_JOIN} WHERE d.id = $1"
+        ))
+        .bind(id)
+        .fetch_optional(self.pool)
+        .await?
+        .ok_or(RepoError::NotFound)?
+        .try_into()
     }
 
     pub async fn find_by_apex(&self, apex: &str) -> Result<Domain, RepoError> {
         sqlx::query_as::<_, DomainRow>(&format!(
-            "SELECT {DOMAIN_COLS} FROM domains WHERE apex = $1"
+            "SELECT {DOMAIN_COLS} FROM {DOMAIN_JOIN} WHERE d.apex = $1"
         ))
         .bind(apex)
         .fetch_optional(self.pool)
@@ -116,11 +123,27 @@ impl<'a> DomainRepo<'a> {
         .try_into()
     }
 
-    pub async fn create(&self, new: NewDomain) -> Result<Domain, RepoError> {
+    pub async fn list_by_site(&self, site_id: Uuid) -> Result<Vec<Domain>, RepoError> {
         sqlx::query_as::<_, DomainRow>(&format!(
-            "INSERT INTO domains (apex, dns_managed_by, registration_expires_at, auto_renew, notes) \
-             VALUES ($1, $2, $3, $4, $5) RETURNING {DOMAIN_COLS}"
+            "SELECT {DOMAIN_COLS} FROM {DOMAIN_JOIN} WHERE d.site_id = $1 ORDER BY d.created_at ASC"
         ))
+        .bind(site_id)
+        .fetch_all(self.pool)
+        .await?
+        .into_iter()
+        .map(TryInto::try_into)
+        .collect()
+    }
+
+    pub async fn create(&self, new: NewDomain) -> Result<Domain, RepoError> {
+        // CTE: INSERT then JOIN to get site_name
+        sqlx::query_as::<_, DomainRow>(&format!(
+            "WITH r AS ( \
+               INSERT INTO domains (site_id, apex, dns_managed_by, registration_expires_at, auto_renew, notes) \
+               VALUES ($1, $2, $3, $4, $5, $6) RETURNING id \
+             ) SELECT {DOMAIN_COLS} FROM {DOMAIN_JOIN} WHERE d.id = (SELECT id FROM r)"
+        ))
+        .bind(new.site_id)
         .bind(&new.apex)
         .bind(new.dns_managed_by.as_str())
         .bind(new.registration_expires_at)
@@ -129,6 +152,41 @@ impl<'a> DomainRepo<'a> {
         .fetch_one(self.pool)
         .await?
         .try_into()
+    }
+
+    pub async fn update(&self, id: Uuid, patch: UpdateDomain) -> Result<Domain, RepoError> {
+        if patch.dns_managed_by.is_none()
+            && patch.registration_expires_at.is_none()
+            && patch.auto_renew.is_none()
+            && patch.notes.is_none()
+        {
+            return self.find_by_id(id).await;
+        }
+
+        let mut sets = Vec::<String>::new();
+        let mut idx: i32 = 2;
+        if patch.dns_managed_by.is_some()          { sets.push(format!("dns_managed_by = ${idx}"));          idx += 1; }
+        if patch.registration_expires_at.is_some() { sets.push(format!("registration_expires_at = ${idx}")); idx += 1; }
+        if patch.auto_renew.is_some()              { sets.push(format!("auto_renew = ${idx}"));              idx += 1; }
+        if patch.notes.is_some()                   { sets.push(format!("notes = ${idx}"));                   #[allow(unused_assignments)] { idx += 1; } }
+
+        let sql = format!(
+            "WITH r AS ( \
+               UPDATE domains SET {}, updated_at = now() WHERE id = $1 RETURNING id \
+             ) SELECT {DOMAIN_COLS} FROM {DOMAIN_JOIN} WHERE d.id = (SELECT id FROM r)",
+            sets.join(", ")
+        );
+
+        let mut q = sqlx::query_as::<_, DomainRow>(&sql).bind(id);
+        if let Some(v) = patch.dns_managed_by         { q = q.bind(v.as_str().to_owned()); }
+        if let Some(v) = patch.registration_expires_at { q = q.bind(v); }
+        if let Some(v) = patch.auto_renew             { q = q.bind(v); }
+        if let Some(v) = patch.notes                  { q = q.bind(v); }
+
+        q.fetch_optional(self.pool)
+            .await?
+            .ok_or(RepoError::NotFound)?
+            .try_into()
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<(), RepoError> {

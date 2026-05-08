@@ -22,6 +22,11 @@ pub struct OperatorDto {
     pub role: String,
     pub is_active: bool,
     pub has_totp: bool,
+    pub phone: Option<String>,
+    pub timezone: String,
+    pub job_title: Option<String>,
+    pub preferred_locale: String,
+    pub last_login_at: Option<String>,
     pub created_at: String,
 }
 
@@ -46,11 +51,100 @@ pub async fn list(
         .require(&op.role, Action::Read, Resource::Operator)
         .map_err(ApiError::from)?;
 
-    // For P1 return just the current operator; full pagination in P2.
-    Ok(Json(serde_json::json!({
-        "data": [to_dto(&op)],
-        "next_cursor": null
-    })))
+    let all = tundrad_repo::OperatorRepo::new(&pool)
+        .list_all()
+        .await
+        .map_err(ApiError::from)?;
+
+    let data: Vec<_> = all.iter().map(to_dto).collect();
+    Ok(Json(serde_json::json!({ "data": data, "next_cursor": null })))
+}
+
+pub async fn get(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Read, Resource::Operator)
+        .map_err(ApiError::from)?;
+    let target = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(id)
+        .await
+        .map_err(ApiError::from)?;
+    Ok(Json(to_dto(&target)))
+}
+
+#[derive(Deserialize)]
+pub struct UpdateOperatorRequest {
+    pub full_name: Option<String>,
+    pub email: Option<String>,
+    pub role: Option<String>,
+    pub is_active: Option<bool>,
+}
+
+pub async fn update(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+    Json(body): Json<UpdateOperatorRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let actor = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&actor.role, Action::Update, Resource::Operator)
+        .map_err(ApiError::from)?;
+
+    if id == session.operator_id {
+        return Err(ApiError::bad_request("cannot modify your own account"));
+    }
+
+    let mut target = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(id)
+        .await
+        .map_err(ApiError::from)?;
+
+    if body.full_name.is_some() || body.email.is_some() {
+        target = tundrad_repo::OperatorRepo::new(&pool)
+            .update_profile(id, body.full_name.as_deref(), body.email.as_deref(), None, None, None, None)
+            .await
+            .map_err(ApiError::from)?;
+    }
+
+    if let Some(role) = &body.role {
+        target = tundrad_repo::OperatorRepo::new(&pool)
+            .update_role(id, role)
+            .await
+            .map_err(ApiError::from)?;
+    }
+
+    if let Some(active) = body.is_active {
+        target = tundrad_repo::OperatorRepo::new(&pool)
+            .set_active(id, active)
+            .await
+            .map_err(ApiError::from)?;
+    }
+
+    AuditLogRepo::new(&pool)
+        .append(tundrad_domain::NewAuditEntry {
+            actor: tundrad_domain::AuditActor::Operator(session.operator_id),
+            action: "operator.update".to_owned(),
+            resource_type: Some("operator".to_owned()),
+            resource_id: Some(id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::json!({ "role": body.role, "is_active": body.is_active }),
+        })
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok(Json(to_dto(&target)))
 }
 
 pub async fn get_me(
@@ -61,6 +155,47 @@ pub async fn get_me(
         .find_by_id(session.operator_id)
         .await
         .map_err(ApiError::from)?;
+    Ok(Json(to_dto(&op)))
+}
+
+#[derive(Deserialize)]
+pub struct PatchMeRequest {
+    pub full_name: Option<String>,
+    pub email: Option<String>,
+    pub phone: Option<serde_json::Value>,   // null = clear, string = set
+    pub timezone: Option<String>,
+    pub job_title: Option<serde_json::Value>, // null = clear, string = set
+    pub preferred_locale: Option<String>,
+}
+
+pub async fn patch_me(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Json(body): Json<PatchMeRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    // JSON null = clear the field, absent = leave unchanged, string = set value
+    fn nullable_str(v: &Option<serde_json::Value>) -> Option<Option<&str>> {
+        match v {
+            None => None,
+            Some(serde_json::Value::Null) => Some(None),
+            Some(serde_json::Value::String(s)) => Some(Some(s.as_str())),
+            _ => None,
+        }
+    }
+
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .update_profile(
+            session.operator_id,
+            body.full_name.as_deref(),
+            body.email.as_deref(),
+            nullable_str(&body.phone),
+            body.timezone.as_deref(),
+            nullable_str(&body.job_title),
+            body.preferred_locale.as_deref(),
+        )
+        .await
+        .map_err(ApiError::from)?;
+
     Ok(Json(to_dto(&op)))
 }
 
@@ -159,6 +294,11 @@ fn to_dto(op: &tundrad_domain::Operator) -> OperatorDto {
         role: op.role.as_str().to_owned(),
         is_active: op.is_active,
         has_totp: op.has_totp,
+        phone: op.phone.clone(),
+        timezone: op.timezone.clone(),
+        job_title: op.job_title.clone(),
+        preferred_locale: op.preferred_locale.clone(),
+        last_login_at: op.last_login_at.map(|t| t.to_string()),
         created_at: op.created_at.to_string(),
     }
 }

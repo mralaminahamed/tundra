@@ -78,6 +78,7 @@ struct ApplicationRow {
     health_check_path: String,
     source_kind: String,
     source_config: serde_json::Value,
+    resources_limits: serde_json::Value,
     current_release_id: Option<Uuid>,
     created_at: time::OffsetDateTime,
 }
@@ -95,6 +96,7 @@ impl From<ApplicationRow> for Application {
             health_check_path: r.health_check_path,
             source_kind: r.source_kind,
             source_config: r.source_config,
+            resources_limits: r.resources_limits,
             current_release_id: r.current_release_id,
             created_at: r.created_at,
         }
@@ -217,7 +219,7 @@ impl<'a> SiteRepo<'a> {
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) \
              RETURNING id, site_id, kind, runtime_version, build_command, start_command, \
                process_count, health_check_path, source_kind, source_config, \
-               current_release_id, created_at",
+               resources_limits, current_release_id, created_at",
         )
         .bind(site.id)
         .bind(&new.kind)
@@ -375,6 +377,46 @@ impl<'a> SiteRepo<'a> {
         .fetch_one(self.pool)
         .await?
         .try_into()
+    }
+
+    /// Fetch the application for a site (every site has exactly one).
+    pub async fn find_application_by_site(&self, site_id: Uuid) -> Result<Application, RepoError> {
+        sqlx::query_as::<_, ApplicationRow>(
+            "SELECT id, site_id, kind, runtime_version, build_command, start_command, \
+               process_count, health_check_path, source_kind, source_config, \
+               resources_limits, current_release_id, created_at \
+             FROM applications WHERE site_id = $1 LIMIT 1",
+        )
+        .bind(site_id)
+        .fetch_optional(self.pool)
+        .await?
+        .ok_or(RepoError::NotFound)
+        .map(Application::from)
+    }
+
+    /// Patch `runtime_version` and/or `resources_limits` for a site's application.
+    pub async fn update_application(
+        &self,
+        site_id: Uuid,
+        runtime_version: Option<&str>,
+        resources_limits: Option<serde_json::Value>,
+    ) -> Result<Application, RepoError> {
+        sqlx::query_as::<_, ApplicationRow>(
+            "UPDATE applications \
+             SET runtime_version  = COALESCE($2, runtime_version), \
+                 resources_limits = COALESCE($3, resources_limits) \
+             WHERE site_id = $1 \
+             RETURNING id, site_id, kind, runtime_version, build_command, start_command, \
+               process_count, health_check_path, source_kind, source_config, \
+               resources_limits, current_release_id, created_at",
+        )
+        .bind(site_id)
+        .bind(runtime_version)
+        .bind(resources_limits)
+        .fetch_optional(self.pool)
+        .await?
+        .ok_or(RepoError::NotFound)
+        .map(Application::from)
     }
 
     /// Return up to `limit` queued deployments for sites hosted on `server_id`,
