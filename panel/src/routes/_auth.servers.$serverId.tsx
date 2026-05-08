@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
+import { WrenchIcon } from '@/components/icons'
 import type { Server, ServerMetricsState, Site, ListResponse } from '@/lib/api-types'
 import { fmtDate, fmtDateTime } from '@/lib/utils'
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/_auth/servers/$serverId')({
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Tab = 'overview' | 'monitoring' | 'sites' | 'edit' | 'danger'
+type Tab = 'overview' | 'monitoring' | 'sites' | 'firewall' | 'updates' | 'processes' | 'terminal' | 'edit' | 'danger'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -186,11 +187,15 @@ function ServerDetailPage() {
   const isEnrolled = !!server.agent_version
 
   const TABS: { id: Tab; label: string }[] = [
-    { id: 'overview', label: 'Overview' },
+    { id: 'overview',  label: 'Overview' },
     { id: 'monitoring', label: m ? 'Monitoring ●' : 'Monitoring' },
-    { id: 'sites', label: `Sites${m ? ` (${String(m.site_count)})` : ''}` },
-    { id: 'edit', label: 'Edit' },
-    { id: 'danger', label: 'Danger' },
+    { id: 'sites',     label: `Sites${m ? ` (${String(m.site_count)})` : ''}` },
+    { id: 'firewall',  label: 'Firewall' },
+    { id: 'updates',   label: 'Updates' },
+    { id: 'processes', label: 'Processes' },
+    { id: 'terminal',  label: 'Terminal' },
+    { id: 'edit',      label: 'Edit' },
+    { id: 'danger',    label: 'Danger' },
   ]
 
   const sshCommand = server.public_ip ? `ssh root@${server.public_ip}` : null
@@ -207,7 +212,7 @@ function ServerDetailPage() {
       {/* Status banners */}
       {inMaintenance && (
         <div className="mb-4 flex items-center gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          <span className="font-medium">🔧 Maintenance window active</span>
+          <span className="flex items-center gap-1.5 font-medium"><WrenchIcon size={14} /> Maintenance window active</span>
           <span>until {fmtDateTime(server.maintenance_ends_at ?? '')}</span>
           <Link to="/servers/$serverId/maintenance" params={{ serverId: server.id }} className="ml-auto text-xs underline">
             Manage
@@ -690,6 +695,18 @@ function ServerDetailPage() {
         </div>
       )}
 
+      {/* ── Firewall ─────────────────────────────────────────────────────────── */}
+      {tab === 'firewall' && <FirewallTab serverId={server.id} />}
+
+      {/* ── Updates ──────────────────────────────────────────────────────────── */}
+      {tab === 'updates' && <UpdatesTab serverId={server.id} />}
+
+      {/* ── Processes ────────────────────────────────────────────────────────── */}
+      {tab === 'processes' && <ProcessesTab serverId={server.id} />}
+
+      {/* ── Terminal ─────────────────────────────────────────────────────────── */}
+      {tab === 'terminal' && <TerminalTab serverId={server.id} />}
+
       {/* ── Danger ───────────────────────────────────────────────────────────── */}
       {tab === 'danger' && (
         <div className="space-y-4 max-w-xl">
@@ -720,6 +737,517 @@ function ServerDetailPage() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Firewall tab ─────────────────────────────────────────────────────────────
+
+interface FwRule {
+  id: string; direction: string; action: string; protocol: string
+  port: string | null; from_ip: string | null; comment: string | null; enabled: boolean
+}
+
+function FirewallTab({ serverId }: { serverId: string }) {
+  const qc = useQueryClient()
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['server-firewall', serverId],
+    queryFn: () => api<{ data: FwRule[] }>(`/servers/${serverId}/firewall/rules`),
+    refetchInterval: 15_000,
+  })
+  const { data: bansData } = useQuery({
+    queryKey: ['server-bans', serverId],
+    queryFn: () => api<{ data: { ip: string; reason: string; banned_at: string }[] }>(`/servers/${serverId}/firewall/bans`),
+    refetchInterval: 30_000,
+  })
+
+  const [showAdd, setShowAdd] = useState(false)
+  const [dir, setDir] = useState('in')
+  const [action, setAction] = useState('allow')
+  const [proto, setProto] = useState('tcp')
+  const [port, setPort] = useState('')
+  const [fromIp, setFromIp] = useState('')
+  const [comment, setComment] = useState('')
+
+  const addMut = useMutation({
+    mutationFn: () => api(`/servers/${serverId}/firewall/rules`, {
+      method: 'POST',
+      body: { direction: dir, action, protocol: proto, port: port || null, from_ip: fromIp || null, comment: comment || null },
+    }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['server-firewall', serverId] })
+      setShowAdd(false); setPort(''); setFromIp(''); setComment('')
+      toast.success('Rule added')
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed'),
+  })
+
+  const delMut = useMutation({
+    mutationFn: (id: string) => api(`/servers/${serverId}/firewall/rules/${id}`, { method: 'DELETE' }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['server-firewall', serverId] }); toast.success('Rule removed') },
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed'),
+  })
+
+  const unbanMut = useMutation({
+    mutationFn: (ip: string) => api(`/servers/${serverId}/firewall/bans/${encodeURIComponent(ip)}`, { method: 'DELETE' }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['server-bans', serverId] }); toast.success('IP unbanned') },
+  })
+
+  const rules = data?.data ?? []
+  const bans = bansData?.data ?? []
+
+  const INPUT = 'rounded-lg border border-tundra-ink-200 bg-white px-3 py-2 text-sm focus:border-tundra-lichen focus:outline-none focus:ring-2 focus:ring-tundra-lichen/20'
+  const SEL = `${INPUT} bg-white`
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      {/* Rules table */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-tundra-ink">Firewall rules</h3>
+            <p className="text-xs text-tundra-ink-400 mt-0.5">Managed via nftables/UFW on the server.</p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => { void refetch() }}
+              className="rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs text-tundra-ink-500 hover:bg-tundra-ink-50 transition-colors">
+              Refresh
+            </button>
+            <button onClick={() => { setShowAdd(true) }}
+              className="rounded-lg bg-tundra-lichen px-3 py-1.5 text-xs text-white hover:bg-tundra-lichen-600 transition-colors">
+              + Add rule
+            </button>
+          </div>
+        </div>
+
+        {showAdd && (
+          <div className="mb-4 rounded-xl border border-tundra-lichen-200 bg-tundra-lichen-50 p-4">
+            <p className="text-xs font-semibold text-tundra-lichen-800 mb-3">New rule</p>
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div>
+                <label className="block text-xs text-tundra-ink-500 mb-1">Direction</label>
+                <select value={dir} onChange={(e) => { setDir(e.target.value) }} className={SEL}>
+                  <option value="in">Inbound</option>
+                  <option value="out">Outbound</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-tundra-ink-500 mb-1">Action</label>
+                <select value={action} onChange={(e) => { setAction(e.target.value) }} className={SEL}>
+                  <option value="allow">Allow</option>
+                  <option value="deny">Deny</option>
+                  <option value="reject">Reject</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-tundra-ink-500 mb-1">Protocol</label>
+                <select value={proto} onChange={(e) => { setProto(e.target.value) }} className={SEL}>
+                  <option value="tcp">TCP</option>
+                  <option value="udp">UDP</option>
+                  <option value="any">Any</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-tundra-ink-500 mb-1">Port (or range)</label>
+                <input value={port} onChange={(e) => { setPort(e.target.value) }} placeholder="80, 443, 8080:8090" className={`${INPUT} w-full`} />
+              </div>
+              <div>
+                <label className="block text-xs text-tundra-ink-500 mb-1">From IP / CIDR</label>
+                <input value={fromIp} onChange={(e) => { setFromIp(e.target.value) }} placeholder="0.0.0.0/0" className={`${INPUT} w-full`} />
+              </div>
+              <div>
+                <label className="block text-xs text-tundra-ink-500 mb-1">Comment</label>
+                <input value={comment} onChange={(e) => { setComment(e.target.value) }} placeholder="Optional note" className={`${INPUT} w-full`} />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => { addMut.mutate() }} disabled={addMut.isPending}
+                className="rounded-lg bg-tundra-lichen px-4 py-2 text-xs text-white hover:bg-tundra-lichen-600 disabled:opacity-40">
+                {addMut.isPending ? 'Adding…' : 'Add rule'}
+              </button>
+              <button onClick={() => { setShowAdd(false) }}
+                className="rounded-lg border border-tundra-ink-200 px-4 py-2 text-xs text-tundra-ink-500 hover:bg-tundra-ink-50">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="rounded-xl border border-tundra-ink-200 overflow-hidden">
+          {isLoading ? (
+            <div className="h-32 animate-pulse bg-tundra-ink-50" />
+          ) : rules.length === 0 ? (
+            <div className="py-10 text-center text-sm text-tundra-ink-400">No rules returned from agent.</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-tundra-ink-50 border-b border-tundra-ink-100">
+                <tr>
+                  {['Dir', 'Action', 'Proto', 'Port', 'From', 'Comment', ''].map((h) => (
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-tundra-ink-500">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-tundra-ink-100 bg-white">
+                {rules.map((r) => (
+                  <tr key={r.id} className="hover:bg-tundra-ink-50">
+                    <td className="px-4 py-2.5">
+                      <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-mono ${r.direction === 'in' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
+                        {r.direction}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-semibold ${r.action === 'allow' ? 'bg-tundra-lichen-50 text-tundra-lichen-700' : 'bg-tundra-rust-50 text-tundra-rust-700'}`}>
+                        {r.action}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-tundra-ink-500">{r.protocol}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{r.port ?? '—'}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-tundra-ink-500">{r.from_ip ?? 'any'}</td>
+                    <td className="px-4 py-2.5 text-xs text-tundra-ink-400">{r.comment ?? ''}</td>
+                    <td className="px-4 py-2.5 text-right">
+                      <button onClick={() => { delMut.mutate(r.id) }}
+                        className="text-xs text-tundra-ink-300 hover:text-tundra-rust transition-colors">Remove</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* Banned IPs */}
+      <div>
+        <h3 className="text-sm font-semibold text-tundra-ink mb-1">Banned IPs <span className="ml-1 text-xs font-normal text-tundra-ink-400">(Fail2ban)</span></h3>
+        <div className="rounded-xl border border-tundra-ink-200 overflow-hidden">
+          {bans.length === 0 ? (
+            <div className="py-8 text-center text-sm text-tundra-ink-400">No banned IPs.</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-tundra-ink-50 border-b border-tundra-ink-100">
+                <tr>
+                  {['IP', 'Reason', 'Banned at', ''].map((h) => (
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-tundra-ink-500">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-tundra-ink-100 bg-white">
+                {bans.map((b) => (
+                  <tr key={b.ip} className="hover:bg-tundra-ink-50">
+                    <td className="px-4 py-2.5 font-mono text-xs">{b.ip}</td>
+                    <td className="px-4 py-2.5 text-xs text-tundra-ink-500">{b.reason}</td>
+                    <td className="px-4 py-2.5 text-xs text-tundra-ink-400">{b.banned_at}</td>
+                    <td className="px-4 py-2.5 text-right">
+                      <button onClick={() => { unbanMut.mutate(b.ip) }}
+                        className="text-xs text-tundra-lichen hover:underline">Unban</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Updates tab ──────────────────────────────────────────────────────────────
+
+interface Package { name: string; current_version: string; new_version: string; size_kb: number | null; source: string }
+
+function UpdatesTab({ serverId }: { serverId: string }) {
+  const qc = useQueryClient()
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ['server-packages', serverId],
+    queryFn: () => api<{ data: Package[]; last_checked: string | null }>(`/servers/${serverId}/packages`),
+  })
+
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [secOnly, setSecOnly] = useState(false)
+
+  const applyMut = useMutation({
+    mutationFn: () => api(`/servers/${serverId}/packages/upgrade`, {
+      method: 'POST',
+      body: { packages: selected.size > 0 ? [...selected] : null, security_only: secOnly },
+    }),
+    onSuccess: (r: { job_id: string; message: string }) => {
+      toast.success(r.message)
+      void qc.invalidateQueries({ queryKey: ['server-packages', serverId] })
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed'),
+  })
+
+  const pkgs = data?.data ?? []
+  const secCount = pkgs.filter((p) => p.source === 'security').length
+
+  return (
+    <div className="max-w-4xl space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-tundra-ink">Available updates</h3>
+          <p className="text-xs text-tundra-ink-400 mt-0.5">
+            {data?.last_checked ? `Last checked: ${data.last_checked}` : 'Click Refresh to check for updates.'}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {secCount > 0 && (
+            <span className="rounded-full bg-tundra-rust-50 border border-tundra-rust-200 px-2 py-0.5 text-xs font-medium text-tundra-rust-700">
+              {secCount} security
+            </span>
+          )}
+          <button onClick={() => { void refetch() }} disabled={isFetching}
+            className="rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs text-tundra-ink-500 hover:bg-tundra-ink-50 disabled:opacity-40 transition-colors">
+            {isFetching ? 'Checking…' : 'Refresh'}
+          </button>
+          {pkgs.length > 0 && (
+            <button onClick={() => { applyMut.mutate() }} disabled={applyMut.isPending}
+              className="rounded-lg bg-tundra-lichen px-3 py-1.5 text-xs text-white hover:bg-tundra-lichen-600 disabled:opacity-40 transition-colors">
+              {applyMut.isPending ? 'Applying…' : selected.size > 0 ? `Apply (${selected.size})` : 'Apply all'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {pkgs.length > 0 && (
+        <label className="flex items-center gap-2 text-xs text-tundra-ink-500 cursor-pointer">
+          <input type="checkbox" checked={secOnly} onChange={(e) => { setSecOnly(e.target.checked) }} />
+          Security updates only
+        </label>
+      )}
+
+      <div className="rounded-xl border border-tundra-ink-200 overflow-hidden">
+        {isLoading ? (
+          <div className="h-32 animate-pulse bg-tundra-ink-50" />
+        ) : pkgs.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-sm font-medium text-tundra-ink">System is up to date</p>
+            <p className="text-xs text-tundra-ink-400 mt-1">No packages available for upgrade.</p>
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-tundra-ink-50 border-b border-tundra-ink-100">
+              <tr>
+                <th className="px-4 py-2.5 w-8">
+                  <input type="checkbox"
+                    checked={selected.size === pkgs.length}
+                    onChange={(e) => { setSelected(e.target.checked ? new Set(pkgs.map((p) => p.name)) : new Set()) }} />
+                </th>
+                {['Package', 'Current', 'Available', 'Source', 'Size'].map((h) => (
+                  <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-tundra-ink-500">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-tundra-ink-100 bg-white">
+              {pkgs.map((p) => (
+                <tr key={p.name} className={`hover:bg-tundra-ink-50 ${selected.has(p.name) ? 'bg-tundra-lichen-50' : ''}`}>
+                  <td className="px-4 py-2.5 w-8">
+                    <input type="checkbox" checked={selected.has(p.name)}
+                      onChange={(e) => {
+                        const s = new Set(selected)
+                        if (e.target.checked) s.add(p.name); else s.delete(p.name)
+                        setSelected(s)
+                      }} />
+                  </td>
+                  <td className="px-4 py-2.5 font-mono text-xs font-medium">{p.name}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-tundra-ink-400">{p.current_version}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-tundra-lichen-700">{p.new_version}</td>
+                  <td className="px-4 py-2.5">
+                    {p.source === 'security' ? (
+                      <span className="rounded px-1.5 py-0.5 text-xs bg-tundra-rust-50 text-tundra-rust-700">security</span>
+                    ) : (
+                      <span className="text-xs text-tundra-ink-400">{p.source}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-xs text-tundra-ink-400">{p.size_kb ? `${p.size_kb} KB` : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Processes tab ────────────────────────────────────────────────────────────
+
+interface Proc { pid: number; user: string; cpu_pct: number; mem_pct: number; mem_rss_kb: number; state: string; command: string }
+
+function ProcessesTab({ serverId }: { serverId: string }) {
+  const [sort, setSort] = useState<'cpu' | 'mem' | 'pid'>('cpu')
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ['server-processes', serverId, sort],
+    queryFn: () => api<{ data: Proc[] }>(`/servers/${serverId}/processes?sort=${sort}&limit=50`),
+    refetchInterval: 5_000,
+  })
+
+  const killMut = useMutation({
+    mutationFn: ({ pid, signal }: { pid: number; signal: string }) =>
+      api(`/servers/${serverId}/processes/${pid}`, { method: 'DELETE', body: { signal } }),
+    onSuccess: () => { void refetch(); toast.success('Signal sent') },
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed'),
+  })
+
+  const procs = data?.data ?? []
+
+  function stateColor(s: string) {
+    if (s === 'R') return 'text-tundra-lichen-700 bg-tundra-lichen-50'
+    if (s === 'D') return 'text-tundra-rust-700 bg-tundra-rust-50'
+    if (s === 'Z') return 'text-red-700 bg-red-50'
+    return 'text-tundra-ink-400 bg-tundra-ink-50'
+  }
+
+  const SortBtn = ({ id, label }: { id: 'cpu' | 'mem' | 'pid'; label: string }) => (
+    <button onClick={() => { setSort(id) }}
+      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${sort === id ? 'bg-tundra-lichen text-white' : 'border border-tundra-ink-200 text-tundra-ink-500 hover:bg-tundra-ink-50'}`}>
+      {label}
+    </button>
+  )
+
+  return (
+    <div className="max-w-4xl space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-tundra-ink">Running processes</h3>
+          <p className="text-xs text-tundra-ink-400 mt-0.5">Top 50. Auto-refreshes every 5 s.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-tundra-ink-400">Sort by</span>
+          <SortBtn id="cpu" label="CPU %" />
+          <SortBtn id="mem" label="Mem %" />
+          <SortBtn id="pid" label="PID" />
+          <button onClick={() => { void refetch() }} disabled={isFetching}
+            className="ml-2 rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs text-tundra-ink-500 hover:bg-tundra-ink-50 disabled:opacity-40">
+            {isFetching ? '…' : 'Refresh'}
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-tundra-ink-200 overflow-hidden">
+        {isLoading ? (
+          <div className="h-40 animate-pulse bg-tundra-ink-50" />
+        ) : procs.length === 0 ? (
+          <div className="py-16 text-center text-sm text-tundra-ink-400">
+            No process data — agent must be connected.
+          </div>
+        ) : (
+          <table className="w-full text-xs font-mono">
+            <thead className="bg-tundra-ink-50 border-b border-tundra-ink-100">
+              <tr>
+                {['PID', 'User', 'State', 'CPU%', 'Mem%', 'RSS', 'Command', ''].map((h) => (
+                  <th key={h} className="px-3 py-2.5 text-left font-semibold text-tundra-ink-500">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-tundra-ink-100 bg-white">
+              {procs.map((p) => (
+                <tr key={p.pid} className="hover:bg-tundra-ink-50 group">
+                  <td className="px-3 py-2">{p.pid}</td>
+                  <td className="px-3 py-2 text-tundra-ink-500">{p.user}</td>
+                  <td className="px-3 py-2">
+                    <span className={`rounded px-1 py-0.5 ${stateColor(p.state)}`}>{p.state}</span>
+                  </td>
+                  <td className={`px-3 py-2 font-bold ${p.cpu_pct >= 50 ? 'text-tundra-rust' : p.cpu_pct >= 20 ? 'text-yellow-600' : ''}`}>
+                    {p.cpu_pct.toFixed(1)}
+                  </td>
+                  <td className={`px-3 py-2 ${p.mem_pct >= 30 ? 'text-tundra-rust font-bold' : ''}`}>
+                    {p.mem_pct.toFixed(1)}
+                  </td>
+                  <td className="px-3 py-2 text-tundra-ink-400">
+                    {p.mem_rss_kb > 1024 ? `${Math.round(p.mem_rss_kb / 1024)} M` : `${p.mem_rss_kb} K`}
+                  </td>
+                  <td className="px-3 py-2 max-w-xs truncate text-tundra-ink">{p.command}</td>
+                  <td className="px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { killMut.mutate({ pid: p.pid, signal: 'TERM' }) }}
+                      className="rounded px-2 py-0.5 text-xs bg-tundra-rust-50 text-tundra-rust-700 hover:bg-tundra-rust-100">
+                      Kill
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Terminal tab ─────────────────────────────────────────────────────────────
+
+function TerminalTab({ serverId }: { serverId: string }) {
+  const termRef = useRef<HTMLDivElement>(null)
+  const wsRef = useRef<WebSocket | null>(null)
+  const [connected, setConnected] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let term: import('@xterm/xterm').Terminal
+    let fitAddon: import('@xterm/addon-fit').FitAddon
+
+    async function boot() {
+      if (!termRef.current) return
+      const { Terminal } = await import('@xterm/xterm')
+      const { FitAddon } = await import('@xterm/addon-fit')
+      await import('@xterm/xterm/css/xterm.css')
+
+      term = new Terminal({
+        theme: { background: '#1C1F1A', foreground: '#E8E5DF', cursor: '#8DAE7D' },
+        fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+        fontSize: 13,
+        cursorBlink: true,
+        scrollback: 5000,
+      })
+      fitAddon = new FitAddon()
+      term.loadAddon(fitAddon)
+      term.open(termRef.current)
+      fitAddon.fit()
+
+      const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+      const ws = new WebSocket(`${protocol}://${window.location.host}/ws/v1/servers/${serverId}/terminal`)
+      wsRef.current = ws
+
+      ws.onopen = () => { setConnected(true); setError(null) }
+      ws.onclose = () => { setConnected(false); term.write('\r\n\x1b[31mConnection closed.\x1b[0m\r\n') }
+      ws.onerror = () => { setError('WebSocket connection failed.'); setConnected(false) }
+      ws.onmessage = (ev) => {
+        if (typeof ev.data === 'string') term.write(ev.data)
+        else term.write(new Uint8Array(ev.data as ArrayBuffer))
+      }
+
+      term.onData((data) => { if (ws.readyState === WebSocket.OPEN) ws.send(data) })
+
+      const ro = new ResizeObserver(() => { fitAddon.fit() })
+      ro.observe(termRef.current)
+
+      return () => { ws.close(); term.dispose(); ro.disconnect() }
+    }
+
+    void boot()
+    return () => { wsRef.current?.close() }
+  }, [serverId])
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <h3 className="text-sm font-semibold text-tundra-ink">SSH Terminal</h3>
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
+          connected ? 'bg-tundra-lichen-50 text-tundra-lichen-700' : 'bg-tundra-ink-100 text-tundra-ink-400'
+        }`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-tundra-lichen' : 'bg-tundra-ink-300'}`} />
+          {connected ? 'Connected' : 'Connecting…'}
+        </span>
+        {error && <span className="text-xs text-tundra-rust">{error}</span>}
+      </div>
+      <div
+        ref={termRef}
+        className="rounded-xl overflow-hidden border border-tundra-ink-800"
+        style={{ height: 480, background: '#1C1F1A' }}
+      />
+      <p className="text-xs text-tundra-ink-400">
+        Real SSH execution requires the tundra-agent to be connected. Currently running in stub mode.
+      </p>
     </div>
   )
 }

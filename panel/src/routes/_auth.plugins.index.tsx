@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { SkeletonPage } from '@/components/ui/skeleton'
+import { WarningIcon, CheckIcon } from '@/components/icons'
 import { PluginLogo } from '../components/plugin-logo'
 import { fmtDate } from '@/lib/utils'
 
@@ -166,7 +167,7 @@ function AvailableCard({ p, onInstall, installing }: {
         {!p.signature_verified && (
           <>
             <span className="text-tundra-ink-200">·</span>
-            <span className="text-yellow-600 font-medium">⚠ unverified</span>
+            <span className="inline-flex items-center gap-0.5 text-yellow-600 font-medium"><WarningIcon size={12} /> unverified</span>
           </>
         )}
       </div>
@@ -248,7 +249,7 @@ function InstalledCard({ p, onEnable, onDisable, acting }: {
       {/* Meta */}
       <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-tundra-ink-400">
         <span className={`flex items-center gap-1 ${p.signature_verified ? 'text-tundra-lichen-600' : 'text-yellow-600'}`}>
-          {p.signature_verified ? '✓ Verified' : '⚠ Unverified'}
+          {p.signature_verified ? <><CheckIcon size={12} /> Verified</> : <><WarningIcon size={12} /> Unverified</>}
         </span>
         <span className="text-tundra-ink-200">·</span>
         <span>v{p.version}</span>

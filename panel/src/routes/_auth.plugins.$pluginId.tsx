@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { PluginLogo } from '../components/plugin-logo'
+import { WarningIcon, CheckIcon } from '@/components/icons'
 import { fmtDate, fmtDateTime } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/plugins/$pluginId')({
@@ -482,8 +483,8 @@ function PluginDetailPage() {
             <span className="capitalize">{tier}</span>
             {author && <><span className="text-tundra-ink-200">·</span><span>{author}</span></>}
             {sigVerified
-              ? <span className="text-tundra-lichen-600">✓ Signature verified</span>
-              : <span className="text-yellow-600">⚠ Unverified</span>}
+              ? <span className="inline-flex items-center gap-0.5 text-tundra-lichen-600"><CheckIcon size={12} /> Signature verified</span>
+              : <span className="inline-flex items-center gap-0.5 text-yellow-600"><WarningIcon size={12} /> Unverified</span>}
           </div>
 
           {/* CTA */}
@@ -662,7 +663,7 @@ function PluginDetailPage() {
             { label: 'Kind',       value: kind.toUpperCase() },
             { label: 'Author',     value: author || '—' },
             { label: 'Homepage',   value: homepage ?? '—', link: homepage ?? undefined },
-            { label: 'Signature',  value: sigVerified ? 'Verified ✓' : 'Unverified ⚠' },
+            { label: 'Signature',  value: sigVerified ? 'Verified' : 'Unverified' },
             ...(installed ? [
               { label: 'Internal ID', value: installed.id },
               { label: 'Source',      value: installed.source },

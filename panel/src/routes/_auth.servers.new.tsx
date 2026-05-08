@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { KeyIcon, ClipboardIcon } from '@/components/icons'
 import type { CreateServerResponse, WizardFingerprintResponse, WizardInstallResponse } from '@/lib/api-types'
 
 export const Route = createFileRoute('/_auth/servers/new')({
@@ -271,7 +272,10 @@ function AddServerPage() {
                 }`}
               >
                 <div className={`mb-1 text-sm font-semibold ${installMode === mode ? 'text-tundra-lichen-800' : 'text-tundra-ink'}`}>
-                  {mode === 'ssh' ? '🔑 SSH auto-install' : '📋 Manual token'}
+                  <span className="flex items-center gap-1.5">
+                    {mode === 'ssh' ? <KeyIcon size={13} /> : <ClipboardIcon size={13} />}
+                    {mode === 'ssh' ? 'SSH auto-install' : 'Manual token'}
+                  </span>
                 </div>
                 <div className="text-xs text-tundra-ink-400">
                   {mode === 'ssh'
