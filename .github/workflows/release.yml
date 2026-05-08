@@ -61,7 +61,7 @@ jobs:
           rm /tmp/minisign.key
 
       - name: Upload artefacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-amd64
           path: dist/*.tar.zst*
@@ -82,7 +82,7 @@ jobs:
           mkdir -p "${OUTDIR}"
           cp target/release/tundrad target/release/tundra target/release/tundra-agent "${OUTDIR}/"
           tar --use-compress-program=zstd -cf "${OUTDIR}.tar.zst" -C dist "tundrad-${VERSION}-linux-${ARCH}"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: linux-arm64
           path: dist/*.tar.zst*
@@ -107,7 +107,7 @@ jobs:
             -output tundra-macos-universal
           VERSION="${GITHUB_REF_NAME#v}"
           tar -czf "tundra-cli-${VERSION}-macos-universal.tar.gz" tundra-macos-universal
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: macos-universal
           path: tundra-cli-*.tar.gz
