@@ -10,3 +10,15 @@ publish = false
 [lib]
 name = "tundrad_acme"
 path = "src/lib.rs"
+
+[dependencies]
+# instant-acme with rcgen for Order::finalize(); hyper-rustls uses rustls (no openssl-sys).
+# We disable the default features to avoid pulling in hyper-rustls (we supply our own reqwest
+# HTTP client wrapper) but keep aws-lc-rs for the ring-like crypto backend.
+# NOTE: default features include hyper-rustls + aws-lc-rs which is fine here — they are
+# rustls-based and do not pull in openssl-sys.
+instant-acme = { workspace = true, features = ["hyper-rustls", "aws-lc-rs", "rcgen"] }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+time = { workspace = true }
+tracing = { workspace = true }

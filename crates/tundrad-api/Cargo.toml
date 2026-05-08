@@ -12,6 +12,7 @@ name = "tundrad_api"
 path = "src/lib.rs"
 
 [dependencies]
+tundrad-acme = { path = "../tundrad-acme" }
 tundrad-auth = { path = "../tundrad-auth" }
 tundrad-plugin-mcp = { workspace = true }
 tundrad-backup = { path = "../tundrad-backup" }
@@ -20,6 +21,7 @@ tundrad-crypto = { path = "../tundrad-crypto" }
 tundrad-domain = { path = "../tundrad-domain" }
 tundrad-repo = { path = "../tundrad-repo" }
 tundrad-events = { path = "../tundrad-events" }
+anyhow.workspace = true
 async-trait.workspace = true
 openssh = { workspace = true }
 axum.workspace = true

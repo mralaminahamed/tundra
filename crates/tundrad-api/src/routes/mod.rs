@@ -17,6 +17,7 @@ pub mod scheduled_tasks;
 pub mod servers;
 pub mod site_moves;
 pub mod sites;
+pub mod ssl;
 pub mod templates;
 pub mod tokens;
 pub mod wordpress;

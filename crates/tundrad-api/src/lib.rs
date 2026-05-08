@@ -117,6 +117,20 @@ pub fn router(pool: PgPool) -> Router {
             "/api/v1/sites/{id}/databases",
             get(routes::databases::list_databases_by_site),
         )
+        // ── SSL / Certificates ─────────────────────────────────────────────
+        .route(
+            "/api/v1/sites/{id}/ssl",
+            get(routes::ssl::get_certificate).post(routes::ssl::request_certificate),
+        )
+        .route(
+            "/api/v1/sites/{id}/ssl/renew",
+            post(routes::ssl::renew_certificate),
+        )
+        // HTTP-01 ACME challenge endpoint — no auth required
+        .route(
+            "/.well-known/acme-challenge/{token}",
+            get(routes::ssl::acme_challenge),
+        )
         // ── Site file manager ──────────────────────────────────────────────
         .route(
             "/api/v1/sites/{site_id}/files",

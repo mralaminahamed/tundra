@@ -1,6 +1,7 @@
 pub mod alert_rules;
 pub mod audit_log;
 pub mod backup;
+pub mod certificate;
 pub mod daemon;
 pub mod database;
 pub mod domain;
@@ -17,6 +18,7 @@ pub mod site;
 pub mod site_move;
 
 pub use alert_rules::AlertRuleRepo;
+pub use certificate::{CertificateRepo, CertificateRow, NewCertificate};
 pub use audit_log::AuditLogRepo;
 pub use backup::{BackupJobRepo, BackupRestoreRepo, BackupSnapshotRepo, BackupTargetRepo};
 pub use daemon::{DaemonRepo, UpdateDaemon};
