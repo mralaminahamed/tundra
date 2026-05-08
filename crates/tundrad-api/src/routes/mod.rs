@@ -16,6 +16,7 @@ pub mod plugins;
 pub mod scheduled_tasks;
 pub mod servers;
 pub mod settings;
+pub mod setup;
 pub mod system;
 pub mod site_moves;
 pub mod sites;

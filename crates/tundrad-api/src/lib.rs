@@ -24,6 +24,9 @@ pub fn router(pool: PgPool) -> Router {
         // ── Probes ─────────────────────────────────────────────────────────
         .route("/healthz", get(routes::health::healthz))
         .route("/readyz", get(routes::health::readyz))
+        // ── Setup (public — first-time init only) ──────────────────────────
+        .route("/api/v1/setup/status", get(routes::setup::status))
+        .route("/api/v1/setup/init",   post(routes::setup::init))
         // ── Templates ──────────────────────────────────────────────────────
         .route("/api/v1/templates", get(routes::templates::list))
         // ── Auth ───────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupRouteImport } from './routes/setup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -102,6 +103,11 @@ import { Route as AuthBackupsTargetsNewRouteImport } from './routes/_auth.backup
 import { Route as AuthBackupsJobsNewRouteImport } from './routes/_auth.backups.jobs.new'
 import { Route as AuthMailDomainsMailDomainIdDiagnosticsRouteImport } from './routes/_auth.mail.domains.$mailDomainId.diagnostics'
 
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -568,6 +574,7 @@ const AuthMailDomainsMailDomainIdDiagnosticsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/setup': typeof SetupRoute
   '/login': typeof LoginRoute
   '/alerts': typeof AuthAlertsRoute
   '/audit-log': typeof AuthAuditLogRoute
@@ -661,6 +668,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/setup': typeof SetupRoute
   '/login': typeof LoginRoute
   '/alerts': typeof AuthAlertsRoute
   '/audit-log': typeof AuthAuditLogRoute
@@ -751,6 +759,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
+  '/setup': typeof SetupRoute
   '/login': typeof LoginRoute
   '/_auth/alerts': typeof AuthAlertsRoute
   '/_auth/audit-log': typeof AuthAuditLogRoute
@@ -846,6 +855,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/setup'
     | '/login'
     | '/alerts'
     | '/audit-log'
@@ -938,6 +948,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/setup'
     | '/login'
     | '/alerts'
     | '/audit-log'
@@ -1026,6 +1037,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_auth'
+    | '/setup'
     | '/login'
     | '/_auth/alerts'
     | '/_auth/audit-log'
@@ -1120,11 +1132,19 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
+  SetupRoute: typeof SetupRoute
   LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -2139,6 +2159,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
+  SetupRoute: SetupRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
