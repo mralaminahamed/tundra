@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { QRCode } from 'react-qr-code'
 import { authApi, type PasskeyItem } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
@@ -29,11 +30,24 @@ function SecuritySettingsPage() {
 // TOTP section
 // ---------------------------------------------------------------------------
 
+function TotpQr({ uri }: { uri: string }) {
+  return (
+    <QRCode
+      value={uri}
+      size={192}
+      fgColor="#1C1F1A"
+      bgColor="#FFFFFF"
+      level="M"
+    />
+  )
+}
+
 function TotpSection() {
   const queryClient = useQueryClient()
   const [showSetup, setShowSetup] = useState(false)
   const [setupCode, setSetupCode] = useState('')
   const [setupError, setSetupError] = useState<string | null>(null)
+  const [showManual, setShowManual] = useState(false)
 
   // We infer TOTP state from the /operators/me response. The backend should
   // expose `totp_enabled` on the operator object. We assume false if not present.
@@ -57,6 +71,7 @@ function TotpSection() {
       setShowSetup(false)
       setSetupCode('')
       setSetupError(null)
+      setShowManual(false)
     },
     onError: (err) => {
       setSetupError(err instanceof Error ? err.message : 'Failed to enable TOTP.')
@@ -128,21 +143,49 @@ function TotpSection() {
             {showSetup && setupData && (
               <div className="mt-4 rounded-md border border-tundra-ink-100 bg-tundra-ink-50 p-4 space-y-4">
                 <div>
-                  <p className="text-sm font-medium mb-1">1. Scan or copy the setup URI</p>
-                  <p className="text-xs text-tundra-ink-500 mb-2">
-                    Open your authenticator app (e.g. Authy, Google Authenticator, 1Password) and
-                    add a new account using the URI or secret below.
+                  <p className="text-sm font-medium mb-1">1. Add to your authenticator app</p>
+                  <p className="text-xs text-tundra-ink-500 mb-3">
+                    Open Authy, Google Authenticator, 1Password, or any TOTP app and scan the QR code.
                   </p>
-                  <pre className="overflow-x-auto rounded bg-tundra-ink-900 p-3 text-xs text-tundra-ink-100 whitespace-pre-wrap break-all select-all">
-                    {setupData.uri}
-                  </pre>
-                </div>
 
-                <div>
-                  <p className="text-xs text-tundra-ink-500 mb-1 font-medium">Manual entry secret</p>
-                  <code className="rounded bg-tundra-ink-900 px-2 py-1 text-xs text-tundra-ink-100 select-all">
-                    {setupData.secret}
-                  </code>
+                  {!showManual ? (
+                    <div className="flex flex-col items-start gap-3">
+                      <div className="rounded-xl bg-white p-3 shadow-sm border border-tundra-ink-100">
+                        <TotpQr uri={setupData.uri} />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setShowManual(true) }}
+                        className="text-xs text-tundra-ink-400 hover:text-tundra-ink underline-offset-2 hover:underline transition-colors"
+                      >
+                        Can't scan? Enter manually instead
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-tundra-ink-600 mb-1">Secret key</p>
+                          <code className="block rounded bg-tundra-ink-900 px-3 py-2 text-xs text-tundra-ink-100 select-all font-mono tracking-wider break-all">
+                            {setupData.secret}
+                          </code>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-tundra-ink-600 mb-1">Full OTP URI</p>
+                          <pre className="overflow-x-auto rounded bg-tundra-ink-900 p-2 text-xs text-tundra-ink-100 whitespace-pre-wrap break-all select-all">
+                            {setupData.uri}
+                          </pre>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setShowManual(false) }}
+                        className="text-xs text-tundra-ink-400 hover:text-tundra-ink underline-offset-2 hover:underline transition-colors self-start"
+                      >
+                        ← Back to QR code
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <form onSubmit={handleEnableSubmit} className="space-y-3">
@@ -176,7 +219,7 @@ function TotpSection() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => { setShowSetup(false); setSetupCode(''); setSetupError(null) }}
+                      onClick={() => { setShowSetup(false); setSetupCode(''); setSetupError(null); setShowManual(false) }}
                     >
                       Cancel
                     </Button>
@@ -245,16 +288,12 @@ function PasskeysSection() {
       }
 
       const response = credential.response as AuthenticatorAttestationResponse
-      const publicKey = response.getPublicKey()
-      if (!publicKey) {
-        setAddError('Could not retrieve public key from credential.')
-        return
-      }
+      const coseKey = extractCoseKeyFromAuthData(response.getAuthenticatorData())
 
       await authApi.passkeyRegister({
         challenge_id,
         credential_id: base64urlEncode(credential.rawId),
-        public_key_cbor: base64urlEncode(publicKey),
+        public_key_cbor: base64urlEncode(coseKey),
         label: addLabel.trim(),
       })
 
@@ -415,7 +454,19 @@ function base64urlEncode(buf: ArrayBuffer): string {
 }
 
 function base64urlDecode(str: string): ArrayBuffer {
-  const b64 = str.replace(/-/g, '+').replace(/_/g, '/')
+  const padded = str + '=='.slice(0, (4 - (str.length % 4)) % 4)
+  const b64 = padded.replace(/-/g, '+').replace(/_/g, '/')
   const bytes = new Uint8Array(atob(b64).split('').map((c) => c.charCodeAt(0)))
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+}
+
+// Extract the COSE_Key bytes from an authenticatorData buffer.
+// Structure: rpIdHash(32) + flags(1) + signCount(4) + aaguid(16) +
+//            credIdLen(2) + credId(n) + cosePublicKey(rest)
+function extractCoseKeyFromAuthData(authData: ArrayBuffer): ArrayBuffer {
+  const bytes = new Uint8Array(authData)
+  const flags = bytes[32]
+  if (!(flags & 0x40)) throw new Error('Attestation flag not set — cannot extract public key')
+  const credIdLen = (bytes[53] << 8) | bytes[54]
+  return authData.slice(55 + credIdLen)
 }

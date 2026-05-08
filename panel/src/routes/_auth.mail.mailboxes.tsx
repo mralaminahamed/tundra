@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { api } from '@/lib/api'
+import { Pagination, usePagination } from '@/components/ui/pagination'
 import type { Mailbox, MailDomain, ListResponse } from '@/lib/api-types'
 
 export const Route = createFileRoute('/_auth/mail/mailboxes')({
@@ -22,6 +23,7 @@ function formatBytes(bytes: number): string {
 
 function MailMailboxesPage() {
   const [selectedDomain, setSelectedDomain] = useState<string>('')
+  const [search,  setSearch]  = useState('')
 
   const { data: domainsData } = useQuery({
     queryKey: ['mail-domains'],
@@ -38,130 +40,143 @@ function MailMailboxesPage() {
   })
 
   const domains = domainsData?.data ?? []
-  const mailboxes = data?.data ?? []
+  const allMailboxes = data?.data ?? []
   const selectedDomainObj = domains.find((d) => d.id === selectedDomain)
 
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase()
+    if (!q) return allMailboxes
+    return allMailboxes.filter((mb) => mb.local_part.toLowerCase().includes(q))
+  }, [allMailboxes, search])
+
+  const pg = usePagination(filtered, 25)
+
   return (
-    <div>
+    <div className="space-y-5">
       {/* Tab nav */}
-      <div className="mb-6 flex items-center gap-1 border-b border-tundra-ink-200">
+      <div className="flex items-center gap-1 border-b border-tundra-ink-200">
         {MAIL_TABS.map((tab) => (
-          <Link
-            key={tab.to}
-            to={tab.to}
+          <Link key={tab.to} to={tab.to}
             className="rounded-t px-4 py-2 text-sm font-medium border-b-2 -mb-px"
             activeProps={{ className: 'border-tundra-lichen text-tundra-lichen' }}
-            inactiveProps={{ className: 'border-transparent text-tundra-ink-500 hover:text-tundra-ink' }}
-          >
+            inactiveProps={{ className: 'border-transparent text-tundra-ink-500 hover:text-tundra-ink' }}>
             {tab.label}
           </Link>
         ))}
       </div>
 
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Mailboxes</h1>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-tundra-ink">Mailboxes</h1>
+          {selectedDomainObj && (
+            <p className="mt-0.5 text-sm text-tundra-ink-500">
+              <span className="font-medium">{selectedDomainObj.domain}</span> — {allMailboxes.length} mailbox{allMailboxes.length !== 1 ? 'es' : ''}
+            </p>
+          )}
+        </div>
         {selectedDomain && (
-          <Link
-            to="/mail/domains/$mailDomainId"
-            params={{ mailDomainId: selectedDomain }}
-            className="rounded bg-tundra-lichen px-4 py-2 text-sm text-white hover:bg-tundra-lichen-600"
-          >
+          <Link to="/mail/domains/$mailDomainId" params={{ mailDomainId: selectedDomain }}
+            className="rounded-lg bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors">
             + Create mailbox
           </Link>
         )}
       </div>
 
       {/* Domain selector */}
-      <div className="mb-6">
-        <label className="text-sm font-medium text-tundra-ink-600">Select mail domain</label>
-        <div className="mt-1.5 flex flex-wrap gap-2">
+      <div className="rounded-xl border border-tundra-ink-200 bg-white px-4 py-3">
+        <p className="mb-2 text-xs font-medium text-tundra-ink-500">Select mail domain</p>
+        <div className="flex flex-wrap gap-2">
           {domains.map((d) => (
-            <button
-              key={d.id}
-              onClick={() => { setSelectedDomain(d.id) }}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${selectedDomain === d.id ? 'bg-tundra-ink text-white' : 'bg-tundra-ink-100 text-tundra-ink-600 hover:bg-tundra-ink-200'}`}
-            >
+            <button key={d.id} type="button" onClick={() => { setSelectedDomain(d.id); setSearch(''); pg.setPage(1) }}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${selectedDomain === d.id ? 'bg-tundra-ink text-white' : 'bg-tundra-ink-100 text-tundra-ink-600 hover:bg-tundra-ink-200'}`}>
               {d.domain}
             </button>
           ))}
           {domains.length === 0 && (
             <p className="text-sm text-tundra-ink-400">
-              No mail domains.{' '}
-              <Link to="/mail/domains" className="text-tundra-aurora hover:underline">Add one first.</Link>
+              No mail domains. <Link to="/mail/domains" className="text-tundra-aurora hover:underline">Add one first.</Link>
             </p>
           )}
         </div>
       </div>
 
       {!selectedDomain && (
-        <div className="rounded-lg border border-tundra-ink-200 py-12 text-center">
-          <p className="text-sm text-tundra-ink-400">Select a mail domain above to view its mailboxes.</p>
+        <div className="flex h-32 items-center justify-center rounded-xl border border-tundra-ink-200 bg-white text-sm text-tundra-ink-400">
+          Select a mail domain above to view its mailboxes.
         </div>
       )}
 
-      {selectedDomain && isLoading && <p className="text-sm text-tundra-ink-400">Loading…</p>}
-      {selectedDomain && isError && <p className="text-sm text-tundra-rust">Failed to load mailboxes.</p>}
-
-      {selectedDomain && !isLoading && (
-        <>
-          {selectedDomainObj && (
-            <div className="mb-3 text-sm text-tundra-ink-500">
-              <span className="font-medium text-tundra-ink">{selectedDomainObj.domain}</span>
-              {' '}— {String(mailboxes.length)} mailbox{mailboxes.length !== 1 ? 'es' : ''}
+      {selectedDomain && (
+        <div className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white">
+          {/* Toolbar */}
+          <div className="flex items-center gap-2 border-b border-tundra-ink-100 bg-tundra-ink-50 px-4 py-2.5">
+            <div className="relative">
+              <svg className="pointer-events-none absolute left-2.5 top-2 h-3.5 w-3.5 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+              <input type="search" placeholder="Search address…" value={search}
+                onChange={(e) => { setSearch(e.target.value); pg.setPage(1) }}
+                className="h-8 w-48 rounded-lg border border-tundra-ink-200 bg-white pl-8 pr-3 text-xs focus:border-tundra-lichen focus:outline-none focus:ring-1 focus:ring-tundra-lichen" />
             </div>
-          )}
-
-          {mailboxes.length === 0 ? (
-            <div className="rounded-lg border border-tundra-ink-200 py-12 text-center">
-              <p className="text-sm text-tundra-ink-400">No mailboxes for this domain.</p>
+            <div className="ml-auto">
+              <span className="text-xs text-tundra-ink-400">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
             </div>
+          </div>
+
+          {isLoading ? (
+            <div className="divide-y divide-tundra-ink-100">
+              {[1,2,3].map((i) => <div key={i} className="h-14 animate-pulse bg-tundra-ink-50 px-4 py-3" />)}
+            </div>
+          ) : isError ? (
+            <p className="px-4 py-6 text-sm text-tundra-rust">Failed to load mailboxes.</p>
           ) : (
-            <div className="overflow-hidden rounded-lg border border-tundra-ink-200">
-              <table className="w-full text-sm">
-                <thead className="bg-tundra-ink-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium">Address</th>
-                    <th className="px-4 py-3 text-left font-medium">Status</th>
-                    <th className="px-4 py-3 text-left font-medium">Quota</th>
-                    <th className="px-4 py-3 text-left font-medium">Used</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-tundra-ink-100">
-                  {mailboxes.map((mb) => {
-                    const domain = selectedDomainObj
-                    const pct = mb.quota_bytes > 0 ? Math.round((mb.used_bytes / mb.quota_bytes) * 100) : 0
-                    return (
-                      <tr key={mb.id} className="hover:bg-tundra-ink-50">
-                        <td className="px-4 py-3 font-medium">
-                          {mb.local_part}@{domain?.domain ?? ''}
-                        </td>
-                        <td className="px-4 py-3">
-                          {mb.is_active ? (
-                            <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-tundra-lichen-100 text-tundra-lichen-800">active</span>
-                          ) : (
-                            <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-tundra-ink-100 text-tundra-ink-600">inactive</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-tundra-ink-500">{formatBytes(mb.quota_bytes)}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 rounded-full bg-tundra-ink-100 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${pct >= 90 ? 'bg-tundra-rust' : 'bg-tundra-lichen'}`}
-                                style={{ width: `${String(pct)}%` }}
-                              />
-                            </div>
-                            <span className="text-xs text-tundra-ink-500">{formatBytes(mb.used_bytes)} ({String(pct)}%)</span>
+            <table className="w-full text-sm">
+              <thead className="border-b border-tundra-ink-100 text-xs text-tundra-ink-400">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide">Address</th>
+                  <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide">Status</th>
+                  <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide">Quota</th>
+                  <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide">Used</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-tundra-ink-100">
+                {pg.paged.map((mb) => {
+                  const pct = mb.quota_bytes > 0 ? Math.round((mb.used_bytes / mb.quota_bytes) * 100) : 0
+                  return (
+                    <tr key={mb.id} className="hover:bg-tundra-ink-50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-tundra-ink">
+                        {mb.local_part}@{selectedDomainObj?.domain ?? ''}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${mb.is_active ? 'border-tundra-lichen-300 bg-tundra-lichen-50 text-tundra-lichen-800' : 'border-tundra-ink-200 bg-tundra-ink-50 text-tundra-ink-500'}`}>
+                          <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${mb.is_active ? 'bg-tundra-lichen' : 'bg-tundra-ink-300'}`} />
+                          {mb.is_active ? 'active' : 'inactive'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-tundra-ink-500">{formatBytes(mb.quota_bytes)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-tundra-ink-100">
+                            <div className={`h-full rounded-full ${pct >= 90 ? 'bg-tundra-rust' : 'bg-tundra-lichen'}`} style={{ width: `${String(pct)}%` }} />
                           </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          <span className="text-xs text-tundra-ink-500">{formatBytes(mb.used_bytes)} ({String(pct)}%)</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={4} className="px-4 py-10 text-center text-sm text-tundra-ink-400">
+                    {search ? 'No results match your search.' : 'No mailboxes for this domain.'}
+                  </td></tr>
+                )}
+              </tbody>
+            </table>
           )}
-        </>
+
+          <Pagination total={filtered.length} page={pg.page} pageSize={pg.pageSize}
+            onPage={pg.setPage} onPageSize={(n) => { pg.setPageSize(n); pg.setPage(1) }} />
+        </div>
       )}
     </div>
   )

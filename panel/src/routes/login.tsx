@@ -414,7 +414,8 @@ function base64urlEncode(buf: ArrayBuffer): string {
 }
 
 function base64urlDecode(str: string): ArrayBuffer {
-  const b64 = str.replace(/-/g, '+').replace(/_/g, '/')
+  const padded = str + '=='.slice(0, (4 - (str.length % 4)) % 4)
+  const b64 = padded.replace(/-/g, '+').replace(/_/g, '/')
   const bytes = new Uint8Array(atob(b64).split('').map((c) => c.charCodeAt(0)))
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
 }
