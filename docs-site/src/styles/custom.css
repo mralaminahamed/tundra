@@ -1,43 +1,69 @@
 /* ── Tundra brand tokens ──────────────────────────────────────────────────── */
 :root {
+  /* Accent */
   --sl-color-accent-low:  #e6ebd9;
   --sl-color-accent:      #7a8a5c;
   --sl-color-accent-high: #4a5437;
 
-  --sl-color-white:  #f0ede6;
-  --sl-color-gray-1: #e2dfd8;
-  --sl-color-gray-2: #c8c5be;
-  --sl-color-gray-3: #9e9b94;
-  --sl-color-gray-4: #6e6b64;
-  --sl-color-gray-5: #4e4b44;
-  --sl-color-gray-6: #2e2c28;
-  --sl-color-black:  #14120f;
+  /* Starlight semantic: white = highest-contrast text, black = highest-contrast bg.
+     Light mode → white is dark, black is light. */
+  --sl-color-white:  #14120f;
+  --sl-color-gray-1: #302e2a;
+  --sl-color-gray-2: #504d46;
+  --sl-color-gray-3: #74716a;
+  --sl-color-gray-4: #a8a59e;
+  --sl-color-gray-5: #d4d1ca;
+  --sl-color-gray-6: #e8e5de;
+  --sl-color-gray-7: #f1efe8;
+  --sl-color-black:  #faf8f3;
+
+  /* Borders — explicit hairline values for light mode */
+  --sl-color-hairline:       #dedad2;
+  --sl-color-hairline-light: #e8e5de;
+  --sl-color-hairline-shade: #cdc9c0;
+
+  /* Backgrounds — light mode */
+  --sl-color-bg:         #faf8f3;
+  --sl-color-bg-nav:     #f6f3ec;
+  --sl-color-bg-sidebar: #f6f3ec;
+
+  /* Text — light mode */
+  --sl-color-text:        #302e2a;
+  --sl-color-text-accent: #4a5437;
 
   --sl-font:      'Inter', system-ui, -apple-system, sans-serif;
   --sl-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
 }
 
 :root[data-theme='dark'] {
+  /* Accent */
   --sl-color-accent-low:  #1c2118;
   --sl-color-accent:      #7a8a5c;
   --sl-color-accent-high: #a8c07e;
 
+  /* Gray scale — dark mode: 1=darkest bg, 6=lightest text */
   --sl-color-white:  #e4e8e0;
-  --sl-color-gray-1: #2a2f28;
-  --sl-color-gray-2: #363b34;
-  --sl-color-gray-3: #5a6054;
+  --sl-color-gray-1: #282d26;
+  --sl-color-gray-2: #343930;
+  --sl-color-gray-3: #585e52;
   --sl-color-gray-4: #848c7c;
   --sl-color-gray-5: #a8b09e;
   --sl-color-gray-6: #c4ccc0;
   --sl-color-black:  #0c0e0b;
 
-  --sl-color-bg:          #111410;
-  --sl-color-bg-nav:      #161914;
-  --sl-color-bg-sidebar:  #161914;
+  /* Borders — explicit hairline values for dark mode */
+  --sl-color-hairline:       #1e2319;
+  --sl-color-hairline-light: #242920;
+  --sl-color-hairline-shade: #181d14;
+
+  /* Backgrounds */
+  --sl-color-bg:         #111410;
+  --sl-color-bg-nav:     #161914;
+  --sl-color-bg-sidebar: #161914;
+
+  /* Text */
   --sl-color-text:        #ccd0c8;
   --sl-color-text-accent: #a8c07e;
-  --sl-color-hairline-light: #242820;
-  --sl-color-hairline-shade: #1c201a;
 }
 
 /* ── Typography ──────────────────────────────────────────────────────────── */
@@ -52,8 +78,11 @@ body {
   width: auto;
 }
 
+header.header {
+  border-bottom: 1px solid var(--sl-color-hairline) !important;
+}
+
 :root[data-theme='dark'] header.header {
-  border-bottom-color: #1e2219;
   background: #161914;
 }
 
@@ -153,14 +182,25 @@ details > summary > span {
 }
 
 /* ── Code blocks ─────────────────────────────────────────────────────────── */
+.expressive-code .frame {
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden;
+}
+
+.expressive-code .frame.has-title .header {
+  border-bottom: 1px solid var(--sl-color-hairline) !important;
+}
+
 :root[data-theme='dark'] .expressive-code .frame,
 :root[data-theme='dark'] .expressive-code pre {
   background: #0d1009 !important;
+  border-color: var(--sl-color-hairline) !important;
 }
 
 :root[data-theme='dark'] .expressive-code .frame.has-title .header {
   background: #141710 !important;
-  border-bottom-color: #242820 !important;
+  border-bottom-color: var(--sl-color-hairline) !important;
 }
 
 /* ── Tables ──────────────────────────────────────────────────────────────── */
@@ -172,18 +212,65 @@ details > summary > span {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--sl-color-gray-4);
-  border-bottom: 1px solid var(--sl-color-gray-6);
+  border-bottom: 2px solid var(--sl-color-hairline-shade);
   padding-block: 0.6rem;
   text-align: left;
 }
 
 .sl-content td {
-  border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-6) 50%, transparent);
+  border-bottom: 1px solid var(--sl-color-hairline-light);
   padding-block: 0.6rem;
 }
 
-:root[data-theme='dark'] .sl-content th { color: #848c7c; border-color: #242820; }
-:root[data-theme='dark'] .sl-content td { border-color: #1e2219; color: #bcc0b8; }
+:root[data-theme='dark'] .sl-content th {
+  color: #848c7c;
+  border-color: var(--sl-color-hairline-shade);
+}
+
+:root[data-theme='dark'] .sl-content td {
+  border-color: var(--sl-color-hairline);
+  color: #bcc0b8;
+}
+
+/* ── Comparison marks ────────────────────────────────────────────────── */
+.cmp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+.cmp.yes {
+  color: var(--sl-color-accent-high);
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
+}
+.cmp.no {
+  color: var(--sl-color-gray-3);
+  font-weight: 400;
+}
+.cmp.addon {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+  background: var(--sl-color-gray-6);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+:root[data-theme='dark'] .cmp.yes {
+  color: #a8c07e;
+  background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+}
+:root[data-theme='dark'] .cmp.addon {
+  color: #c4ccc0;
+  background: #252a22;
+}
 
 /* ── Cards ───────────────────────────────────────────────────────────────── */
 .sl-card {
@@ -210,40 +297,121 @@ details > summary > span {
 }
 
 /* ── Aside ───────────────────────────────────────────────────────────────── */
-.starlight-aside { border-radius: 0.5rem; border-width: 1px; }
+.starlight-aside {
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-color: var(--sl-color-hairline);
+}
 
+/* Override ALL aside variants — left border, background, AND text color */
+.starlight-aside,
+.starlight-aside p,
+.starlight-aside li,
+.starlight-aside .starlight-aside__content {
+  color: var(--sl-color-text) !important;
+}
+
+/* Override ALL aside variants — left border + background */
+.starlight-aside--tip,
+.starlight-aside--note,
+.starlight-aside--caution,
+.starlight-aside--danger {
+  border-left-width: 3px !important;
+}
+
+/* Light mode */
+.starlight-aside--tip {
+  border-left-color: var(--sl-color-accent) !important;
+  background: color-mix(in srgb, var(--sl-color-accent) 7%, #fff) !important;
+}
+.starlight-aside--note {
+  border-left-color: #5a8fd4 !important;
+  background: color-mix(in srgb, #5a8fd4 7%, #fff) !important;
+}
+.starlight-aside--caution {
+  border-left-color: #c9923a !important;
+  background: color-mix(in srgb, #c9923a 7%, #fff) !important;
+}
+.starlight-aside--danger {
+  border-left-color: #c94a4a !important;
+  background: color-mix(in srgb, #c94a4a 7%, #fff) !important;
+}
+
+/* Dark mode */
 :root[data-theme='dark'] .starlight-aside {
-  background: color-mix(in srgb, var(--sl-color-accent) 5%, #141713) !important;
+  border-color: var(--sl-color-hairline) !important;
+}
+:root[data-theme='dark'] .starlight-aside--tip {
+  background: color-mix(in srgb, var(--sl-color-accent) 8%, #111410) !important;
+}
+:root[data-theme='dark'] .starlight-aside--note {
+  background: color-mix(in srgb, #5a8fd4 6%, #111410) !important;
+}
+:root[data-theme='dark'] .starlight-aside--caution {
+  background: color-mix(in srgb, #c9923a 6%, #111410) !important;
+}
+:root[data-theme='dark'] .starlight-aside--danger {
+  background: color-mix(in srgb, #c94a4a 6%, #111410) !important;
 }
 
 /* ── Steps ───────────────────────────────────────────────────────────────── */
-:root[data-theme='dark'] .sl-steps > li::before {
+.sl-steps > li::before {
   background: var(--sl-color-accent) !important;
   color: #fff !important;
 }
 
-:root[data-theme='dark'] .sl-steps > li { border-color: #242820; }
+.sl-steps > li {
+  border-left: 1px solid var(--sl-color-hairline) !important;
+}
 
-/* ── TOC ─────────────────────────────────────────────────────────────────── */
-:root[data-theme='dark'] starlight-toc a { color: #6b7264; }
-:root[data-theme='dark'] starlight-toc a:hover,
-:root[data-theme='dark'] starlight-toc a[aria-current='true'] { color: #a8c07e; }
+:root[data-theme='dark'] .sl-steps > li {
+  border-color: var(--sl-color-hairline) !important;
+}
+
+/* ── Sidebar border ──────────────────────────────────────────────────────── */
+.sidebar-pane,
+nav.sidebar {
+  border-right: 1px solid var(--sl-color-hairline) !important;
+}
+
+/* ── TOC border ──────────────────────────────────────────────────────────── */
+.right-sidebar {
+  border-left: 1px solid var(--sl-color-hairline) !important;
+}
+
+starlight-toc a { color: var(--sl-color-gray-3); transition: color 0.12s; }
+starlight-toc a:hover { color: var(--sl-color-gray-5); }
+starlight-toc a[aria-current='true'] {
+  color: var(--sl-color-accent) !important;
+  border-left-color: var(--sl-color-accent) !important;
+}
+
+:root[data-theme='dark'] starlight-toc a { color: #5a6254; }
+:root[data-theme='dark'] starlight-toc a:hover { color: #848c7c; }
+:root[data-theme='dark'] starlight-toc a[aria-current='true'] { color: #a8c07e !important; }
 
 /* ── Dividers ────────────────────────────────────────────────────────────── */
 .sl-content hr {
   border: none;
-  border-top: 1px solid var(--sl-color-gray-6);
+  border-top: 1px solid var(--sl-color-hairline);
   margin-block: 2.5rem;
 }
 
-:root[data-theme='dark'] .sl-content hr { border-color: #1e2219; }
-
 /* ── Pagination ──────────────────────────────────────────────────────────── */
+.pagination-links a {
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: 0.5rem !important;
+  transition: border-color 0.15s !important;
+}
+
+.pagination-links a:hover {
+  border-color: var(--sl-color-accent) !important;
+}
+
 :root[data-theme='dark'] .pagination-links a {
   background: #161914 !important;
-  border-color: #252a22 !important;
+  border-color: var(--sl-color-hairline) !important;
   color: #bcc0b8 !important;
-  border-radius: 0.5rem;
 }
 
 :root[data-theme='dark'] .pagination-links a:hover {

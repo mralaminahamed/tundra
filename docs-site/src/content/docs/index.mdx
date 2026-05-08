@@ -42,12 +42,16 @@ import { Card, CardGrid } from '@astrojs/starlight/components'
 
 ## Why Tundra?
 
+export const Yes = () => <span class="cmp yes" aria-label="yes">✓</span>
+export const No  = () => <span class="cmp no"  aria-label="no">—</span>
+export const Add = () => <span class="cmp addon">addon</span>
+
 |  | **Tundra** | Plesk | cPanel |
 |--|--|--|--|
 | License | Apache-2.0, free | $12–22/mo per server | $20–45/mo per server |
-| Single binary | ✅ | ❌ | ❌ |
-| Open source | ✅ | ❌ | ❌ |
-| Blue/green deploys | ✅ | ❌ | ❌ |
-| MCP AI integration | ✅ | ❌ | ❌ |
-| SLSA Level 3 | ✅ | ❌ | ❌ |
-| Multi-server | ✅ | ✅ addon | ✅ addon |
+| Single binary | <Yes/> | <No/> | <No/> |
+| Open source | <Yes/> | <No/> | <No/> |
+| Blue/green deploys | <Yes/> | <No/> | <No/> |
+| MCP AI integration | <Yes/> | <No/> | <No/> |
+| SLSA Level 3 | <Yes/> | <No/> | <No/> |
+| Multi-server | <Yes/> | <Add/> | <Add/> |
