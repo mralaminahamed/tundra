@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
 
       # ── Node + pnpm ─────────────────────────────────────────────────────────
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: "10.33.2"
       - uses: actions/setup-node@v4
@@ -117,7 +117,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: "10.33.2"
       - uses: actions/setup-node@v4
