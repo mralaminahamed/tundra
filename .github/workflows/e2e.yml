@@ -54,7 +54,7 @@ jobs:
         run: pnpm playwright install chromium --with-deps
 
       # ── Docker layer cache ──────────────────────────────────────────────────
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Cache Docker layers
         uses: actions/cache@v4
