@@ -31,8 +31,26 @@ export default defineConfig({
           borderWidth: '1px',
         },
       },
+      components: {
+        Hero: './src/components/overrides/Hero.astro',
+      },
       customCss: ['./src/styles/custom.css'],
       head: [
+        {
+          tag: 'link',
+          attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        },
+        {
+          tag: 'link',
+          attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'stylesheet',
+            href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap',
+          },
+        },
         {
           tag: 'meta',
           attrs: { property: 'og:image', content: 'https://mralaminahamed.github.io/tundra/og.png' },
