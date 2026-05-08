@@ -2,6 +2,16 @@ use crate::{PgPool, RepoError};
 use tundrad_domain::daemon::{Daemon, NewDaemon};
 use uuid::Uuid;
 
+// ── UpdateDaemon ──────────────────────────────────────────────────────────────
+
+#[derive(Default)]
+pub struct UpdateDaemon {
+    pub name: Option<String>,
+    pub command: Option<String>,
+    pub working_dir: Option<String>,
+    pub is_active: Option<bool>,
+}
+
 // ── DaemonRow ─────────────────────────────────────────────────────────────────
 
 #[derive(sqlx::FromRow)]
@@ -100,5 +110,29 @@ impl<'a> DaemonRepo<'a> {
             return Err(RepoError::NotFound);
         }
         Ok(())
+    }
+
+    /// Partial update — only fields present in `upd` are written.
+    pub async fn update(&self, id: Uuid, upd: UpdateDaemon) -> Result<Daemon, RepoError> {
+        // Verify record exists first so we can return NotFound cleanly.
+        let current = self.find_by_id(id).await?;
+        let name = upd.name.unwrap_or(current.name);
+        let command = upd.command.unwrap_or(current.command);
+        let working_dir = upd.working_dir.unwrap_or(current.working_dir);
+        let is_active = upd.is_active.unwrap_or(current.is_active);
+        sqlx::query_as::<_, DaemonRow>(&format!(
+            "UPDATE daemons \
+             SET name = $2, command = $3, working_dir = $4, is_active = $5, updated_at = now() \
+             WHERE id = $1 RETURNING {DAEMON_COLS}"
+        ))
+        .bind(id)
+        .bind(&name)
+        .bind(&command)
+        .bind(&working_dir)
+        .bind(is_active)
+        .fetch_one(self.0)
+        .await
+        .map(Daemon::from)
+        .map_err(RepoError::from)
     }
 }

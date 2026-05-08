@@ -11,13 +11,24 @@ export const Route = createFileRoute('/_auth/sites/$siteId/dns')({
 })
 
 const RECORD_TYPES = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SRV', 'CAA'] as const
+const PRIORITY_TYPES = new Set(['MX', 'SRV', 'CAA'])
 
 function SiteDnsTab() {
   const { siteId } = Route.useParams()
   const qc = useQueryClient()
+
+  // Add-record form state
   const [showAdd, setShowAdd] = useState(false)
   const [newRec, setNewRec] = useState({ name: '', record_type: 'A', content: '', ttl: '3600', priority: '' })
+
+  // Filter state
   const [filterType, setFilterType] = useState<string>('')
+
+  // Inline-edit state
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
+  const [editTtl, setEditTtl] = useState('')
+  const [editPriority, setEditPriority] = useState('')
 
   // Fetch the site's primary domain record first to get domain_id
   const { data: domainsData } = useQuery({
@@ -50,7 +61,7 @@ function SiteDnsTab() {
       setShowAdd(false)
       setNewRec({ name: '', record_type: 'A', content: '', ttl: '3600', priority: '' })
     },
-    onError: () => toast.info('DNS record add coming soon'),
+    onError: () => toast.error('Failed to add DNS record'),
   })
 
   const deleteMut = useMutation({
@@ -60,8 +71,44 @@ function SiteDnsTab() {
       void qc.invalidateQueries({ queryKey: ['dns-records', domainId] })
       toast.success('DNS record deleted')
     },
-    onError: () => toast.info('DNS delete coming soon'),
+    onError: () => toast.error('Failed to delete DNS record'),
   })
+
+  const editMut = useMutation({
+    mutationFn: ({ recId, body }: { recId: string; body: { content: string; ttl: number; priority?: number } }) =>
+      api(`/domains/${domainId}/dns-records/${recId}`, {
+        method: 'PATCH',
+        body,
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['dns-records', domainId] })
+      toast.success('Record updated')
+      setEditingId(null)
+    },
+    onError: () => toast.error('Failed to update DNS record'),
+  })
+
+  function startEdit(r: DnsRecord) {
+    setEditingId(r.id)
+    setEditContent(r.content)
+    setEditTtl(String(r.ttl))
+    setEditPriority(r.priority != null ? String(r.priority) : '')
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+  }
+
+  function saveEdit(r: DnsRecord) {
+    const body: { content: string; ttl: number; priority?: number } = {
+      content: editContent,
+      ttl: parseInt(editTtl, 10) || r.ttl,
+    }
+    if (PRIORITY_TYPES.has(r.record_type) && editPriority !== '') {
+      body.priority = parseInt(editPriority, 10)
+    }
+    editMut.mutate({ recId: r.id, body })
+  }
 
   const records = recordsData?.data ?? []
   const filtered = filterType ? records.filter((r) => r.record_type === filterType) : records
@@ -178,35 +225,116 @@ function SiteDnsTab() {
               </tr>
             </thead>
             <tbody className="divide-y divide-tundra-ink-100">
-              {filtered.map((r) => (
-                <tr key={r.id} className={`transition-colors ${r.is_managed ? 'hover:bg-tundra-ink-50' : 'bg-tundra-ink-50/50 opacity-70 hover:bg-tundra-ink-50'}`}>
-                  <td className="px-4 py-2.5">
-                    <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${TYPE_CLS[r.record_type] ?? 'border-tundra-ink-200 bg-tundra-ink-50 text-tundra-ink-500'}`}>
-                      {r.record_type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 font-mono text-xs text-tundra-ink">{r.name}</td>
-                  <td className="px-4 py-2.5 max-w-xs">
-                    <span className="block truncate font-mono text-xs text-tundra-ink-600" title={r.content}>{r.content}</span>
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-tundra-ink-400">{r.ttl}s</td>
-                  <td className="px-4 py-2.5 text-xs text-tundra-ink-400">{r.priority ?? '—'}</td>
-                  <td className="px-4 py-2.5">
-                    <div className="flex justify-end gap-1.5">
-                      {!r.is_managed && <span className="text-[10px] text-tundra-ink-300 italic">auto</span>}
-                      <button type="button" onClick={() => toast.info('Edit coming soon')}
-                        className="rounded border border-tundra-ink-200 px-2 py-0.5 text-xs text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
-                        Edit
-                      </button>
-                      <button type="button" onClick={() => { deleteMut.mutate(r.id) }}
-                        disabled={deleteMut.isPending}
-                        className="rounded border border-red-200 px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50">
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((r) => {
+                const isEditing = editingId === r.id
+                const showPriority = PRIORITY_TYPES.has(r.record_type)
+
+                if (isEditing) {
+                  return (
+                    <tr key={r.id} className="bg-tundra-ink-50/60">
+                      {/* Type badge — read-only while editing */}
+                      <td className="px-4 py-3">
+                        <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${TYPE_CLS[r.record_type] ?? 'border-tundra-ink-200 bg-tundra-ink-50 text-tundra-ink-500'}`}>
+                          {r.record_type}
+                        </span>
+                      </td>
+                      {/* Name — read-only while editing */}
+                      <td className="px-4 py-3 font-mono text-xs text-tundra-ink">{r.name}</td>
+                      {/* Content input */}
+                      <td className="px-4 py-3">
+                        <input
+                          autoFocus
+                          type="text"
+                          value={editContent}
+                          onChange={(e) => { setEditContent(e.target.value) }}
+                          className="w-full rounded-md border border-tundra-lichen px-2 py-1 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-tundra-lichen"
+                        />
+                      </td>
+                      {/* TTL input */}
+                      <td className="px-4 py-3">
+                        <input
+                          type="number"
+                          value={editTtl}
+                          onChange={(e) => { setEditTtl(e.target.value) }}
+                          className="w-20 rounded-md border border-tundra-ink-200 px-2 py-1 text-xs focus:border-tundra-lichen focus:outline-none"
+                        />
+                      </td>
+                      {/* Priority input (conditional) */}
+                      <td className="px-4 py-3">
+                        {showPriority ? (
+                          <input
+                            type="number"
+                            value={editPriority}
+                            onChange={(e) => { setEditPriority(e.target.value) }}
+                            placeholder="0"
+                            className="w-16 rounded-md border border-tundra-ink-200 px-2 py-1 text-xs focus:border-tundra-lichen focus:outline-none"
+                          />
+                        ) : (
+                          <span className="text-xs text-tundra-ink-300">—</span>
+                        )}
+                      </td>
+                      {/* Save / Cancel */}
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => { cancelEdit() }}
+                            disabled={editMut.isPending}
+                            className="rounded border border-tundra-ink-200 px-2 py-0.5 text-xs text-tundra-ink-600 hover:bg-tundra-ink-100 transition-colors disabled:opacity-50">
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { saveEdit(r) }}
+                            disabled={!editContent || editMut.isPending}
+                            className="rounded border border-tundra-lichen bg-tundra-lichen px-2 py-0.5 text-xs font-medium text-white hover:bg-tundra-lichen-600 transition-colors disabled:opacity-50">
+                            {editMut.isPending ? 'Saving…' : 'Save'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                }
+
+                return (
+                  <tr key={r.id} className={`transition-colors ${r.is_managed ? 'hover:bg-tundra-ink-50' : 'bg-tundra-ink-50/50 opacity-70 hover:bg-tundra-ink-50'}`}>
+                    <td className="px-4 py-2.5">
+                      <span className={`rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${TYPE_CLS[r.record_type] ?? 'border-tundra-ink-200 bg-tundra-ink-50 text-tundra-ink-500'}`}>
+                        {r.record_type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-tundra-ink">{r.name}</td>
+                    <td className="px-4 py-2.5 max-w-xs">
+                      <span className="block truncate font-mono text-xs text-tundra-ink-600" title={r.content}>{r.content}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-tundra-ink-400">{r.ttl}s</td>
+                    <td className="px-4 py-2.5 text-xs text-tundra-ink-400">{r.priority ?? '—'}</td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex justify-end gap-1.5">
+                        {!r.is_managed && <span className="text-[10px] text-tundra-ink-300 italic">auto</span>}
+                        <button
+                          type="button"
+                          onClick={() => { startEdit(r) }}
+                          disabled={editingId !== null || deleteMut.isPending}
+                          className="rounded border border-tundra-ink-200 px-2 py-0.5 text-xs text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors disabled:opacity-40">
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`Delete ${r.record_type} record "${r.name}"?`)) {
+                              deleteMut.mutate(r.id)
+                            }
+                          }}
+                          disabled={deleteMut.isPending || editingId !== null}
+                          className="rounded border border-red-200 px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50">
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

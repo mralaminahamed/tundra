@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { api } from '@/lib/api'
 import { Switch } from '@/components/ui/switch'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/php')({
@@ -26,31 +28,143 @@ const EXTENSIONS = [
   { name: 'zip',        desc: 'ZIP archive support' },
 ] as const
 
+interface PhpSettings {
+  version: string
+  memory_limit: number
+  max_execution_time: number
+  upload_max_filesize: number
+  post_max_size: number
+  display_errors: boolean
+  opcache_enabled: boolean
+  session_save_handler: 'files' | 'redis'
+  enabled_extensions: string[]
+}
+
+function Toggle({ label, desc, checked, onChange }: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-3">
+      <div>
+        <p className="text-sm font-medium text-tundra-ink">{label}</p>
+        {desc && <p className="text-xs text-tundra-ink-400">{desc}</p>}
+      </div>
+      <Switch checked={checked} onChange={onChange} />
+    </div>
+  )
+}
+
 function SitePhpTab() {
-  const [phpVersion, setPhpVersion]         = useState('8.3')
-  const [memoryLimit, setMemoryLimit]       = useState('256')
-  const [maxExecTime, setMaxExecTime]       = useState('30')
-  const [maxFileSize, setMaxFileSize]       = useState('64')
-  const [postMaxSize, setPostMaxSize]       = useState('64')
-  const [displayErrors, setDisplayErrors]   = useState(false)
-  const [opcache, setOpcache]               = useState(true)
-  const [sessionSave, setSessionSave]       = useState<'files' | 'redis'>('files')
-  const [enabledExts, setEnabledExts]       = useState<Set<string>>(
+  const { siteId } = Route.useParams()
+  const queryClient = useQueryClient()
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['sites', siteId, 'php'],
+    queryFn: () => api<PhpSettings>(`/sites/${siteId}/php`),
+    retry: false,
+  })
+
+  // Form state — defaults until API data loads
+  const [phpVersion,    setPhpVersion]    = useState('8.3')
+  const [memoryLimit,   setMemoryLimit]   = useState('256')
+  const [maxExecTime,   setMaxExecTime]   = useState('30')
+  const [maxFileSize,   setMaxFileSize]   = useState('64')
+  const [postMaxSize,   setPostMaxSize]   = useState('64')
+  const [displayErrors, setDisplayErrors] = useState(false)
+  const [opcache,       setOpcache]       = useState(true)
+  const [sessionSave,   setSessionSave]   = useState<'files' | 'redis'>('files')
+  const [enabledExts,   setEnabledExts]   = useState<Set<string>>(
     new Set(['bcmath', 'gd', 'intl', 'mbstring', 'mysqli', 'opcache', 'pdo_mysql', 'xml', 'zip']),
   )
+
+  // Populate form when API data arrives
+  useEffect(() => {
+    if (!data) return
+    setPhpVersion(data.version ?? '8.3')
+    setMemoryLimit(String(data.memory_limit ?? 256))
+    setMaxExecTime(String(data.max_execution_time ?? 30))
+    setMaxFileSize(String(data.upload_max_filesize ?? 64))
+    setPostMaxSize(String(data.post_max_size ?? 64))
+    setDisplayErrors(data.display_errors ?? false)
+    setOpcache(data.opcache_enabled ?? true)
+    setSessionSave(data.session_save_handler ?? 'files')
+    if (data.enabled_extensions) {
+      setEnabledExts(new Set(data.enabled_extensions))
+    }
+  }, [data])
 
   function toggleExt(name: string) {
     setEnabledExts((s) => { const n = new Set(s); n.has(name) ? n.delete(name) : n.add(name); return n })
   }
 
-  function Toggle({ label, desc, checked, onChange }: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  const patchMutation = useMutation({
+    mutationFn: (patch: Partial<PhpSettings>) =>
+      api(`/sites/${siteId}/php`, { method: 'PATCH', body: JSON.stringify(patch) }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['sites', siteId, 'php'] })
+    },
+  })
+
+  function handleSaveSettings() {
+    const patch: Partial<PhpSettings> = {
+      memory_limit:        Number(memoryLimit),
+      max_execution_time:  Number(maxExecTime),
+      upload_max_filesize: Number(maxFileSize),
+      post_max_size:       Number(postMaxSize),
+      display_errors:      displayErrors,
+      opcache_enabled:     opcache,
+      session_save_handler: sessionSave,
+    }
+    toast.promise(patchMutation.mutateAsync(patch), {
+      loading: 'Saving PHP settings…',
+      success: 'PHP settings saved',
+      error: 'Failed to save settings',
+    })
+  }
+
+  function handleApplyVersion() {
+    toast.promise(patchMutation.mutateAsync({ version: phpVersion }), {
+      loading: `Switching to PHP ${phpVersion}…`,
+      success: `PHP ${phpVersion} applied`,
+      error: 'Failed to update PHP version',
+    })
+  }
+
+  function handleApplyExtensions() {
+    toast.promise(patchMutation.mutateAsync({ enabled_extensions: Array.from(enabledExts) }), {
+      loading: 'Updating extensions…',
+      success: 'Extensions updated',
+      error: 'Failed to update extensions',
+    })
+  }
+
+  if (isLoading) {
     return (
-      <div className="flex items-start justify-between gap-4 py-3">
-        <div>
-          <p className="text-sm font-medium text-tundra-ink">{label}</p>
-          {desc && <p className="text-xs text-tundra-ink-400">{desc}</p>}
-        </div>
-        <Switch checked={checked} onChange={onChange} />
+      <div className="grid gap-5 lg:grid-cols-2 animate-pulse">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white">
+            <div className="border-b border-tundra-ink-100 bg-tundra-ink-50 px-4 py-2.5">
+              <div className="h-3 w-32 rounded bg-tundra-ink-100" />
+            </div>
+            <div className="p-4 space-y-3">
+              {Array.from({ length: 4 }).map((_, j) => (
+                <div key={j} className="h-9 rounded-lg bg-tundra-ink-100" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-tundra-ink-200 bg-tundra-ink-50 p-12 text-center">
+        <svg className="h-8 w-8 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z" />
+        </svg>
+        <p className="text-sm font-semibold text-tundra-ink-600">PHP configuration not available</p>
+        <p className="max-w-sm text-xs text-tundra-ink-400">
+          PHP settings management requires the tundra-agent to be running on the server.
+        </p>
       </div>
     )
   }
@@ -74,8 +188,9 @@ function SitePhpTab() {
             ))}
           </div>
           <button type="button"
-            onClick={() => { toast.success(`PHP ${phpVersion} queued for update`) }}
-            className="w-full rounded-lg border border-tundra-ink-200 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
+            onClick={handleApplyVersion}
+            disabled={patchMutation.isPending}
+            className="w-full rounded-lg border border-tundra-ink-200 py-2 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors disabled:opacity-50">
             Apply PHP {phpVersion}
           </button>
         </div>
@@ -118,8 +233,10 @@ function SitePhpTab() {
               ))}
             </div>
           </div>
-          <button type="button" onClick={() => toast.success('PHP settings saved')}
-            className="w-full rounded-lg bg-tundra-lichen py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors">
+          <button type="button"
+            onClick={handleSaveSettings}
+            disabled={patchMutation.isPending}
+            className="w-full rounded-lg bg-tundra-lichen py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors disabled:opacity-50">
             Save settings
           </button>
         </div>
@@ -153,8 +270,10 @@ function SitePhpTab() {
           })}
         </div>
         <div className="border-t border-tundra-ink-100 p-3">
-          <button type="button" onClick={() => toast.success('Extensions updated')}
-            className="rounded-lg bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors">
+          <button type="button"
+            onClick={handleApplyExtensions}
+            disabled={patchMutation.isPending}
+            className="rounded-lg bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors disabled:opacity-50">
             Apply extension changes
           </button>
         </div>

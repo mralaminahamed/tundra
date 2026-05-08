@@ -19,7 +19,7 @@ pub mod site_move;
 pub use alert_rules::AlertRuleRepo;
 pub use audit_log::AuditLogRepo;
 pub use backup::{BackupJobRepo, BackupRestoreRepo, BackupSnapshotRepo, BackupTargetRepo};
-pub use daemon::DaemonRepo;
+pub use daemon::{DaemonRepo, UpdateDaemon};
 pub use database::{DatabaseRepo, DatabaseServerRepo, DbUserRepo};
 pub use domain::{DnsRecordRepo, DomainRepo};
 pub use error::RepoError;
@@ -27,7 +27,7 @@ pub use mail::{AliasRepo, DkimKeyRepo, MailDomainRepo, MailQueueRepo, MailboxRep
 pub use metrics::MetricsRepo;
 pub use operator::OperatorRepo;
 pub use passkey::{NewPasskey, Passkey, PasskeyChallengeRepo, PasskeyRepo};
-pub use scheduled_task::ScheduledTaskRepo;
+pub use scheduled_task::{ScheduledTaskRepo, UpdateScheduledTask};
 pub use server::{AgentCredentialsRepo, ServerRepo};
 pub use server_metrics::ServerMetricsRepo;
 pub use session::SessionRepo;

@@ -312,7 +312,9 @@ pub fn router(pool: PgPool) -> Router {
         )
         .route(
             "/api/v1/daemons/{id}",
-            get(routes::daemons::get_daemon).delete(routes::daemons::delete_daemon),
+            get(routes::daemons::get_daemon)
+                .patch(routes::daemons::update_daemon)
+                .delete(routes::daemons::delete_daemon),
         )
         // ── Scheduled tasks ────────────────────────────────────────────────
         .route(
@@ -323,7 +325,12 @@ pub fn router(pool: PgPool) -> Router {
         .route(
             "/api/v1/scheduled-tasks/{id}",
             get(routes::scheduled_tasks::get_scheduled_task)
+                .patch(routes::scheduled_tasks::update_scheduled_task)
                 .delete(routes::scheduled_tasks::delete_scheduled_task),
+        )
+        .route(
+            "/api/v1/scheduled-tasks/{id}/run",
+            post(routes::scheduled_tasks::run_scheduled_task_now),
         )
         // ── Site moves ─────────────────────────────────────────────────────
         .route(

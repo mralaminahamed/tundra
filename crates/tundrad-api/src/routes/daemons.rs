@@ -6,7 +6,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tundrad_auth::{Action, AuthzService, Resource};
-use tundrad_domain::NewDaemon;
+use tundrad_domain::{AuditActor, NewAuditEntry, NewDaemon};
 use tundrad_repo::PgPool;
 use uuid::Uuid;
 
@@ -33,6 +33,14 @@ pub struct CreateDaemonRequest {
     pub command: String,
     pub working_dir: Option<String>,
     pub env_file: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateDaemonRequest {
+    pub name: Option<String>,
+    pub command: Option<String>,
+    pub working_dir: Option<String>,
+    pub is_active: Option<bool>,
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -113,6 +121,46 @@ pub async fn get_daemon(
         .map_err(ApiError::from)?;
     let daemon = tundrad_repo::DaemonRepo::new(&pool)
         .find_by_id(id)
+        .await
+        .map_err(ApiError::from)?;
+    Ok(Json(to_daemon_dto(daemon)))
+}
+
+pub async fn update_daemon(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+    Json(body): Json<UpdateDaemonRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Update, Resource::Daemon)
+        .map_err(ApiError::from)?;
+    let daemon = tundrad_repo::DaemonRepo::new(&pool)
+        .update(
+            id,
+            tundrad_repo::UpdateDaemon {
+                name: body.name,
+                command: body.command,
+                working_dir: body.working_dir,
+                is_active: body.is_active,
+            },
+        )
+        .await
+        .map_err(ApiError::from)?;
+    tundrad_repo::AuditLogRepo::new(&pool)
+        .append(NewAuditEntry {
+            actor: AuditActor::Operator(session.operator_id),
+            action: "daemon.update".to_owned(),
+            resource_type: Some("daemon".to_owned()),
+            resource_id: Some(daemon.id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::json!({ "is_active": daemon.is_active }),
+        })
         .await
         .map_err(ApiError::from)?;
     Ok(Json(to_daemon_dto(daemon)))

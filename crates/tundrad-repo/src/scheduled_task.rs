@@ -2,6 +2,17 @@ use crate::{PgPool, RepoError};
 use tundrad_domain::scheduled_task::{NewScheduledTask, ScheduledTask};
 use uuid::Uuid;
 
+// ── UpdateScheduledTask ───────────────────────────────────────────────────────
+
+#[derive(Default)]
+pub struct UpdateScheduledTask {
+    pub name: Option<String>,
+    pub schedule: Option<String>,
+    pub command: Option<String>,
+    pub working_dir: Option<String>,
+    pub is_active: Option<bool>,
+}
+
 // ── ScheduledTask ─────────────────────────────────────────────────────────────
 
 #[derive(sqlx::FromRow)]
@@ -109,5 +120,31 @@ impl<'a> ScheduledTaskRepo<'a> {
             return Err(RepoError::NotFound);
         }
         Ok(())
+    }
+
+    /// Partial update — only fields present in `upd` are written.
+    pub async fn update(&self, id: Uuid, upd: UpdateScheduledTask) -> Result<ScheduledTask, RepoError> {
+        let current = self.find_by_id(id).await?;
+        let name = upd.name.unwrap_or(current.name);
+        let schedule = upd.schedule.unwrap_or(current.schedule);
+        let command = upd.command.unwrap_or(current.command);
+        let working_dir = upd.working_dir.unwrap_or(current.working_dir);
+        let is_active = upd.is_active.unwrap_or(current.is_active);
+        sqlx::query_as::<_, ScheduledTaskRow>(&format!(
+            "UPDATE scheduled_tasks \
+             SET name = $2, schedule = $3, command = $4, working_dir = $5, is_active = $6, \
+                 updated_at = now() \
+             WHERE id = $1 RETURNING {SCHEDULED_TASK_COLS}"
+        ))
+        .bind(id)
+        .bind(&name)
+        .bind(&schedule)
+        .bind(&command)
+        .bind(&working_dir)
+        .bind(is_active)
+        .fetch_one(self.0)
+        .await
+        .map(ScheduledTask::from)
+        .map_err(RepoError::from)
     }
 }

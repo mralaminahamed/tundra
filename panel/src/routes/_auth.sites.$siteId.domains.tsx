@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
@@ -13,6 +13,7 @@ export const Route = createFileRoute('/_auth/sites/$siteId/domains')({
 
 function SiteDomainsTab() {
   const { siteId } = Route.useParams()
+  const qc = useQueryClient()
   const [addDomain, setAddDomain] = useState('')
   const [showAdd, setShowAdd] = useState(false)
 
@@ -23,11 +24,45 @@ function SiteDomainsTab() {
 
   const domains = data?.data ?? []
 
+  const addMut = useMutation({
+    mutationFn: (apex: string) =>
+      api<Domain>('/domains', {
+        method: 'POST',
+        body: { apex },
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['sites', siteId, 'domains'] })
+      toast.success('Domain added')
+      setAddDomain('')
+      setShowAdd(false)
+    },
+    onError: () => toast.error('Failed to add domain'),
+  })
+
+  const removeMut = useMutation({
+    mutationFn: (domainId: string) =>
+      api(`/domains/${domainId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['sites', siteId, 'domains'] })
+      toast.success('Domain removed')
+    },
+    onError: () => toast.error('Failed to remove domain'),
+  })
+
+  function handleAdd() {
+    const trimmed = addDomain.trim()
+    if (!trimmed) return
+    addMut.mutate(trimmed)
+  }
+
   const DNS_MANAGED: Record<string, { dot: string; label: string }> = {
     tundra:    { dot: 'bg-tundra-lichen', label: 'Tundra DNS' },
     external:  { dot: 'bg-yellow-400', label: 'External DNS' },
     registrar: { dot: 'bg-tundra-aurora', label: 'Registrar DNS' },
   }
+
+  // The first domain in the list is treated as the primary (site origin).
+  const primaryId = domains[0]?.id
 
   return (
     <div className="space-y-4">
@@ -41,18 +76,26 @@ function SiteDomainsTab() {
 
       {showAdd && (
         <div className="flex gap-2">
-          <input type="text" placeholder="example.com"
+          <input
+            type="text"
+            placeholder="example.com"
             value={addDomain}
             onChange={(e) => { setAddDomain(e.target.value) }}
-            onKeyDown={(e) => { if (e.key === 'Enter') toast.info('Domain add coming soon') }}
-            className="h-9 flex-1 rounded-lg border border-tundra-ink-200 px-3 text-sm focus:border-tundra-lichen focus:outline-none" />
-          <button type="button"
-            onClick={() => toast.info('Domain add coming soon')}
-            disabled={!addDomain}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleAdd() }}
+            disabled={addMut.isPending}
+            className="h-9 flex-1 rounded-lg border border-tundra-ink-200 px-3 text-sm focus:border-tundra-lichen focus:outline-none disabled:opacity-50"
+          />
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={!addDomain.trim() || addMut.isPending}
             className="rounded-lg bg-tundra-lichen px-4 text-sm font-medium text-white hover:bg-tundra-lichen-600 disabled:opacity-50 transition-colors">
-            Add
+            {addMut.isPending ? 'Adding…' : 'Add'}
           </button>
-          <button type="button" onClick={() => { setShowAdd(false) }}
+          <button
+            type="button"
+            onClick={() => { setShowAdd(false); setAddDomain('') }}
+            disabled={addMut.isPending}
             className="rounded-lg border border-tundra-ink-200 px-3 text-sm text-tundra-ink-500 hover:bg-tundra-ink-50 transition-colors">
             Cancel
           </button>
@@ -78,10 +121,19 @@ function SiteDomainsTab() {
             <tbody className="divide-y divide-tundra-ink-100">
               {domains.map((d) => {
                 const dns = DNS_MANAGED[d.dns_managed_by] ?? DNS_MANAGED.external
+                const isPrimary = d.id === primaryId
+
                 return (
                   <tr key={d.id} className="hover:bg-tundra-ink-50 transition-colors">
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-tundra-ink">{d.apex}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-tundra-ink">{d.apex}</p>
+                        {isPrimary && (
+                          <span className="rounded-full border border-tundra-lichen/40 bg-tundra-lichen/10 px-1.5 py-0.5 text-[10px] font-medium text-tundra-lichen-700">
+                            primary
+                          </span>
+                        )}
+                      </div>
                       {d.notes && <p className="text-xs text-tundra-ink-400">{d.notes}</p>}
                     </td>
                     <td className="px-4 py-3">
@@ -102,16 +154,28 @@ function SiteDomainsTab() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1.5">
-                        <a href={`https://${d.apex}`} target="_blank" rel="noopener noreferrer"
+                        <a
+                          href={`https://${d.apex}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="rounded border border-tundra-ink-200 p-1.5 text-tundra-ink-400 hover:bg-tundra-ink-50 transition-colors">
                           <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                             <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         </a>
-                        <button type="button" onClick={() => toast.info('Domain remove coming soon')}
-                          className="rounded border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
-                          Remove
-                        </button>
+                        {!isPrimary && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm(`Remove domain "${d.apex}"? This cannot be undone.`)) {
+                                removeMut.mutate(d.id)
+                              }
+                            }}
+                            disabled={removeMut.isPending}
+                            className="rounded border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50">
+                            {removeMut.isPending ? 'Removing…' : 'Remove'}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

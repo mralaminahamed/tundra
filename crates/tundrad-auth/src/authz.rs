@@ -110,11 +110,11 @@ impl AuthzService {
                             | Resource::MailQueue
                     )
                     | (
-                        Action::Read | Action::Create | Action::Delete,
+                        Action::Read | Action::Create | Action::Update | Action::Delete,
                         Resource::Daemon
                     )
                     | (
-                        Action::Read | Action::Create | Action::Delete,
+                        Action::Read | Action::Create | Action::Update | Action::Delete,
                         Resource::ScheduledTask
                     )
                     | (Action::Read | Action::Create, Resource::SiteMove)

@@ -1,27 +1,34 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 
 export const Route = createFileRoute('/_auth/sites/$siteId/logs')({
   component: SiteLogsTab,
 })
 
-const SAMPLE_ACCESS = `127.0.0.1 - - [11/May/2025:07:14:22 +0000] "GET / HTTP/1.1" 200 2563 "-" "Mozilla/5.0"
-127.0.0.1 - - [11/May/2025:07:14:23 +0000] "GET /wp-json/wp/v2/posts HTTP/1.1" 200 4812 "-" "curl/8.2.1"
-10.0.0.4 - - [11/May/2025:07:14:25 +0000] "GET /favicon.ico HTTP/1.1" 404 209 "/" "Chrome/123"
-10.0.0.4 - - [11/May/2025:07:14:28 +0000] "POST /wp-login.php HTTP/1.1" 302 0 "-" "Mozilla/5.0"
-10.0.0.5 - - [11/May/2025:07:14:31 +0000] "GET /sitemap.xml HTTP/1.1" 200 1824 "-" "Googlebot/2.1"
-`
-
-const SAMPLE_ERROR = `[11/May/2025:07:12:01 +0000] [error] PHP Warning: Undefined variable $config in /var/www/html/wp-config.php on line 42
-[11/May/2025:07:12:44 +0000] [error] PHP Fatal error: Uncaught Error: Call to undefined function get_theme_file_path() in /var/www/html/wp-content/themes/astra/header.php:18
-[11/May/2025:07:13:01 +0000] [notice] Nginx reload signal sent by root
-[11/May/2025:07:13:02 +0000] [notice] Using Nginx version: 1.27.0
-`
-
 function SiteLogsTab() {
+  const { siteId } = Route.useParams()
   const [logType, setLogType] = useState<'access' | 'error'>('access')
   const [lines, setLines] = useState(100)
+
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ['sites', siteId, 'logs', logType, lines],
+    queryFn: () => api<{ content: string }>(`/sites/${siteId}/logs?type=${logType}&lines=${lines}`),
+    retry: false,
+    refetchInterval: (query) => (query.state.data ? 10000 : false),
+  })
+
+  function handleDownload() {
+    if (!data?.content) return
+    const blob = new Blob([data.content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${logType}.log`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="space-y-4">
@@ -42,48 +49,59 @@ function SiteLogsTab() {
         </select>
 
         <div className="ml-auto flex gap-2">
-          <button type="button" onClick={() => toast.info('Log refresh coming soon')}
-            className="rounded-lg border border-tundra-ink-200 px-3 py-2 text-sm text-tundra-ink-500 hover:bg-tundra-ink-50 transition-colors">
-            Refresh
+          <button type="button" onClick={() => void refetch()}
+            disabled={isFetching}
+            className="rounded-lg border border-tundra-ink-200 px-3 py-2 text-sm text-tundra-ink-500 hover:bg-tundra-ink-50 transition-colors disabled:opacity-50">
+            {isFetching ? 'Refreshing…' : 'Refresh'}
           </button>
-          <button type="button" onClick={() => toast.info('Log download coming soon')}
-            className="rounded-lg border border-tundra-ink-200 px-3 py-2 text-sm text-tundra-ink-500 hover:bg-tundra-ink-50 transition-colors">
+          <button type="button"
+            onClick={handleDownload}
+            disabled={!data?.content}
+            className="rounded-lg border border-tundra-ink-200 px-3 py-2 text-sm text-tundra-ink-500 hover:bg-tundra-ink-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
             Download
           </button>
-          <button type="button" onClick={() => toast.info('Live stream coming soon')}
-            className="flex items-center gap-1.5 rounded-lg bg-tundra-lichen px-3 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-            Live tail
-          </button>
+          <div className="relative group">
+            <button type="button" disabled
+              className="flex items-center gap-1.5 rounded-lg bg-tundra-lichen px-3 py-2 text-sm font-medium text-white opacity-60 cursor-not-allowed">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              Live tail
+            </button>
+            <div className="pointer-events-none absolute bottom-full right-0 mb-1.5 w-max rounded bg-tundra-ink px-2 py-1 text-[11px] text-white opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
+              WebSocket live tail coming soon
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Log viewer */}
-      <div className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-[#0f1117]">
-        <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-tundra-lichen" />
-          <span className="text-xs text-white/60 font-mono">
-            /var/log/nginx/{logType}.log — {lines} lines
-          </span>
+      {isLoading ? (
+        <div className="flex h-40 items-center justify-center rounded-xl border border-tundra-ink-200 bg-[#0f1117]">
+          <span className="text-xs text-white/40 font-mono animate-pulse">Loading logs…</span>
         </div>
-        <pre className="max-h-[28rem] overflow-auto p-4 text-xs leading-relaxed text-green-300 font-mono whitespace-pre-wrap">
-          {logType === 'access' ? SAMPLE_ACCESS : SAMPLE_ERROR}
-          <span className="text-white/30 italic"># Live log data will stream here</span>
-        </pre>
-      </div>
-
-      {/* PHP error log */}
-      <div className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-white">
-        <div className="border-b border-tundra-ink-100 bg-tundra-ink-50 px-4 py-2.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-400">PHP Error Log</span>
+      ) : isError || !data?.content ? (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-tundra-ink-200 bg-tundra-ink-50 p-10 text-center">
+          <svg className="h-8 w-8 text-tundra-ink-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+          <p className="text-sm font-semibold text-tundra-ink-600">Log streaming not configured</p>
+          <p className="max-w-sm text-xs text-tundra-ink-400">
+            Enable nginx access logging on the server to stream logs here.
+          </p>
         </div>
-        <div className="p-4 text-center text-sm text-tundra-ink-400">
-          <button type="button" onClick={() => toast.info('PHP error log coming soon')}
-            className="text-sm font-medium text-tundra-lichen hover:underline">
-            View PHP error log →
-          </button>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-tundra-ink-200 bg-[#0f1117]">
+          <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-tundra-lichen" />
+            <span className="text-xs text-white/60 font-mono">
+              /var/log/nginx/{logType}.log — {lines} lines
+            </span>
+            <span className="ml-auto text-[10px] text-white/30 font-mono">auto-refresh 10s</span>
+          </div>
+          <pre className="max-h-[28rem] overflow-auto p-4 text-xs leading-relaxed text-green-300 font-mono whitespace-pre-wrap">
+            {data.content}
+          </pre>
         </div>
-      </div>
+      )}
     </div>
   )
 }

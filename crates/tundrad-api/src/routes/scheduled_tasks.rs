@@ -36,6 +36,15 @@ pub struct CreateScheduledTaskRequest {
     pub working_dir: Option<String>,
 }
 
+#[derive(Deserialize)]
+pub struct UpdateScheduledTaskRequest {
+    pub name: Option<String>,
+    pub schedule: Option<String>,
+    pub command: Option<String>,
+    pub working_dir: Option<String>,
+    pub is_active: Option<bool>,
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 fn to_dto(t: tundrad_domain::ScheduledTask) -> ScheduledTaskDto {
@@ -135,6 +144,47 @@ pub async fn get_scheduled_task(
     Ok(Json(to_dto(task)))
 }
 
+pub async fn update_scheduled_task(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+    Json(body): Json<UpdateScheduledTaskRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Update, Resource::ScheduledTask)
+        .map_err(ApiError::from)?;
+    let task = tundrad_repo::ScheduledTaskRepo::new(&pool)
+        .update(
+            id,
+            tundrad_repo::UpdateScheduledTask {
+                name: body.name,
+                schedule: body.schedule,
+                command: body.command,
+                working_dir: body.working_dir,
+                is_active: body.is_active,
+            },
+        )
+        .await
+        .map_err(ApiError::from)?;
+    tundrad_repo::AuditLogRepo::new(&pool)
+        .append(NewAuditEntry {
+            actor: AuditActor::Operator(session.operator_id),
+            action: "scheduled_task.update".to_owned(),
+            resource_type: Some("scheduled_task".to_owned()),
+            resource_id: Some(task.id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::json!({ "is_active": task.is_active }),
+        })
+        .await
+        .map_err(ApiError::from)?;
+    Ok(Json(to_dto(task)))
+}
+
 pub async fn delete_scheduled_task(
     State(pool): State<PgPool>,
     AuthSession(session): AuthSession,
@@ -164,4 +214,43 @@ pub async fn delete_scheduled_task(
         .await
         .map_err(ApiError::from)?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+pub async fn run_scheduled_task_now(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+    AuthzService
+        .require(&op.role, Action::Create, Resource::ScheduledTask)
+        .map_err(ApiError::from)?;
+    // Verify the task exists before recording the run.
+    tundrad_repo::ScheduledTaskRepo::new(&pool)
+        .find_by_id(id)
+        .await
+        .map_err(ApiError::from)?;
+    tundrad_repo::ScheduledTaskRepo::new(&pool)
+        .mark_run(id)
+        .await
+        .map_err(ApiError::from)?;
+    tundrad_repo::AuditLogRepo::new(&pool)
+        .append(NewAuditEntry {
+            actor: AuditActor::Operator(session.operator_id),
+            action: "scheduled_task.run_now".to_owned(),
+            resource_type: Some("scheduled_task".to_owned()),
+            resource_id: Some(id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::Value::Object(Default::default()),
+        })
+        .await
+        .map_err(ApiError::from)?;
+    Ok((
+        StatusCode::ACCEPTED,
+        Json(serde_json::json!({ "queued": true, "task_id": id })),
+    ))
 }
