@@ -32,10 +32,10 @@ jobs:
 
     steps:
       # ── checkout ────────────────────────────────────────────────────────────
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # ── Node + pnpm ─────────────────────────────────────────────────────────
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: "10.33.2"
       - uses: actions/setup-node@v4
@@ -115,9 +115,9 @@ jobs:
     if: always()
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: "10.33.2"
       - uses: actions/setup-node@v4
