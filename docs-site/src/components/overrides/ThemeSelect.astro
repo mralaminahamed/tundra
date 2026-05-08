@@ -1,0 +1,98 @@
+---
+// Custom theme switcher — sun/moon SVG toggle replacing Starlight's <select>.
+---
+
+<starlight-theme-toggle>
+  <button
+    type="button"
+    class="theme-toggle"
+    aria-label="Toggle color theme"
+    title="Toggle theme"
+  >
+    <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+    <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+    </svg>
+  </button>
+</starlight-theme-toggle>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.5rem;
+    color: var(--sl-color-text);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high);
+    background: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+  }
+
+  .theme-toggle:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Show sun in dark mode (click → switch to light), moon in light mode. */
+  .theme-toggle .icon-sun  { display: none; }
+  .theme-toggle .icon-moon { display: block; }
+
+  :root[data-theme='dark'] .theme-toggle .icon-sun  { display: block; }
+  :root[data-theme='dark'] .theme-toggle .icon-moon { display: none; }
+</style>
+
+<script>
+  type Theme = 'auto' | 'dark' | 'light';
+
+  const storageKey = 'starlight-theme';
+
+  const parseTheme = (theme: unknown): Theme =>
+    theme === 'auto' || theme === 'dark' || theme === 'light' ? theme : 'auto';
+
+  const loadTheme = (): Theme =>
+    parseTheme(typeof localStorage !== 'undefined' && localStorage.getItem(storageKey));
+
+  function storeTheme(theme: Theme): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(storageKey, theme === 'light' || theme === 'dark' ? theme : '');
+    }
+  }
+
+  const getPreferredColorScheme = (): Theme =>
+    matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+
+  function applyTheme(theme: Theme): void {
+    document.documentElement.dataset.theme =
+      theme === 'auto' ? getPreferredColorScheme() : theme;
+    storeTheme(theme);
+  }
+
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+    if (loadTheme() === 'auto') applyTheme('auto');
+  });
+
+  class StarlightThemeToggle extends HTMLElement {
+    constructor() {
+      super();
+      applyTheme(loadTheme());
+      this.querySelector('button')?.addEventListener('click', () => {
+        const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+      });
+    }
+  }
+  customElements.define('starlight-theme-toggle', StarlightThemeToggle);
+</script>

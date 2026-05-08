@@ -32,7 +32,8 @@ export default defineConfig({
         },
       },
       components: {
-        Hero: './src/components/overrides/Hero.astro',
+        Hero:        './src/components/overrides/Hero.astro',
+        ThemeSelect: './src/components/overrides/ThemeSelect.astro',
       },
       customCss: ['./src/styles/custom.css'],
       head: [
