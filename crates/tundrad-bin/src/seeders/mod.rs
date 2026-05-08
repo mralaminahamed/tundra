@@ -1,4 +1,5 @@
 pub mod alert_rules;
+pub mod dns_records;
 pub mod domains;
 pub mod mail_domains;
 pub mod operators;
@@ -18,6 +19,8 @@ pub async fn run_all(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     sites::run(pool).await?;
     println!("Seeding domains…");
     domains::run(pool).await?;
+    println!("Seeding DNS records…");
+    dns_records::run(pool).await?;
     println!("Seeding mail domains…");
     mail_domains::run(pool).await?;
     println!("Seeding alert rules…");
