@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/mralaminahamed/tundra/security/advisories/new
+    about: Report a vulnerability via GitHub private advisory (preferred) or email security@tundra.dev
+  - name: Question / discussion
+    url: https://github.com/mralaminahamed/tundra/discussions
+    about: Ask questions and discuss ideas in GitHub Discussions
+  - name: Documentation
+    url: https://github.com/mralaminahamed/tundra/tree/main/guidelines
+    about: Read the guides before filing a bug

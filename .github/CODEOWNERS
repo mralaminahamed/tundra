@@ -1,0 +1,18 @@
+# Global fallback
+*                                           @mralaminahamed
+
+# Cryptography — requires extra review
+crates/tundrad-crypto/                      @mralaminahamed
+crates/tundrad-auth/                        @mralaminahamed
+
+# Database migrations — up-only, high blast radius
+migrations/                                 @mralaminahamed
+
+# CI / release pipeline
+.github/                                    @mralaminahamed
+
+# Installer — runs as root on production servers
+installer/                                  @mralaminahamed
+
+# Plugin sandbox — Wasmtime capability gate
+crates/tundrad-plugin-host/                 @mralaminahamed
