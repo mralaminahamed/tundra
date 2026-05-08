@@ -22,12 +22,16 @@ After install, visit the printed setup URL.
 - **Multi-runtime sites** — PHP, Node.js, Python, Go, Rust, Ruby, .NET
 - **Blue/green deployments** with atomic symlink promotion
 - **Multi-server fleet** with SSH-based agent install and mTLS
+- **WordPress management** — WP-CLI provisioning, per-install DB isolation, plugin/theme management, staging/cloning
+- **File manager** — in-browser editor (CodeMirror), upload/download, copy/move/delete, zip extraction
 - **Plugin system** — Wasmtime sandbox for third-party plugins; native SDK for first-party
 - **MCP server** — connect Claude Desktop, Claude Code, Cursor, Zed via Model Context Protocol
-- **13 built-in templates** — WordPress, Laravel, Next.js, Django, Rails, and more
+- **43 built-in templates** — 13 site templates (WordPress, Laravel, Next.js, Django, Rails, and more) + 30 DNS templates across web, email, deploy, security, and utility categories
+- **DNS management** — per-domain zone editor, 30 provider-ready DNS templates (Cloudflare, ProtonMail, Fastmail, Resend, Vercel, Fly.io, and more)
 - **Mail** — Postfix + Dovecot + Rspamd + DKIM, managed per domain
 - **Backups** — restic-backed, GPG-encrypted, preview-then-confirm restore
 - **Monitoring** — per-server + per-site metrics, alert rules, delivery channels
+- **First-time setup wizard** — split-panel onboarding UI; auto-redirects on fresh install
 
 ## Architecture
 
