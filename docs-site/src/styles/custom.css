@@ -165,20 +165,32 @@ details > summary > span {
 }
 
 /* ── Inline code ─────────────────────────────────────────────────────────── */
-.sl-content code:not(pre code) {
-  font-size: 0.8125em;
-  font-family: var(--sl-font-mono);
-  background: color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
-  color: var(--sl-color-accent-high);
-  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 22%, transparent);
-  border-radius: 4px;
-  padding: 0.1em 0.35em;
+/* Starlight uses .sl-markdown-content code now. Override at full specificity
+   and force the bg-inline-code token so Starlight's own rule picks the brand
+   color instead of gray-3. */
+:root {
+  --sl-color-bg-inline-code: color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
 }
 
+:root[data-theme='dark'] {
+  --sl-color-bg-inline-code: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+}
+
+.sl-markdown-content code:not(:where(.not-content *)),
+.sl-content code:not(pre code) {
+  font-size: 0.8125em !important;
+  font-family: var(--sl-font-mono);
+  background: var(--sl-color-bg-inline-code) !important;
+  color: var(--sl-color-accent-high) !important;
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 22%, transparent);
+  border-radius: 4px;
+  padding: 0.1em 0.35em !important;
+}
+
+:root[data-theme='dark'] .sl-markdown-content code:not(:where(.not-content *)),
 :root[data-theme='dark'] .sl-content code:not(pre code) {
-  background: color-mix(in srgb, var(--sl-color-accent) 13%, transparent);
-  color: #a8c07e;
-  border-color: color-mix(in srgb, var(--sl-color-accent) 25%, transparent);
+  color: #a8c07e !important;
+  border-color: color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
 }
 
 /* ── Code blocks ─────────────────────────────────────────────────────────── */
