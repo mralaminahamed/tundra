@@ -10,7 +10,7 @@
   --sl-color-gray-3: #aeb5a8;
   --sl-color-gray-4: #76836e;
   --sl-color-gray-5: #5e6958;
-  --sl-color-gray-6: #465042;
+  --sl-color-gray-6: #3a4436;
   --sl-color-black:  #1c1f1a;
 
   --sl-font:      'Inter', system-ui, -apple-system, sans-serif;
@@ -22,25 +22,32 @@
   --sl-color-accent:      #7a8a5c;
   --sl-color-accent-high: #b3c28d;
 
-  --sl-color-white:  #f2f3f1;
+  --sl-color-white:  #e8ece4;
   --sl-color-gray-1: #2e362b;
   --sl-color-gray-2: #3a4436;
   --sl-color-gray-3: #5e6958;
-  --sl-color-gray-4: #76836e;
-  --sl-color-gray-5: #aeb5a8;
+  --sl-color-gray-4: #8a9882;
+  --sl-color-gray-5: #b3c28d;
   --sl-color-gray-6: #cacec5;
-  --sl-color-black:  #141713;
+  --sl-color-black:  #0f1210;
 
-  /* Slightly less blue-grey dark background */
-  --sl-color-bg:         #161a15;
-  --sl-color-bg-nav:     #1a1f19;
-  --sl-color-bg-sidebar: #1a1f19;
+  --sl-color-bg:         #141713;
+  --sl-color-bg-nav:     #191d18;
+  --sl-color-bg-sidebar: #191d18;
+  --sl-color-text:       #d4d9cf;
+  --sl-color-text-accent: #b3c28d;
+  --sl-color-hairline-light: #2a312a;
+  --sl-color-hairline-shade: #222820;
 }
 
-/* ── Header / nav ────────────────────────────────────────────────────────── */
+/* ── Header ──────────────────────────────────────────────────────────────── */
 .site-title img {
-  height: 28px;
+  height: 26px;
   width: auto;
+}
+
+header.header {
+  border-bottom-color: var(--sl-color-hairline-light, #2a312a);
 }
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
@@ -49,56 +56,65 @@
 }
 
 /* Group labels */
-details > summary,
-.group-label span {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+.group-label span,
+details > summary > span {
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
   color: var(--sl-color-gray-4) !important;
 }
 
-/* Active item */
-[aria-current='page'] {
-  background: var(--sl-color-accent-low) !important;
-  color: var(--sl-color-accent-high) !important;
-  font-weight: 600;
+/* Sidebar links */
+.sidebar-content a {
+  color: var(--sl-color-gray-3);
   border-radius: 6px;
+  padding-block: 0.2rem;
 }
 
-:root[data-theme='dark'] [aria-current='page'] {
-  background: color-mix(in srgb, var(--sl-color-accent) 15%, transparent) !important;
+.sidebar-content a:hover {
+  color: var(--sl-color-white);
+  background: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+}
+
+/* Active item */
+[aria-current='page'],
+[aria-current='page']:hover {
+  background: var(--sl-color-accent-low) !important;
+  color: var(--sl-color-accent-high) !important;
+  font-weight: 600 !important;
+}
+
+:root[data-theme='dark'] [aria-current='page'],
+:root[data-theme='dark'] [aria-current='page']:hover {
+  background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent) !important;
   color: var(--sl-color-accent-high) !important;
 }
 
 /* ── Hero ────────────────────────────────────────────────────────────────── */
 .hero {
   padding-block: 4rem 2rem;
-  gap: 2.5rem;
+  gap: 2rem;
 }
 
-.hero > .hero-html {
-  max-width: 52rem;
-}
-
-/* Hero image — use as decorative mark, not massive */
 .hero > img,
 .hero > picture > img {
-  width: 160px !important;
+  width: 140px !important;
   height: auto !important;
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 h1.hero-title {
-  font-size: clamp(2.25rem, 5vw, 3.75rem) !important;
+  font-size: clamp(2.25rem, 5vw, 3.5rem) !important;
   font-weight: 800 !important;
   letter-spacing: -0.035em !important;
-  line-height: 1.08 !important;
+  line-height: 1.1 !important;
+  color: var(--sl-color-white) !important;
 }
 
 .hero .tagline {
-  font-size: 1.0625rem !important;
-  line-height: 1.6 !important;
+  font-size: 1rem !important;
+  line-height: 1.65 !important;
   color: var(--sl-color-gray-3) !important;
   max-width: 50ch;
 }
@@ -116,7 +132,6 @@ h1.hero-title {
 .v-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
   font-weight: 600;
   font-size: 0.75rem;
   letter-spacing: 0.01em;
@@ -128,19 +143,12 @@ h1.hero-title {
 }
 
 :root[data-theme='dark'] .v-badge {
-  background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
-  color: var(--sl-color-accent-high);
-  border-color: color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--sl-color-accent) 15%, transparent);
+  border-color: color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
 }
 
-.meta-sep {
-  color: var(--sl-color-gray-4);
-  user-select: none;
-}
-
-.meta-item {
-  color: var(--sl-color-gray-3);
-}
+.meta-sep { color: var(--sl-color-gray-3); user-select: none; }
+.meta-item { color: var(--sl-color-gray-3); }
 
 /* ── CTA row ─────────────────────────────────────────────────────────────── */
 .cta-row {
@@ -151,22 +159,10 @@ h1.hero-title {
   margin-block: 1.25rem 0;
 }
 
-/* ── Install block ───────────────────────────────────────────────────────── */
-.sl-content pre {
-  border: 1px solid var(--sl-color-gray-6);
-  border-radius: 0.625rem;
-}
-
-:root[data-theme='dark'] .sl-content pre {
-  border-color: var(--sl-color-gray-2);
-  background: #1a1f19 !important;
-}
-
 /* ── Cards ───────────────────────────────────────────────────────────────── */
 .sl-card {
-  border-color: var(--sl-color-gray-6) !important;
   border-radius: 0.75rem !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .sl-card:hover {
@@ -179,8 +175,51 @@ h1.hero-title {
 }
 
 :root[data-theme='dark'] .sl-card {
-  border-color: var(--sl-color-gray-2) !important;
   background: #1a1f19 !important;
+  border-color: #2e362b !important;
+}
+
+:root[data-theme='dark'] .sl-card:hover {
+  background: #1e2419 !important;
+  border-color: var(--sl-color-accent) !important;
+}
+
+:root[data-theme='dark'] .sl-card .sl-flex {
+  color: #d4d9cf;
+}
+
+/* ── Expressive Code / code blocks ───────────────────────────────────────── */
+/* Force dark theme bg in dark mode when EC doesn't pick it up */
+:root[data-theme='dark'] .expressive-code .frame,
+:root[data-theme='dark'] .expressive-code pre,
+:root[data-theme='dark'] figure.code pre {
+  background: #161b15 !important;
+}
+
+:root[data-theme='dark'] .expressive-code .frame.has-title .header {
+  background: #1a1f19 !important;
+  border-bottom-color: #2e362b !important;
+}
+
+/* The three dots in code header */
+:root[data-theme='dark'] .expressive-code .frame .header::before {
+  opacity: 0.4;
+}
+
+/* ── Inline code ─────────────────────────────────────────────────────────── */
+.sl-content code:not(pre code) {
+  font-size: 0.8125em;
+  background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+  color: var(--sl-color-accent-high);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 25%, transparent);
+}
+
+:root[data-theme='dark'] .sl-content code:not(pre code) {
+  background: color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
+  color: #b3c28d;
+  border-color: color-mix(in srgb, var(--sl-color-accent) 28%, transparent);
 }
 
 /* ── Tables ──────────────────────────────────────────────────────────────── */
@@ -196,18 +235,44 @@ h1.hero-title {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--sl-color-gray-4);
-  border-bottom: 2px solid var(--sl-color-gray-6);
+  border-bottom: 2px solid var(--sl-color-hairline-light, var(--sl-color-gray-6));
   padding-block: 0.5rem;
 }
 
+.sl-content td {
+  border-bottom: 1px solid var(--sl-color-hairline-light, var(--sl-color-gray-6));
+  padding-block: 0.5rem;
+  color: var(--sl-color-text, var(--sl-color-white));
+}
+
 :root[data-theme='dark'] .sl-content th {
-  border-color: var(--sl-color-gray-2);
+  color: #8a9882;
+  border-color: #2a312a;
+}
+
+:root[data-theme='dark'] .sl-content td {
+  border-color: #222820;
+  color: #c4c9bf;
 }
 
 /* ── Aside / callout ─────────────────────────────────────────────────────── */
 .starlight-aside {
   border-radius: 0.5rem;
   border-width: 1px;
+}
+
+:root[data-theme='dark'] .starlight-aside {
+  background: color-mix(in srgb, var(--sl-color-accent) 6%, #141713) !important;
+}
+
+/* ── Steps component ─────────────────────────────────────────────────────── */
+:root[data-theme='dark'] .sl-steps > li::before {
+  background: var(--sl-color-accent) !important;
+  color: #fff !important;
+}
+
+:root[data-theme='dark'] .sl-steps > li {
+  border-color: #2a312a;
 }
 
 /* ── Content headings ────────────────────────────────────────────────────── */
@@ -224,48 +289,65 @@ h1.hero-title {
   letter-spacing: -0.01em;
 }
 
-/* ── Divider between homepage sections ───────────────────────────────────── */
+:root[data-theme='dark'] .sl-content h1,
+:root[data-theme='dark'] .sl-content h2,
+:root[data-theme='dark'] .sl-content h3,
+:root[data-theme='dark'] .sl-content h4 {
+  color: #e0e5dc;
+}
+
+/* ── Dividers ────────────────────────────────────────────────────────────── */
 .sl-content hr {
   border: none;
-  border-top: 1px solid var(--sl-color-gray-6);
+  border-top: 1px solid var(--sl-color-hairline-light, var(--sl-color-gray-6));
   margin-block: 2.5rem;
 }
 
 :root[data-theme='dark'] .sl-content hr {
-  border-color: var(--sl-color-gray-2);
-}
-
-/* ── Code inline ─────────────────────────────────────────────────────────── */
-.sl-content code:not(pre code) {
-  font-size: 0.8125em;
-  background: var(--sl-color-accent-low);
-  color: var(--sl-color-accent-high);
-  border-radius: 4px;
-  padding: 0.1em 0.35em;
-}
-
-:root[data-theme='dark'] .sl-content code:not(pre code) {
-  background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
-  color: var(--sl-color-accent-high);
+  border-color: #2a312a;
 }
 
 /* ── Pagination ──────────────────────────────────────────────────────────── */
 .pagination-links a {
   border-radius: 0.5rem;
-  border-color: var(--sl-color-gray-6) !important;
 }
 
 :root[data-theme='dark'] .pagination-links a {
-  border-color: var(--sl-color-gray-2) !important;
+  background: #1a1f19 !important;
+  border-color: #2e362b !important;
+  color: #c4c9bf !important;
 }
 
-/* ── Mobile tweaks ───────────────────────────────────────────────────────── */
+:root[data-theme='dark'] .pagination-links a:hover {
+  border-color: var(--sl-color-accent) !important;
+}
+
+/* ── TOC (right sidebar) ─────────────────────────────────────────────────── */
+:root[data-theme='dark'] starlight-toc a {
+  color: #8a9882;
+}
+
+:root[data-theme='dark'] starlight-toc a:hover,
+:root[data-theme='dark'] starlight-toc a[aria-current='true'] {
+  color: #b3c28d;
+}
+
+/* ── Main content text ───────────────────────────────────────────────────── */
+:root[data-theme='dark'] .sl-content p,
+:root[data-theme='dark'] .sl-content li {
+  color: #c4c9bf;
+}
+
+:root[data-theme='dark'] .sl-content a:not([class]) {
+  color: #9db875;
+}
+
+:root[data-theme='dark'] .sl-content a:not([class]):hover {
+  color: #b3c28d;
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 50rem) {
-  h1.hero-title {
-    font-size: 2.25rem !important;
-  }
-  .hero > img,
-  .hero > picture > img {
-    display: none;
-  }
+  h1.hero-title { font-size: 2.25rem !important; }
+  .hero > img, .hero > picture > img { display: none; }
 }

@@ -24,6 +24,13 @@ export default defineConfig({
       },
       lastUpdated: true,
       pagination: true,
+      expressiveCode: {
+        themes: ['github-dark', 'github-light'],
+        styleOverrides: {
+          borderRadius: '0.5rem',
+          borderWidth: '1px',
+        },
+      },
       customCss: ['./src/styles/custom.css'],
       head: [
         {
