@@ -51,7 +51,8 @@ function passwordStrength(pw: string): { label: string; color: string; width: st
 interface VersionOption { value: string; label: string; recommended?: boolean }
 interface VersionGroup  { label: string; status?: 'active' | 'security' | 'eol'; versions: string[] }
 
-// PHP branch lifecycle (mirrors wp settings page)
+// PHP branch lifecycle (mirrors wp settings page; updated May 2026)
+// active: 8.4, 8.3, 8.2  |  security: 8.1  |  eol: 8.0, 7.4
 const PHP_EOL = new Set(['7.4', '8.0'])
 const PHP_SEC = new Set(['8.1'])
 function phpBranchStatus(b: string): 'active' | 'security' | 'eol' {
@@ -72,39 +73,40 @@ function groupByBranch(versions: string[]): VersionGroup[] {
   }))
 }
 
-// PHP fallback when live API is unavailable
-const PHP_FALLBACK = ['8.3.21', '8.3.20', '8.2.28', '8.2.27', '8.1.32', '8.1.31', '8.0.30', '7.4.33']
+// PHP fallback when live API is unavailable (updated May 2026)
+const PHP_FALLBACK = ['8.4.7', '8.4.6', '8.3.21', '8.3.20', '8.2.28', '8.2.27', '8.1.32', '8.0.30', '7.4.33']
 
-// Curated grouped lists for other runtimes
+// Curated grouped lists for other runtimes (updated May 2026)
 const NODE_GROUPS: VersionGroup[] = [
-  { label: 'Node 22 LTS', status: 'active',   versions: ['22.14.0', '22.13.1', '22.12.0'] },
-  { label: 'Node 20 LTS', status: 'active',   versions: ['20.19.0', '20.18.3', '20.17.0'] },
-  { label: 'Node 18 LTS', status: 'security', versions: ['18.20.7', '18.20.6', '18.20.4'] },
-  { label: 'Node 16',     status: 'eol',      versions: ['16.20.2'] },
+  { label: 'Node 22 LTS', status: 'active', versions: ['22.22.2', '22.22.1', '22.22.0'] },
+  { label: 'Node 20',     status: 'eol',    versions: ['20.20.1', '20.20.0', '20.19.2'] },
+  { label: 'Node 18',     status: 'eol',    versions: ['18.20.8', '18.20.7', '18.20.6'] },
+  { label: 'Node 16',     status: 'eol',    versions: ['16.20.2', '16.20.1', '16.20.0'] },
 ]
 const PYTHON_GROUPS: VersionGroup[] = [
-  { label: 'Python 3.13', status: 'active',   versions: ['3.13.3', '3.13.2', '3.13.1'] },
-  { label: 'Python 3.12', status: 'active',   versions: ['3.12.10', '3.12.9', '3.12.8'] },
-  { label: 'Python 3.11', status: 'active',   versions: ['3.11.12', '3.11.11', '3.11.10'] },
-  { label: 'Python 3.10', status: 'security', versions: ['3.10.17', '3.10.16'] },
-  { label: 'Python 3.9',  status: 'eol',      versions: ['3.9.21', '3.9.20'] },
+  { label: 'Python 3.13', status: 'active',   versions: ['3.13.13', '3.13.12', '3.13.11'] },
+  { label: 'Python 3.12', status: 'active',   versions: ['3.12.13', '3.12.12', '3.12.11'] },
+  { label: 'Python 3.11', status: 'active',   versions: ['3.11.15', '3.11.14', '3.11.13'] },
+  { label: 'Python 3.10', status: 'security', versions: ['3.10.20'] },
+  { label: 'Python 3.9',  status: 'eol',      versions: ['3.9.25'] },
 ]
 const GO_GROUPS: VersionGroup[] = [
-  { label: 'Go 1.24', status: 'active',   versions: ['1.24.3', '1.24.2', '1.24.1'] },
-  { label: 'Go 1.23', status: 'active',   versions: ['1.23.8', '1.23.7'] },
-  { label: 'Go 1.22', status: 'eol',      versions: ['1.22.12'] },
+  { label: 'Go 1.26', status: 'active', versions: ['1.26.2', '1.26.1', '1.26.0'] },
+  { label: 'Go 1.25', status: 'active', versions: ['1.25.9', '1.25.8', '1.25.7'] },
+  { label: 'Go 1.24', status: 'eol',   versions: ['1.24.13', '1.24.12', '1.24.11'] },
+  { label: 'Go 1.23', status: 'eol',   versions: ['1.23.12', '1.23.11', '1.23.10'] },
 ]
 const RUBY_GROUPS: VersionGroup[] = [
-  { label: 'Ruby 3.4', status: 'active',   versions: ['3.4.3', '3.4.2', '3.4.1'] },
-  { label: 'Ruby 3.3', status: 'active',   versions: ['3.3.8', '3.3.7', '3.3.6'] },
-  { label: 'Ruby 3.2', status: 'security', versions: ['3.2.8', '3.2.7'] },
+  { label: 'Ruby 3.4', status: 'active',   versions: ['3.4.9', '3.4.8', '3.4.7'] },
+  { label: 'Ruby 3.3', status: 'active',   versions: ['3.3.11', '3.3.10', '3.3.9'] },
+  { label: 'Ruby 3.2', status: 'security', versions: ['3.2.11', '3.2.10', '3.2.9'] },
   { label: 'Ruby 3.1', status: 'eol',      versions: ['3.1.7'] },
 ]
 const DOTNET_GROUPS: VersionGroup[] = [
-  { label: '.NET 9',   status: 'active',   versions: ['9.0.5', '9.0.4', '9.0.3'] },
-  { label: '.NET 8',   status: 'active',   versions: ['8.0.16', '8.0.15', '8.0.14'] },
-  { label: '.NET 7',   status: 'eol',      versions: ['7.0.20'] },
-  { label: '.NET 6',   status: 'eol',      versions: ['6.0.36'] },
+  { label: '.NET 9', status: 'active', versions: ['9.0.15', '9.0.14', '9.0.13'] },
+  { label: '.NET 8', status: 'active', versions: ['8.0.26', '8.0.25', '8.0.24'] },
+  { label: '.NET 7', status: 'eol',   versions: ['7.0.20'] },
+  { label: '.NET 6', status: 'eol',   versions: ['6.0.36'] },
 ]
 const WP_VERSIONS: VersionOption[] = [
   { value: 'latest', label: 'Latest (recommended)', recommended: true },
