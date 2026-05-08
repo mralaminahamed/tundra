@@ -1,15 +1,15 @@
 import { createFileRoute, useRouter, Link } from '@tanstack/react-router'
 import { Formik, Form, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import {
-  GlobeIcon as Globe,
-  DatabaseIcon as Database, FolderOpenIcon as FolderOpen, DownloadIcon as Download,
-  SettingsIcon as Settings2, ShieldCheckIcon as ShieldCheck, KeyIcon as Key,
-  CheckCircleIcon as CheckCircle2, LockIcon as Lock, UnlockIcon as Unlock,
-  CloseIcon as X, PackageIcon as Package,
-  GithubIcon, GitlabIcon, WordpressIcon,
+  GlobeIcon as Globe, DatabaseIcon as Database, FolderOpenIcon as FolderOpen,
+  DownloadIcon as Download, SettingsIcon as Settings2, ShieldCheckIcon as ShieldCheck,
+  KeyIcon as Key, CheckCircleIcon as CheckCircle2, LockIcon as Lock, UnlockIcon as Unlock,
+  CloseIcon as X, PackageIcon as Package, UploadIcon as Upload,
+  CheckIcon, ChevronDownIcon,
+  GithubIcon, GitlabIcon, BitbucketIcon, WordpressIcon,
   PhpIcon, LaravelIcon, NodejsIcon, PythonIcon, GoIcon, RubyIcon, DotnetIcon,
   ArrowLeftIcon, ArrowRightIcon,
 } from '@/components/icons'
@@ -45,6 +45,157 @@ function passwordStrength(pw: string): { label: string; color: string; width: st
   return             { label: 'Strong', color: 'bg-tundra-lichen',  width: '100%' }
 }
 
+// ── Version data ──────────────────────────────────────────────────────────────
+
+interface VersionOption { value: string; label: string; recommended?: boolean }
+
+const PHP_VERSIONS: VersionOption[] = [
+  { value: '8.3', label: 'PHP 8.3', recommended: true },
+  { value: '8.2', label: 'PHP 8.2' },
+  { value: '8.1', label: 'PHP 8.1' },
+  { value: '8.0', label: 'PHP 8.0' },
+  { value: '7.4', label: 'PHP 7.4 (legacy)' },
+]
+const NODE_VERSIONS: VersionOption[] = [
+  { value: '22', label: 'Node 22 LTS', recommended: true },
+  { value: '20', label: 'Node 20 LTS' },
+  { value: '18', label: 'Node 18 LTS' },
+  { value: '16', label: 'Node 16 (EOL)' },
+]
+const PYTHON_VERSIONS: VersionOption[] = [
+  { value: '3.12', label: 'Python 3.12', recommended: true },
+  { value: '3.11', label: 'Python 3.11' },
+  { value: '3.10', label: 'Python 3.10' },
+  { value: '3.9',  label: 'Python 3.9' },
+]
+const GO_VERSIONS: VersionOption[] = [
+  { value: '1.24', label: 'Go 1.24', recommended: true },
+  { value: '1.23', label: 'Go 1.23' },
+  { value: '1.22', label: 'Go 1.22' },
+]
+const RUBY_VERSIONS: VersionOption[] = [
+  { value: '3.3', label: 'Ruby 3.3', recommended: true },
+  { value: '3.2', label: 'Ruby 3.2' },
+  { value: '3.1', label: 'Ruby 3.1' },
+  { value: '3.0', label: 'Ruby 3.0' },
+]
+const DOTNET_VERSIONS: VersionOption[] = [
+  { value: '9.0', label: '.NET 9.0', recommended: true },
+  { value: '8.0', label: '.NET 8.0 LTS' },
+  { value: '7.0', label: '.NET 7.0 (EOL)' },
+  { value: '6.0', label: '.NET 6.0 LTS' },
+]
+const WP_VERSIONS: VersionOption[] = [
+  { value: 'latest', label: 'Latest (recommended)', recommended: true },
+  { value: '6.7.2',  label: '6.7.2' },
+  { value: '6.6.2',  label: '6.6.2' },
+  { value: '6.5.5',  label: '6.5.5' },
+]
+
+const PHP_EXTENSIONS = [
+  { id: 'mbstring',  label: 'mbstring',  desc: 'Multibyte strings' },
+  { id: 'curl',      label: 'curl',      desc: 'HTTP client' },
+  { id: 'openssl',   label: 'openssl',   desc: 'SSL/TLS' },
+  { id: 'zip',       label: 'zip',       desc: 'ZIP archives' },
+  { id: 'xml',       label: 'xml',       desc: 'XML processing' },
+  { id: 'gd',        label: 'gd',        desc: 'Image processing' },
+  { id: 'imagick',   label: 'imagick',   desc: 'ImageMagick' },
+  { id: 'intl',      label: 'intl',      desc: 'Internationalization' },
+  { id: 'redis',     label: 'redis',     desc: 'Redis cache' },
+  { id: 'memcached', label: 'memcached', desc: 'Memcache' },
+  { id: 'pdo_mysql', label: 'pdo_mysql', desc: 'MySQL (PDO)' },
+  { id: 'pdo_pgsql', label: 'pdo_pgsql', desc: 'PostgreSQL (PDO)' },
+  { id: 'bcmath',    label: 'bcmath',    desc: 'Arbitrary precision' },
+  { id: 'sodium',    label: 'sodium',    desc: 'Cryptography' },
+  { id: 'pcntl',     label: 'pcntl',     desc: 'Process control' },
+  { id: 'exif',      label: 'exif',      desc: 'EXIF metadata' },
+]
+
+const PHP_EXT_DEFAULTS = ['mbstring', 'curl', 'openssl', 'zip', 'xml', 'gd', 'pdo_mysql']
+
+// ── VersionSelect ─────────────────────────────────────────────────────────────
+
+function VersionSelect({
+  value, onChange, options, placeholder = 'Select version', allowCustom = true, className,
+}: {
+  value: string; onChange: (v: string) => void
+  options: VersionOption[]; placeholder?: string; allowCustom?: boolean; className?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const filtered = options.filter((o) =>
+    o.label.toLowerCase().includes(search.toLowerCase()) ||
+    o.value.toLowerCase().includes(search.toLowerCase())
+  )
+  const selected = options.find((o) => o.value === value)
+  const display = selected?.label ?? (value || placeholder)
+
+  return (
+    <div ref={ref} className={`relative ${className ?? ''}`}>
+      <button
+        type="button"
+        onClick={() => { setOpen((o) => !o); setSearch('') }}
+        className={`${INPUT} flex items-center justify-between text-left`}
+      >
+        <span className={value ? 'text-tundra-ink' : 'text-tundra-ink-300'}>{display}</span>
+        <ChevronDownIcon className={`h-4 w-4 shrink-0 text-tundra-ink-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-tundra-ink-200 bg-white shadow-xl">
+          <div className="border-b border-tundra-ink-100 p-2">
+            <input
+              type="search" autoFocus
+              placeholder="Search versions…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-lg border border-tundra-ink-200 bg-tundra-ink-50 px-3 py-1.5 text-xs outline-none focus:border-tundra-lichen"
+            />
+          </div>
+          <div className="max-h-52 overflow-y-auto py-1">
+            {filtered.map((o) => (
+              <button key={o.value} type="button"
+                onClick={() => { onChange(o.value); setOpen(false) }}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-tundra-ink-50 ${value === o.value ? 'text-tundra-lichen font-semibold' : 'text-tundra-ink'}`}
+              >
+                {value === o.value
+                  ? <CheckIcon className="h-3.5 w-3.5 shrink-0 text-tundra-lichen" />
+                  : <span className="h-3.5 w-3.5 shrink-0" />}
+                <span className="flex-1">{o.label}</span>
+                {o.recommended && value !== o.value && (
+                  <span className="rounded-full bg-tundra-lichen/10 px-1.5 py-0.5 text-[10px] font-semibold text-tundra-lichen">rec</span>
+                )}
+              </button>
+            ))}
+            {allowCustom && search && !options.find((o) => o.value === search) && (
+              <button type="button"
+                onClick={() => { onChange(search); setOpen(false) }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-tundra-ink-500 hover:bg-tundra-ink-50"
+              >
+                <span className="h-3.5 w-3.5 shrink-0" />
+                Use custom: <code className="ml-1 font-mono text-xs">{search}</code>
+              </button>
+            )}
+            {filtered.length === 0 && !allowCustom && (
+              <p className="px-3 py-2 text-xs text-tundra-ink-300 italic">No matches</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Step progress indicator ───────────────────────────────────────────────────
 
 function StepIndicator({ steps, current }: {
@@ -54,11 +205,10 @@ function StepIndicator({ steps, current }: {
   return (
     <nav className="flex items-center gap-0">
       {steps.map((s, i) => {
-        const done    = s.id < current
-        const active  = s.id === current
+        const done   = s.id < current
+        const active = s.id === current
         return (
           <div key={s.id} className="flex items-center">
-            {/* Circle */}
             <div className="flex flex-col items-center gap-1.5">
               <div className={[
                 'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-200',
@@ -68,15 +218,13 @@ function StepIndicator({ steps, current }: {
               ].join(' ')}>
                 {done
                   ? <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                  : s.id + 1
-                }
+                  : s.id + 1}
               </div>
               <span className={[
                 'hidden text-[10px] font-medium sm:block whitespace-nowrap',
                 done ? 'text-tundra-lichen-700' : active ? 'text-tundra-ink font-semibold' : 'text-tundra-ink-300',
               ].join(' ')}>{s.label}</span>
             </div>
-            {/* Connector line */}
             {i < steps.length - 1 && (
               <div className={[
                 'h-0.5 flex-1 mx-2 mb-5 sm:mb-4 min-w-[16px] transition-colors duration-300',
@@ -95,12 +243,17 @@ function StepIndicator({ steps, current }: {
 interface EnvVar { key: string; value: string; secret: boolean }
 
 interface FormValues {
-  sourceKind: 'github' | 'gitlab' | 'blank' | 'template'
-  repoUrl: string; branch: string; kind: string; runtimeVersion: string
+  sourceKind: 'github' | 'gitlab' | 'bitbucket' | 'blank' | 'template' | 'zip' | 'wordpress'
+  repoUrl: string; branch: string
+  kind: string; runtimeVersion: string
   buildCommand: string; startCommand: string; listenPort: string; healthCheckPath: string
   domain: string; serverId: string; name: string; enableSsl: boolean
   wpSiteTitle: string; wpAdminUser: string; wpAdminEmail: string
   wpAdminPassword: string; wpVersion: string; wpShowPassword: boolean
+  phpExtensions: string[]; phpMemoryLimit: string; phpMaxExec: string; phpOpcache: boolean
+  packageManager: 'npm' | 'yarn' | 'pnpm' | 'bun'; nodeEnv: string
+  wsgiServer: 'gunicorn' | 'uvicorn' | 'waitress' | 'daphne'
+  pythonRequirementsFile: string
   envVars: EnvVar[]
   gitAutoDeploy: boolean
 }
@@ -111,7 +264,7 @@ type SetFieldValue = (field: string, value: unknown) => void
 
 interface WizardPlugin {
   id: string
-  matches: (sourceKind: string, template: TemplateManifest | undefined) => boolean
+  matches: (sourceKind: string, runtimeKind: string, template: TemplateManifest | undefined) => boolean
   step: { label: string; desc: string }
   schema: Yup.ObjectSchema<Record<string, unknown>>
   Component: React.FC<{ values: FormValues; setFieldValue: SetFieldValue }>
@@ -120,22 +273,19 @@ interface WizardPlugin {
 
 // ── Plugin: WordPress ─────────────────────────────────────────────────────────
 
-const WP_VERSIONS = [
-  { value: 'latest', label: 'Latest (recommended)' },
-  { value: '6.7.2',  label: '6.7.2' },
-  { value: '6.6.2',  label: '6.6.2' },
-  { value: '6.5.5',  label: '6.5.5' },
-]
-
 function WpSetupStep({ values, setFieldValue }: { values: FormValues; setFieldValue: SetFieldValue }) {
   const strength = passwordStrength(values.wpAdminPassword)
   return (
     <div className="space-y-6">
       <div>
         <label className={LABEL}>WordPress Version</label>
-        <select value={values.wpVersion || 'latest'} onChange={(e) => setFieldValue('wpVersion', e.target.value)} className={INPUT}>
-          {WP_VERSIONS.map((v) => <option key={v.value} value={v.value}>{v.label}</option>)}
-        </select>
+        <VersionSelect
+          value={values.wpVersion || 'latest'}
+          onChange={(v) => setFieldValue('wpVersion', v)}
+          options={WP_VERSIONS}
+          placeholder="Select WP version"
+          allowCustom
+        />
       </div>
       <div>
         <label className={LABEL}>Site Title</label>
@@ -174,8 +324,7 @@ function WpSetupStep({ values, setFieldValue }: { values: FormValues; setFieldVa
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   {values.wpShowPassword
                     ? <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/>
-                    : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
-                  }
+                    : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>}
                 </svg>
               </button>
             </div>
@@ -197,8 +346,8 @@ function WpSetupStep({ values, setFieldValue }: { values: FormValues; setFieldVa
 
 const wpPlugin: WizardPlugin = {
   id: 'wordpress',
-  matches: (_, tmpl) => !!tmpl?.tags.includes('wordpress'),
-  step: { label: 'WordPress', desc: 'WordPress configuration' },
+  matches: (sourceKind, _, tmpl) => sourceKind === 'wordpress' || !!tmpl?.tags.includes('wordpress'),
+  step: { label: 'WordPress', desc: 'WordPress site configuration' },
   schema: Yup.object({
     wpSiteTitle:     Yup.string().required('Site title is required'),
     wpAdminUser:     Yup.string().required('Admin username is required'),
@@ -227,6 +376,214 @@ const wpPlugin: WizardPlugin = {
     })
     return `/wordpress/${wp.id}`
   },
+}
+
+// ── Plugin: PHP Config ─────────────────────────────────────────────────────────
+
+function PhpConfigStep({ values, setFieldValue }: { values: FormValues; setFieldValue: SetFieldValue }) {
+  const toggle = (ext: string) => {
+    const current = values.phpExtensions
+    setFieldValue(
+      'phpExtensions',
+      current.includes(ext) ? current.filter((e) => e !== ext) : [...current, ext],
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* PHP Extensions */}
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <p className={LABEL.replace('mb-1.5 ', '')}>PHP Extensions</p>
+          <button type="button"
+            onClick={() => setFieldValue('phpExtensions', PHP_EXTENSIONS.map((e) => e.id))}
+            className="text-xs text-tundra-lichen hover:underline">Select all</button>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {PHP_EXTENSIONS.map(({ id, label, desc }) => {
+            const checked = values.phpExtensions.includes(id)
+            return (
+              <button key={id} type="button" onClick={() => toggle(id)}
+                className={[
+                  'flex items-start gap-2.5 rounded-xl border p-3 text-left transition-all duration-150',
+                  checked
+                    ? 'border-tundra-lichen bg-tundra-lichen/5 ring-1 ring-tundra-lichen/20'
+                    : 'border-tundra-ink-200 bg-white hover:border-tundra-lichen/40',
+                ].join(' ')}
+              >
+                <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${checked ? 'border-tundra-lichen bg-tundra-lichen' : 'border-tundra-ink-300'}`}>
+                  {checked && <svg className="h-2.5 w-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>}
+                </span>
+                <div className="min-w-0">
+                  <p className={`font-mono text-xs font-semibold ${checked ? 'text-tundra-lichen-700' : 'text-tundra-ink'}`}>{label}</p>
+                  <p className="truncate text-[10px] text-tundra-ink-400">{desc}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Memory limit + max exec */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={LABEL}>Memory limit</label>
+          <select value={values.phpMemoryLimit} onChange={(e) => setFieldValue('phpMemoryLimit', e.target.value)} className={INPUT}>
+            {['64M', '128M', '256M', '512M', '1024M'].map((v) => (
+              <option key={v} value={v}>{v}{v === '256M' ? ' (recommended)' : ''}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={LABEL}>Max execution time</label>
+          <select value={values.phpMaxExec} onChange={(e) => setFieldValue('phpMaxExec', e.target.value)} className={INPUT}>
+            {['30', '60', '120', '300', '600'].map((v) => (
+              <option key={v} value={v}>{v}s{v === '30' ? ' (recommended)' : ''}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* OPcache */}
+      <div className="flex items-center justify-between rounded-2xl border border-tundra-ink-200 bg-white px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-tundra-lichen/10">
+            <svg className="h-4 w-4 text-tundra-lichen-700" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-tundra-ink">Enable OPcache</p>
+            <p className="text-xs text-tundra-ink-400">Bytecode caching for faster PHP execution</p>
+          </div>
+        </div>
+        <Switch checked={values.phpOpcache} onChange={(v) => setFieldValue('phpOpcache', v)} />
+      </div>
+    </div>
+  )
+}
+
+const phpConfigPlugin: WizardPlugin = {
+  id: 'php_config',
+  matches: (sourceKind, runtimeKind, tmpl) => {
+    if (sourceKind === 'wordpress' || tmpl?.tags.includes('wordpress')) return true
+    return runtimeKind === 'php' || runtimeKind === 'laravel'
+  },
+  step: { label: 'PHP Config', desc: 'PHP extensions and server settings' },
+  schema: Yup.object({}) as Yup.ObjectSchema<Record<string, unknown>>,
+  Component: PhpConfigStep,
+}
+
+// ── Plugin: Node Config ────────────────────────────────────────────────────────
+
+const PKG_MANAGERS: Array<{ id: FormValues['packageManager']; label: string; desc: string }> = [
+  { id: 'npm',  label: 'npm',  desc: 'Node default' },
+  { id: 'yarn', label: 'Yarn', desc: 'Fast + PnP' },
+  { id: 'pnpm', label: 'pnpm', desc: 'Disk-efficient' },
+  { id: 'bun',  label: 'Bun',  desc: 'Ultra-fast' },
+]
+
+function NodeConfigStep({ values, setFieldValue }: { values: FormValues; setFieldValue: SetFieldValue }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className={LABEL}>Package manager</label>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {PKG_MANAGERS.map(({ id, label, desc }) => {
+            const active = values.packageManager === id
+            return (
+              <button key={id} type="button" onClick={() => setFieldValue('packageManager', id)}
+                className={[
+                  'flex flex-col items-center gap-1.5 rounded-xl border p-3 text-center transition-all duration-150',
+                  active
+                    ? 'border-tundra-lichen bg-tundra-lichen/5 ring-2 ring-tundra-lichen/20 shadow-sm'
+                    : 'border-tundra-ink-200 bg-white hover:border-tundra-lichen/40',
+                ].join(' ')}
+              >
+                <span className={`font-mono text-sm font-bold ${active ? 'text-tundra-lichen-700' : 'text-tundra-ink'}`}>{label}</span>
+                <span className="text-[10px] text-tundra-ink-400">{desc}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      <div>
+        <label className={LABEL}>NODE_ENV</label>
+        <div className="grid grid-cols-3 gap-2">
+          {['production', 'staging', 'development'].map((env) => {
+            const active = values.nodeEnv === env
+            return (
+              <button key={env} type="button" onClick={() => setFieldValue('nodeEnv', env)}
+                className={[
+                  'rounded-xl border px-4 py-2.5 text-sm font-medium capitalize transition-all duration-150',
+                  active
+                    ? 'border-tundra-lichen bg-tundra-lichen/5 text-tundra-lichen-700 ring-2 ring-tundra-lichen/20 shadow-sm'
+                    : 'border-tundra-ink-200 bg-white text-tundra-ink hover:border-tundra-lichen/40',
+                ].join(' ')}
+              >{env}</button>
+            )
+          })}
+        </div>
+        <p className={HINT}>Sets the NODE_ENV environment variable at runtime.</p>
+      </div>
+    </div>
+  )
+}
+
+const nodeConfigPlugin: WizardPlugin = {
+  id: 'node_config',
+  matches: (_, runtimeKind) => runtimeKind === 'nodejs',
+  step: { label: 'Node Config', desc: 'Package manager and runtime environment' },
+  schema: Yup.object({}) as Yup.ObjectSchema<Record<string, unknown>>,
+  Component: NodeConfigStep,
+}
+
+// ── Plugin: Python Config ──────────────────────────────────────────────────────
+
+const WSGI_SERVERS: Array<{ id: FormValues['wsgiServer']; label: string; desc: string }> = [
+  { id: 'gunicorn', label: 'Gunicorn',  desc: 'WSGI, battle-tested' },
+  { id: 'uvicorn',  label: 'Uvicorn',   desc: 'ASGI, async support' },
+  { id: 'waitress', label: 'Waitress',  desc: 'Pure-Python WSGI' },
+  { id: 'daphne',   label: 'Daphne',    desc: 'Django Channels' },
+]
+
+function PythonConfigStep({ values, setFieldValue }: { values: FormValues; setFieldValue: SetFieldValue }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className={LABEL}>WSGI / ASGI server</label>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {WSGI_SERVERS.map(({ id, label, desc }) => {
+            const active = values.wsgiServer === id
+            return (
+              <button key={id} type="button" onClick={() => setFieldValue('wsgiServer', id)}
+                className={[
+                  'flex flex-col items-center gap-1.5 rounded-xl border p-3 text-center transition-all duration-150',
+                  active
+                    ? 'border-tundra-lichen bg-tundra-lichen/5 ring-2 ring-tundra-lichen/20 shadow-sm'
+                    : 'border-tundra-ink-200 bg-white hover:border-tundra-lichen/40',
+                ].join(' ')}
+              >
+                <span className={`text-sm font-bold ${active ? 'text-tundra-lichen-700' : 'text-tundra-ink'}`}>{label}</span>
+                <span className="text-[10px] text-tundra-ink-400">{desc}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      <div>
+        <label className={LABEL}>Requirements file</label>
+        <input type="text" value={values.pythonRequirementsFile} onChange={(e) => setFieldValue('pythonRequirementsFile', e.target.value)} placeholder="requirements.txt" className={`${INPUT} font-mono text-xs`} />
+        <p className={HINT}>Path relative to the document root. Used for <code className="font-mono">pip install -r</code> during build.</p>
+      </div>
+    </div>
+  )
+}
+
+const pythonConfigPlugin: WizardPlugin = {
+  id: 'python_config',
+  matches: (_, runtimeKind) => runtimeKind === 'python',
+  step: { label: 'Python Config', desc: 'WSGI server and package settings' },
+  schema: Yup.object({}) as Yup.ObjectSchema<Record<string, unknown>>,
+  Component: PythonConfigStep,
 }
 
 // ── Plugin: Environment Variables ─────────────────────────────────────────────
@@ -273,8 +630,8 @@ function EnvVarsStep({ values, setFieldValue }: { values: FormValues; setFieldVa
 
 const envVarsPlugin: WizardPlugin = {
   id: 'env_vars',
-  matches: (sourceKind, tmpl) => {
-    if (sourceKind === 'github' || sourceKind === 'gitlab') return false
+  matches: (sourceKind, _, tmpl) => {
+    if (['github', 'gitlab', 'bitbucket', 'wordpress', 'blank', 'zip'].includes(sourceKind)) return false
     if (tmpl?.tags.includes('wordpress')) return false
     return sourceKind === 'template' && !!tmpl
   },
@@ -286,7 +643,8 @@ const envVarsPlugin: WizardPlugin = {
 // ── Plugin: Git ───────────────────────────────────────────────────────────────
 
 function GitRepoStep({ values, setFieldValue }: { values: FormValues; setFieldValue: SetFieldValue }) {
-  const isGitHub = values.sourceKind === 'github'
+  const kind = values.sourceKind
+  const label = kind === 'github' ? 'GitHub' : kind === 'gitlab' ? 'GitLab' : 'Bitbucket'
   const addVar    = () => setFieldValue('envVars', [...values.envVars, { key: '', value: '', secret: false }])
   const removeVar = (i: number) => setFieldValue('envVars', values.envVars.filter((_, idx) => idx !== i))
   const updateVar = (i: number, field: keyof EnvVar, val: unknown) =>
@@ -304,11 +662,11 @@ function GitRepoStep({ values, setFieldValue }: { values: FormValues; setFieldVa
         <Switch checked={values.gitAutoDeploy} onChange={(v) => setFieldValue('gitAutoDeploy', v)} />
       </div>
       <div className="rounded-2xl border border-tundra-ink-200 bg-tundra-ink-50/50 p-5 space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-500">{isGitHub ? 'GitHub' : 'GitLab'} setup</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-tundra-ink-500">{label} setup</p>
         <p className="text-sm text-tundra-ink-500">After site creation, add a <strong>deploy key</strong> to your repository so Tundra can pull code.</p>
         <div className="flex flex-col gap-2 text-xs text-tundra-ink-500">
           {[
-            `Go to Repository → Settings → ${isGitHub ? 'Deploy keys' : 'Deploy Keys'}`,
+            `Go to Repository → Settings → Deploy keys`,
             'Add the deploy key shown on the site detail page after creation',
             ...(values.gitAutoDeploy ? ['Add the webhook URL from the site detail page to your repository'] : []),
           ].map((step, i) => (
@@ -340,38 +698,38 @@ function GitRepoStep({ values, setFieldValue }: { values: FormValues; setFieldVa
 
 const gitPlugin: WizardPlugin = {
   id: 'git',
-  matches: (sourceKind) => sourceKind === 'github' || sourceKind === 'gitlab',
-  step: { label: 'Repository', desc: 'Git repository settings' },
+  matches: (sourceKind) => ['github', 'gitlab', 'bitbucket'].includes(sourceKind),
+  step: { label: 'Repository', desc: 'Git repository and deploy settings' },
   schema: Yup.object({}) as Yup.ObjectSchema<Record<string, unknown>>,
   Component: GitRepoStep,
 }
 
-const WIZARD_PLUGINS: WizardPlugin[] = [wpPlugin, gitPlugin, envVarsPlugin]
+const WIZARD_PLUGINS: WizardPlugin[] = [wpPlugin, phpConfigPlugin, nodeConfigPlugin, pythonConfigPlugin, gitPlugin, envVarsPlugin]
 
 // ── Runtime constants ─────────────────────────────────────────────────────────
 
 type RuntimeKind = 'static' | 'php' | 'laravel' | 'nodejs' | 'python' | 'go' | 'ruby' | 'dotnet'
 
 const RUNTIME_HINTS: Record<RuntimeKind, {
-  label: string; versionPlaceholder: string; buildHint: string
-  startHint: string; portHint: string; hasPort: boolean; icon: React.ReactNode
+  label: string; versionOptions: VersionOption[]
+  buildHint: string; startHint: string; portHint: string; hasPort: boolean; icon: React.ReactNode
 }> = {
-  static:  { label: 'Static',  versionPlaceholder: '',     buildHint: '',                                                  startHint: '',                                    portHint: '',     hasPort: false, icon: <Globe       size={16} /> },
-  php:     { label: 'PHP',     versionPlaceholder: '8.3',  buildHint: 'composer install --no-dev',                         startHint: '',                                    portHint: '',     hasPort: false, icon: <PhpIcon     size={16} /> },
-  laravel: { label: 'Laravel', versionPlaceholder: '8.3',  buildHint: 'composer install --no-dev && php artisan optimize', startHint: '',                                    portHint: '',     hasPort: false, icon: <LaravelIcon size={16} /> },
-  nodejs:  { label: 'Node.js', versionPlaceholder: '22',   buildHint: 'npm ci && npm run build',                          startHint: 'node dist/index.js',                  portHint: '3000', hasPort: true,  icon: <NodejsIcon  size={16} /> },
-  python:  { label: 'Python',  versionPlaceholder: '3.12', buildHint: 'pip install -r requirements.txt',                  startHint: 'gunicorn app:app -b 0.0.0.0:$PORT',   portHint: '8000', hasPort: true,  icon: <PythonIcon  size={16} /> },
-  go:      { label: 'Go',      versionPlaceholder: '1.24', buildHint: 'go build -o app .',                                startHint: './app',                               portHint: '8080', hasPort: true,  icon: <GoIcon      size={16} /> },
-  ruby:    { label: 'Ruby',    versionPlaceholder: '3.3',  buildHint: 'bundle install',                                   startHint: 'bundle exec puma -C config/puma.rb',  portHint: '3000', hasPort: true,  icon: <RubyIcon    size={16} /> },
-  dotnet:  { label: '.NET',    versionPlaceholder: '9.0',  buildHint: 'dotnet publish -c Release -o out',                 startHint: 'dotnet out/App.dll',                  portHint: '5000', hasPort: true,  icon: <DotnetIcon  size={16} /> },
+  static:  { label: 'Static',  versionOptions: [],            buildHint: '',                                                  startHint: '',                                    portHint: '',     hasPort: false, icon: <Globe       size={16} /> },
+  php:     { label: 'PHP',     versionOptions: PHP_VERSIONS,  buildHint: 'composer install --no-dev',                         startHint: '',                                    portHint: '',     hasPort: false, icon: <PhpIcon     size={16} /> },
+  laravel: { label: 'Laravel', versionOptions: PHP_VERSIONS,  buildHint: 'composer install --no-dev && php artisan optimize', startHint: '',                                    portHint: '',     hasPort: false, icon: <LaravelIcon size={16} /> },
+  nodejs:  { label: 'Node.js', versionOptions: NODE_VERSIONS, buildHint: 'npm ci && npm run build',                          startHint: 'node dist/index.js',                  portHint: '3000', hasPort: true,  icon: <NodejsIcon  size={16} /> },
+  python:  { label: 'Python',  versionOptions: PYTHON_VERSIONS,buildHint: 'pip install -r requirements.txt',                 startHint: 'gunicorn app:app -b 0.0.0.0:$PORT',   portHint: '8000', hasPort: true,  icon: <PythonIcon  size={16} /> },
+  go:      { label: 'Go',      versionOptions: GO_VERSIONS,   buildHint: 'go build -o app .',                                startHint: './app',                               portHint: '8080', hasPort: true,  icon: <GoIcon      size={16} /> },
+  ruby:    { label: 'Ruby',    versionOptions: RUBY_VERSIONS, buildHint: 'bundle install',                                   startHint: 'bundle exec puma -C config/puma.rb',  portHint: '3000', hasPort: true,  icon: <RubyIcon    size={16} /> },
+  dotnet:  { label: '.NET',    versionOptions: DOTNET_VERSIONS,buildHint: 'dotnet publish -c Release -o out',                startHint: 'dotnet out/App.dll',                  portHint: '5000', hasPort: true,  icon: <DotnetIcon  size={16} /> },
 }
 
 // ── Base schemas ──────────────────────────────────────────────────────────────
 
 const SCHEMA_SOURCE = Yup.object({
-  sourceKind: Yup.string().oneOf(['github', 'gitlab', 'blank', 'template']).required(),
+  sourceKind: Yup.string().oneOf(['github', 'gitlab', 'bitbucket', 'blank', 'template', 'zip', 'wordpress']).required(),
   branch: Yup.string().when('sourceKind', {
-    is: (k: string) => k !== 'blank' && k !== 'template',
+    is: (k: string) => ['github', 'gitlab', 'bitbucket'].includes(k),
     then: (s) => s.required('Branch is required'),
     otherwise: (s) => s.optional(),
   }),
@@ -392,39 +750,64 @@ const SCHEMA_REVIEW = Yup.object({})
 
 // ── Step 1: Source ────────────────────────────────────────────────────────────
 
-const SOURCE_TYPES = [
-  { id: 'blank'    as const, label: 'Blank site',  badge: null,      desc: 'Empty document root — start from scratch',
-    icon: <svg className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M9 12h6m-3-3v6M3 12a9 9 0 1018 0 9 9 0 00-18 0z" strokeLinecap="round"/></svg>,
-    color: 'border-tundra-ink-200 hover:border-tundra-lichen',
-    bg: 'bg-tundra-ink-50/50',
-  },
-  { id: 'template' as const, label: 'Template',    badge: 'Popular', desc: 'WordPress, WooCommerce, Laravel, Next.js…',
-    icon: <svg className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zm12-1a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/></svg>,
-    color: 'border-tundra-lichen/40 hover:border-tundra-lichen',
-    bg: 'bg-tundra-lichen/5',
-  },
-  { id: 'github'   as const, label: 'GitHub',      badge: null,      desc: 'Deploy from a GitHub repository',
-    icon: <GithubIcon size={32} />,
-    color: 'border-tundra-ink-200 hover:border-tundra-lichen',
-    bg: 'bg-tundra-ink-50/50',
-  },
-  { id: 'gitlab'   as const, label: 'GitLab',      badge: null,      desc: 'Deploy from a GitLab repository',
-    icon: <GitlabIcon size={32} />,
-    color: 'border-tundra-ink-200 hover:border-tundra-lichen',
-    bg: 'bg-tundra-ink-50/50',
-  },
-]
-
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-tundra-ink-400">{children}</p>
 }
 
+type SourceKind = FormValues['sourceKind']
+
+interface SourceCard {
+  id: SourceKind; label: string; badge?: string; desc: string
+  icon: React.ReactNode; color: string; bg: string
+}
+
+const SOURCE_GROUPS: Array<{ label: string; cards: SourceCard[] }> = [
+  {
+    label: 'New application',
+    cards: [
+      { id: 'blank', label: 'Blank site', desc: 'Empty document root — start from scratch',
+        icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M9 12h6m-3-3v6M3 12a9 9 0 1018 0 9 9 0 00-18 0z" strokeLinecap="round"/></svg>,
+        color: 'border-tundra-ink-200 hover:border-tundra-lichen', bg: 'bg-white' },
+      { id: 'wordpress', label: 'WordPress', badge: 'Direct', desc: 'Install WordPress — skip the template picker',
+        icon: <WordpressIcon size={28} />,
+        color: 'border-blue-200 hover:border-blue-400', bg: 'bg-blue-50/50' },
+      { id: 'template', label: 'Template', badge: 'Popular', desc: 'WooCommerce, Laravel, Next.js and more…',
+        icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zm12-1a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/></svg>,
+        color: 'border-tundra-lichen/40 hover:border-tundra-lichen', bg: 'bg-tundra-lichen/5' },
+    ],
+  },
+  {
+    label: 'From repository',
+    cards: [
+      { id: 'github', label: 'GitHub', desc: 'Deploy from a GitHub repository',
+        icon: <GithubIcon size={28} />,
+        color: 'border-tundra-ink-200 hover:border-tundra-lichen', bg: 'bg-white' },
+      { id: 'gitlab', label: 'GitLab', desc: 'Deploy from a GitLab repository',
+        icon: <GitlabIcon size={28} />,
+        color: 'border-orange-200 hover:border-orange-400', bg: 'bg-orange-50/30' },
+      { id: 'bitbucket', label: 'Bitbucket', desc: 'Deploy from a Bitbucket repository',
+        icon: <BitbucketIcon size={28} />,
+        color: 'border-blue-200 hover:border-blue-400', bg: 'bg-blue-50/30' },
+    ],
+  },
+  {
+    label: 'Import',
+    cards: [
+      { id: 'zip', label: 'ZIP upload', desc: 'Upload a ZIP archive of your site files',
+        icon: <Upload size={28} />,
+        color: 'border-tundra-ink-200 hover:border-tundra-lichen', bg: 'bg-white' },
+    ],
+  },
+]
+
 function SourceStep({
-  values, setFieldValue, allTemplates, pickedTemplateId, setPickedTemplateId, setValues, onSourceKindChange,
+  values, setFieldValue, allTemplates, pickedTemplateId, setPickedTemplateId, setValues,
+  onSourceKindChange, zipFileRef,
 }: {
   values: FormValues; setFieldValue: SetFieldValue; allTemplates: TemplateManifest[]
   pickedTemplateId: string | undefined; setPickedTemplateId: (id: string | undefined) => void
-  setValues: (fn: (prev: FormValues) => FormValues) => void; onSourceKindChange: (kind: string) => void
+  setValues: (fn: (prev: FormValues) => FormValues) => void; onSourceKindChange: (kind: SourceKind) => void
+  zipFileRef: React.MutableRefObject<File | null>
 }) {
   const [tmplSearch, setTmplSearch] = useState('')
   const [tmplCategory, setTmplCategory] = useState('all')
@@ -444,57 +827,70 @@ function SourceStep({
     [allTemplates, tmplSearch, tmplCategory],
   )
 
-  return (
-    <div className="space-y-6">
-      {/* Source type grid */}
-      <div>
-        <SectionLabel>Source type</SectionLabel>
-        <div className="grid grid-cols-2 gap-3">
-          {SOURCE_TYPES.map((src) => {
-            const active = values.sourceKind === src.id
-            return (
-              <button key={src.id} type="button"
-                onClick={() => {
-                  setFieldValue('sourceKind', src.id)
-                  onSourceKindChange(src.id)
-                  if (src.id !== 'template') setPickedTemplateId(undefined)
-                }}
-                className={[
-                  'relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-150',
-                  active
-                    ? 'border-tundra-lichen bg-tundra-lichen/5 ring-2 ring-tundra-lichen/20 shadow-sm'
-                    : `${src.color} ${src.bg}`,
-                ].join(' ')}
-              >
-                {src.badge && (
-                  <span className="absolute right-3 top-3 rounded-full bg-tundra-lichen px-2 py-0.5 text-[10px] font-bold text-white">
-                    {src.badge}
-                  </span>
-                )}
-                {active && (
-                  <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-tundra-lichen text-white">
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                  </span>
-                )}
-                <span className={active ? 'text-tundra-lichen' : 'text-tundra-ink-500'}>{src.icon}</span>
-                <div>
-                  <p className={`font-semibold text-sm ${active ? 'text-tundra-lichen-700' : 'text-tundra-ink'}`}>{src.label}</p>
-                  <p className="mt-0.5 text-xs text-tundra-ink-400 leading-relaxed">{src.desc}</p>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+  const handleSourceClick = (id: SourceKind) => {
+    setFieldValue('sourceKind', id)
+    onSourceKindChange(id)
+    if (id !== 'template') setPickedTemplateId(undefined)
+    if (id === 'wordpress') {
+      setValues((prev) => ({ ...prev, sourceKind: id, kind: 'php', runtimeVersion: '8.3' }))
+    } else {
+      setValues((prev) => ({ ...prev, sourceKind: id }))
+    }
+  }
 
-      {/* Git repo inputs */}
-      {(values.sourceKind === 'github' || values.sourceKind === 'gitlab') && (
+  return (
+    <div className="space-y-7">
+      {SOURCE_GROUPS.map((group) => (
+        <div key={group.label}>
+          <SectionLabel>{group.label}</SectionLabel>
+          <div className={`grid gap-3 ${group.cards.length === 1 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-3'}`}>
+            {group.cards.map((src) => {
+              const active = values.sourceKind === src.id
+              const activeBadgeOnTop = src.badge && !active
+              return (
+                <button key={src.id} type="button" onClick={() => handleSourceClick(src.id)}
+                  className={[
+                    'relative flex flex-col items-start gap-2.5 rounded-2xl border p-4 text-left transition-all duration-150',
+                    active
+                      ? 'border-tundra-lichen bg-tundra-lichen/5 ring-2 ring-tundra-lichen/20 shadow-sm'
+                      : `${src.color} ${src.bg}`,
+                  ].join(' ')}
+                >
+                  {activeBadgeOnTop && (
+                    <span className={`absolute right-3 top-3 rounded-full px-2 py-0.5 text-[10px] font-bold text-white ${src.badge === 'Popular' ? 'bg-tundra-lichen' : 'bg-blue-500'}`}>
+                      {src.badge}
+                    </span>
+                  )}
+                  {active && (
+                    <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-tundra-lichen text-white">
+                      <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                    </span>
+                  )}
+                  <span className={active ? 'text-tundra-lichen' : 'text-tundra-ink-500'}>{src.icon}</span>
+                  <div>
+                    <p className={`font-semibold text-sm ${active ? 'text-tundra-lichen-700' : 'text-tundra-ink'}`}>{src.label}</p>
+                    <p className="mt-0.5 text-xs text-tundra-ink-400 leading-relaxed">{src.desc}</p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* Git inputs */}
+      {['github', 'gitlab', 'bitbucket'].includes(values.sourceKind) && (
         <div className="rounded-2xl border border-tundra-ink-200 bg-white p-5 space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="sm:col-span-2">
               <label className={LABEL}>Repository URL</label>
               <input type="url" value={values.repoUrl} onChange={(e) => setFieldValue('repoUrl', e.target.value)}
-                placeholder={values.sourceKind === 'github' ? 'https://github.com/user/repo' : 'https://gitlab.com/user/repo'} className={INPUT} />
+                placeholder={
+                  values.sourceKind === 'github' ? 'https://github.com/user/repo' :
+                  values.sourceKind === 'gitlab' ? 'https://gitlab.com/user/repo' :
+                  'https://bitbucket.org/user/repo'
+                }
+                className={INPUT} />
               <p className={HINT}>HTTPS or SSH URL of the repository</p>
             </div>
             <div>
@@ -503,6 +899,29 @@ function SourceStep({
               <ErrorMessage name="branch" component="p" className="mt-1 text-xs text-red-500" />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ZIP file input */}
+      {values.sourceKind === 'zip' && (
+        <div className="rounded-2xl border border-tundra-ink-200 bg-white p-5">
+          <label className={LABEL}>ZIP Archive</label>
+          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed border-tundra-ink-200 py-8 transition-colors hover:border-tundra-lichen hover:bg-tundra-lichen/5">
+            <Upload size={28} className="text-tundra-ink-400" />
+            <span className="text-sm text-tundra-ink-500">
+              {zipFileRef.current ? (
+                <><span className="font-semibold text-tundra-ink">{zipFileRef.current.name}</span> · {(zipFileRef.current.size / 1024 / 1024).toFixed(1)} MB</>
+              ) : (
+                <>Click or drag to upload a <strong>.zip</strong> file</>
+              )}
+            </span>
+            <input type="file" accept=".zip" className="sr-only"
+              onChange={(e) => {
+                zipFileRef.current = e.target.files?.[0] ?? null
+                setFieldValue('__zipTrigger', Date.now())
+              }} />
+          </label>
+          <p className={HINT}>The ZIP will be extracted to the document root after site creation.</p>
         </div>
       )}
 
@@ -540,7 +959,6 @@ function SourceStep({
                   <button key={tmpl.id} type="button"
                     onClick={() => {
                       setPickedTemplateId(tmpl.id)
-                      onSourceKindChange('template')
                       setValues((prev) => ({
                         ...prev, sourceKind: 'template', kind: tmpl.runtime.kind,
                         runtimeVersion: tmpl.runtime.version ?? '',
@@ -577,8 +995,12 @@ function SourceStep({
 
 // ── Step 2: Application ───────────────────────────────────────────────────────
 
-function AppStep({ values, setFieldValue }: { values: FormValues; setFieldValue: SetFieldValue }) {
+function AppStep({ values, setFieldValue, onRuntimeKindChange }: {
+  values: FormValues; setFieldValue: SetFieldValue
+  onRuntimeKindChange: (kind: string) => void
+}) {
   const hints = (RUNTIME_HINTS as Record<string, (typeof RUNTIME_HINTS)[RuntimeKind]>)[values.kind] ?? RUNTIME_HINTS.static
+  const isWordpress = values.sourceKind === 'wordpress'
 
   return (
     <div className="space-y-6">
@@ -588,13 +1010,20 @@ function AppStep({ values, setFieldValue }: { values: FormValues; setFieldValue:
           {(Object.keys(RUNTIME_HINTS) as RuntimeKind[]).map((rt) => {
             const h = RUNTIME_HINTS[rt]; const active = values.kind === rt
             return (
-              <button key={rt} type="button" onClick={() => setFieldValue('kind', rt)}
+              <button key={rt} type="button"
+                onClick={() => {
+                  setFieldValue('kind', rt)
+                  setFieldValue('runtimeVersion', h.versionOptions[0]?.value ?? '')
+                  onRuntimeKindChange(rt)
+                }}
                 className={[
                   'flex items-center gap-2.5 rounded-xl border px-3 py-3 transition-all duration-150',
                   active
                     ? 'border-tundra-lichen bg-tundra-lichen/5 ring-2 ring-tundra-lichen/20 shadow-sm'
                     : 'border-tundra-ink-200 bg-white hover:border-tundra-lichen hover:bg-tundra-ink-50/50',
+                  isWordpress && rt !== 'php' ? 'opacity-40 cursor-not-allowed' : '',
                 ].join(' ')}
+                disabled={isWordpress && rt !== 'php'}
               >
                 <span className={active ? 'text-tundra-lichen' : 'text-tundra-ink-400'}>{h.icon}</span>
                 <span className={`text-sm font-semibold ${active ? 'text-tundra-lichen-700' : 'text-tundra-ink'}`}>{h.label}</span>
@@ -602,13 +1031,20 @@ function AppStep({ values, setFieldValue }: { values: FormValues; setFieldValue:
             )
           })}
         </div>
+        {isWordpress && <p className={HINT}>WordPress requires PHP — other runtimes are disabled.</p>}
         <ErrorMessage name="kind" component="p" className="mt-2 text-xs text-red-500" />
       </div>
 
-      {values.kind !== 'static' && (
+      {values.kind !== 'static' && hints.versionOptions.length > 0 && (
         <div>
-          <label className={LABEL}>Runtime version <span className="ml-1 text-tundra-ink-400 font-normal text-xs">({hints.versionPlaceholder})</span></label>
-          <input type="text" value={values.runtimeVersion} onChange={(e) => setFieldValue('runtimeVersion', e.target.value)} placeholder={hints.versionPlaceholder} className={INPUT} />
+          <label className={LABEL}>Runtime version</label>
+          <VersionSelect
+            value={values.runtimeVersion}
+            onChange={(v) => setFieldValue('runtimeVersion', v)}
+            options={hints.versionOptions}
+            placeholder={`Select ${hints.label} version`}
+            allowCustom
+          />
           <ErrorMessage name="runtimeVersion" component="p" className="mt-1 text-xs text-red-500" />
         </div>
       )}
@@ -688,9 +1124,7 @@ function DomainStep({ values, setFieldValue, servers }: { values: FormValues; se
             </div>
             <p className="font-medium text-tundra-ink">No servers enrolled yet</p>
             <p className="mt-1 text-sm text-tundra-ink-400">You need at least one server to deploy to.</p>
-            <Link to="/servers" className="mt-3 inline-flex items-center gap-1 rounded-lg bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors">
-              Enroll a server →
-            </Link>
+            <Link to="/servers" className="mt-3 inline-flex items-center gap-1 rounded-lg bg-tundra-lichen px-4 py-2 text-sm font-medium text-white hover:bg-tundra-lichen-600 transition-colors">Enroll a server →</Link>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -698,12 +1132,7 @@ function DomainStep({ values, setFieldValue, servers }: { values: FormValues; se
               const active = values.serverId === srv.id
               return (
                 <button key={srv.id} type="button" onClick={() => setFieldValue('serverId', srv.id)}
-                  className={[
-                    'relative rounded-2xl border p-4 text-left transition-all duration-150',
-                    active
-                      ? 'border-tundra-lichen bg-tundra-lichen/5 ring-2 ring-tundra-lichen/20 shadow-sm'
-                      : 'border-tundra-ink-200 bg-white hover:border-tundra-lichen hover:shadow-sm',
-                  ].join(' ')}
+                  className={['relative rounded-2xl border p-4 text-left transition-all duration-150', active ? 'border-tundra-lichen bg-tundra-lichen/5 ring-2 ring-tundra-lichen/20 shadow-sm' : 'border-tundra-ink-200 bg-white hover:border-tundra-lichen hover:shadow-sm'].join(' ')}
                 >
                   {active && (
                     <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-tundra-lichen text-white">
@@ -745,8 +1174,7 @@ function ReviewRow({ label, value, mono }: { label: string; value: string; mono?
 
 function ReviewSection({ title, icon, rows, tint }: {
   title: string; icon: React.ReactNode
-  rows: Array<{ label: string; value: string; mono?: boolean }>
-  tint?: boolean
+  rows: Array<{ label: string; value: string; mono?: boolean }>; tint?: boolean
 }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-tundra-ink-200 bg-white">
@@ -759,16 +1187,30 @@ function ReviewSection({ title, icon, rows, tint }: {
   )
 }
 
-function ReviewStep({ values, servers, selectedTemplate, activePlugins }: {
+function ReviewStep({ values, servers, selectedTemplate, activePlugins, zipFile }: {
   values: FormValues; servers: Server[]
   selectedTemplate: TemplateManifest | undefined; activePlugins: WizardPlugin[]
+  zipFile: File | null
 }) {
-  const server = servers.find((s) => s.id === values.serverId)
-  const hints  = (RUNTIME_HINTS as Record<string, (typeof RUNTIME_HINTS)[RuntimeKind]>)[values.kind] ?? RUNTIME_HINTS.static
-  const hasWp  = activePlugins.some((p) => p.id === 'wordpress')
-  const hasGit = activePlugins.some((p) => p.id === 'git')
-  const hasEnv = activePlugins.some((p) => p.id === 'env_vars')
+  const server   = servers.find((s) => s.id === values.serverId)
+  const hints    = (RUNTIME_HINTS as Record<string, (typeof RUNTIME_HINTS)[RuntimeKind]>)[values.kind] ?? RUNTIME_HINTS.static
+  const hasWp    = activePlugins.some((p) => p.id === 'wordpress')
+  const hasGit   = activePlugins.some((p) => p.id === 'git')
+  const hasEnv   = activePlugins.some((p) => p.id === 'env_vars')
+  const hasPhp   = activePlugins.some((p) => p.id === 'php_config')
+  const hasNode  = activePlugins.some((p) => p.id === 'node_config')
+  const hasPy    = activePlugins.some((p) => p.id === 'python_config')
   const filledEnvVars = values.envVars.filter((v) => v.key)
+
+  const sourceLabel =
+    values.sourceKind === 'wordpress' ? 'WordPress (direct)' :
+    values.sourceKind === 'template' && selectedTemplate ? `Template: ${selectedTemplate.name}` :
+    values.sourceKind === 'blank' ? 'Blank site' :
+    values.sourceKind === 'zip' ? `ZIP: ${zipFile?.name ?? 'uploaded file'}` :
+    `${values.sourceKind}: ${values.repoUrl || '—'} @ ${values.branch}`
+
+  const gitIcon = values.sourceKind === 'github' ? <GithubIcon size={14} /> : values.sourceKind === 'gitlab' ? <GitlabIcon size={14} /> : <BitbucketIcon size={14} />
+  const gitLabel = values.sourceKind === 'github' ? 'GitHub' : values.sourceKind === 'gitlab' ? 'GitLab' : 'Bitbucket'
 
   const timelineSteps: Array<{ icon: React.ReactNode; label: string; time: string }> = hasWp
     ? [
@@ -797,46 +1239,59 @@ function ReviewStep({ values, servers, selectedTemplate, activePlugins }: {
 
   return (
     <div className="space-y-4">
-      <ReviewSection
-        title="Deployment"
-        icon={<Globe size={14} />}
-        rows={[
-          { label: 'Domain',   value: values.domain },
-          { label: 'Name',     value: values.name || values.domain },
-          { label: 'Server',   value: server ? `${server.name} (${server.hostname})` : '—' },
-          { label: 'Source',   value: values.sourceKind === 'template' && selectedTemplate ? `Template: ${selectedTemplate.name}` : values.sourceKind === 'blank' ? 'Blank site' : `${values.sourceKind}: ${values.repoUrl || '—'} @ ${values.branch}` },
-          { label: 'Runtime',  value: hints.label + (values.runtimeVersion ? ` ${values.runtimeVersion}` : '') },
-          ...(values.buildCommand ? [{ label: 'Build', value: values.buildCommand, mono: true }] : []),
-          ...(values.startCommand ? [{ label: 'Start', value: values.startCommand, mono: true }] : []),
-          ...(values.listenPort   ? [{ label: 'Port',  value: values.listenPort }] : []),
-          { label: 'SSL',      value: values.enableSsl ? "Let's Encrypt (auto)" : 'Disabled' },
-        ]}
-      />
+      <ReviewSection title="Deployment" icon={<Globe size={14} />} rows={[
+        { label: 'Domain',   value: values.domain },
+        { label: 'Name',     value: values.name || values.domain },
+        { label: 'Server',   value: server ? `${server.name} (${server.hostname})` : '—' },
+        { label: 'Source',   value: sourceLabel },
+        { label: 'Runtime',  value: hints.label + (values.runtimeVersion ? ` ${values.runtimeVersion}` : '') },
+        ...(values.buildCommand ? [{ label: 'Build',  value: values.buildCommand,  mono: true }] : []),
+        ...(values.startCommand ? [{ label: 'Start',  value: values.startCommand,  mono: true }] : []),
+        ...(values.listenPort   ? [{ label: 'Port',   value: values.listenPort }] : []),
+        { label: 'SSL', value: values.enableSsl ? "Let's Encrypt (auto)" : 'Disabled' },
+      ]} />
+
       {hasWp && (
-        <ReviewSection
-          title="WordPress"
-          icon={<WordpressIcon size={14} />}
-          tint
-          rows={[
-            { label: 'WP Version',  value: values.wpVersion || 'latest' },
-            { label: 'Site title',  value: values.wpSiteTitle },
-            { label: 'Admin user',  value: values.wpAdminUser },
-            { label: 'Admin email', value: values.wpAdminEmail },
-            { label: 'Password',    value: '••••••••' },
-          ]}
-        />
+        <ReviewSection title="WordPress" icon={<WordpressIcon size={14} />} tint rows={[
+          { label: 'Version',    value: values.wpVersion || 'latest' },
+          { label: 'Site title', value: values.wpSiteTitle },
+          { label: 'Admin user', value: values.wpAdminUser },
+          { label: 'Admin email',value: values.wpAdminEmail },
+          { label: 'Password',   value: '••••••••' },
+        ]} />
       )}
+
+      {hasPhp && (
+        <ReviewSection title="PHP Config" icon={<PhpIcon size={14} />} rows={[
+          { label: 'Extensions', value: values.phpExtensions.join(', ') || '(none)' },
+          { label: 'Memory',     value: values.phpMemoryLimit },
+          { label: 'Max exec',   value: `${values.phpMaxExec}s` },
+          { label: 'OPcache',    value: values.phpOpcache ? 'Enabled' : 'Disabled' },
+        ]} />
+      )}
+
+      {hasNode && (
+        <ReviewSection title="Node Config" icon={<NodejsIcon size={14} />} rows={[
+          { label: 'Package mgr', value: values.packageManager },
+          { label: 'NODE_ENV',    value: values.nodeEnv },
+        ]} />
+      )}
+
+      {hasPy && (
+        <ReviewSection title="Python Config" icon={<PythonIcon size={14} />} rows={[
+          { label: 'WSGI server',   value: values.wsgiServer },
+          { label: 'Requirements', value: values.pythonRequirementsFile || 'requirements.txt' },
+        ]} />
+      )}
+
       {hasGit && (
-        <ReviewSection
-          title={values.sourceKind === 'github' ? 'GitHub' : 'GitLab'}
-          icon={values.sourceKind === 'github' ? <GithubIcon size={14} /> : <GitlabIcon size={14} />}
-          rows={[
-            { label: 'Repository', value: values.repoUrl || '—', mono: true },
-            { label: 'Branch',     value: values.branch || 'main', mono: true },
-            { label: 'Auto-deploy',value: values.gitAutoDeploy ? 'Enabled' : 'Disabled' },
-          ]}
-        />
+        <ReviewSection title={gitLabel} icon={gitIcon} rows={[
+          { label: 'Repository',  value: values.repoUrl || '—', mono: true },
+          { label: 'Branch',      value: values.branch || 'main', mono: true },
+          { label: 'Auto-deploy', value: values.gitAutoDeploy ? 'Enabled' : 'Disabled' },
+        ]} />
       )}
+
       {(hasEnv || (hasGit && filledEnvVars.length > 0)) && filledEnvVars.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-tundra-ink-200 bg-white">
           <div className="flex items-center gap-2.5 border-b border-tundra-ink-100 bg-tundra-ink-50/70 px-4 py-3">
@@ -853,6 +1308,7 @@ function ReviewStep({ values, servers, selectedTemplate, activePlugins }: {
           </div>
         </div>
       )}
+
       {/* Timeline */}
       <div className="rounded-2xl border border-tundra-ink-200 bg-white overflow-hidden">
         <div className="border-b border-tundra-ink-100 bg-tundra-ink-50/70 px-4 py-3">
@@ -861,7 +1317,6 @@ function ReviewStep({ values, servers, selectedTemplate, activePlugins }: {
         <div className="p-4 space-y-0">
           {timelineSteps.map(({ icon, label, time }, i) => (
             <div key={i} className="flex items-center gap-3">
-              {/* vertical line + circle */}
               <div className="flex flex-col items-center">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-tundra-ink-200 bg-white text-tundra-ink-500">{icon}</div>
                 {i < timelineSteps.length - 1 && <div className="h-5 w-px bg-tundra-ink-200" />}
@@ -880,29 +1335,34 @@ function ReviewStep({ values, servers, selectedTemplate, activePlugins }: {
 
 // ── Sidebar summary ───────────────────────────────────────────────────────────
 
-function SidebarSummary({ values, step, servers, selectedTemplate, steps, activePlugins }: {
+function SidebarSummary({ values, step, servers, selectedTemplate, steps, activePlugins, zipFile }: {
   values: FormValues; step: number; servers: Server[]
   selectedTemplate: TemplateManifest | undefined
   steps: Array<{ id: number; label: string; desc: string }>
   activePlugins: WizardPlugin[]
+  zipFile: File | null
 }) {
   const server = servers.find((s) => s.id === values.serverId)
   const hints  = (RUNTIME_HINTS as Record<string, (typeof RUNTIME_HINTS)[RuntimeKind]>)[values.kind] ?? RUNTIME_HINTS.static
 
   const items: Array<{ icon: React.ReactNode; label: string; value: string }> = [
     values.domain && { icon: <Globe size={13} />, label: 'Domain', value: values.domain },
+    values.sourceKind === 'wordpress' && { icon: <WordpressIcon size={13} />, label: 'Source', value: 'WordPress (direct)' },
     (values.sourceKind === 'template' && selectedTemplate) && { icon: <Package size={13} />, label: 'Template', value: selectedTemplate.name },
-    (values.sourceKind === 'github' || values.sourceKind === 'gitlab') && values.repoUrl && { icon: values.sourceKind === 'github' ? <GithubIcon size={13} /> : <GitlabIcon size={13} />, label: 'Repo', value: values.repoUrl.split('/').slice(-2).join('/') },
-    (values.sourceKind === 'blank') && { icon: <Globe size={13} />, label: 'Source', value: 'Blank site' },
+    (['github', 'gitlab', 'bitbucket'].includes(values.sourceKind) && values.repoUrl) && {
+      icon: values.sourceKind === 'github' ? <GithubIcon size={13} /> : values.sourceKind === 'gitlab' ? <GitlabIcon size={13} /> : <BitbucketIcon size={13} />,
+      label: 'Repo', value: values.repoUrl.split('/').slice(-2).join('/'),
+    },
+    values.sourceKind === 'blank' && { icon: <Globe size={13} />, label: 'Source', value: 'Blank site' },
+    values.sourceKind === 'zip' && zipFile && { icon: <Upload size={13} />, label: 'ZIP', value: zipFile.name },
     step >= 1 && { icon: <Settings2 size={13} />, label: 'Runtime', value: hints.label + (values.runtimeVersion ? ` ${values.runtimeVersion}` : '') },
     step >= 2 && server && { icon: <Database size={13} />, label: 'Server', value: server.name },
     step >= 2 && { icon: <ShieldCheck size={13} />, label: 'SSL', value: values.enableSsl ? 'Enabled' : 'Disabled' },
-    (activePlugins.some(p => p.id === 'wordpress') && values.wpSiteTitle) && { icon: <WordpressIcon size={13} />, label: 'WP title', value: values.wpSiteTitle },
+    (activePlugins.some((p) => p.id === 'wordpress') && values.wpSiteTitle) && { icon: <WordpressIcon size={13} />, label: 'WP title', value: values.wpSiteTitle },
   ].filter(Boolean) as Array<{ icon: React.ReactNode; label: string; value: string }>
 
   return (
     <aside className="hidden lg:flex lg:flex-col w-60 shrink-0 gap-3">
-      {/* Live summary card */}
       <div className="sticky top-6 rounded-2xl border border-tundra-ink-200 bg-white overflow-hidden">
         <div className="border-b border-tundra-ink-100 bg-tundra-ink-50/70 px-4 py-3">
           <p className="text-[10px] font-bold uppercase tracking-widest text-tundra-ink-400">Summary</p>
@@ -924,7 +1384,6 @@ function SidebarSummary({ values, step, servers, selectedTemplate, steps, active
             </div>
           )}
         </div>
-        {/* Step list */}
         <div className="border-t border-tundra-ink-100 px-4 py-3">
           <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-tundra-ink-400">Steps</p>
           <div className="space-y-1.5">
@@ -938,8 +1397,7 @@ function SidebarSummary({ values, step, servers, selectedTemplate, steps, active
                 ].join(' ')}>
                   {s.id < step
                     ? <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                    : s.id + 1
-                  }
+                    : s.id + 1}
                 </div>
                 <span className={`text-xs truncate ${s.id === step ? 'font-semibold text-tundra-ink' : s.id < step ? 'text-tundra-lichen-700' : 'text-tundra-ink-300'}`}>{s.label}</span>
               </div>
@@ -963,13 +1421,18 @@ export const Route = createFileRoute('/_auth/sites/new')({
 })
 
 function CreateSitePage() {
-  const router = useRouter()
+  const router    = useRouter()
   const { template: templateId } = Route.useSearch()
-  const [step, setStep] = useState(0)
+  const [step, setStep]   = useState(0)
   const [result, setResult] = useState<CreateSiteResponse | null>(null)
-  const [sourceKind, setSourceKind] = useState<string>(templateId ? 'template' : 'blank')
 
-  const { data: serversData } = useQuery({ queryKey: ['servers'], queryFn: () => api<ListResponse<Server>>('/servers') })
+  const initSourceKind = (templateId ? 'template' : 'blank') as FormValues['sourceKind']
+  const [sourceKind, setSourceKind] = useState<string>(initSourceKind)
+  const [runtimeKind, setRuntimeKind] = useState<string>('static')
+  const zipFileRef = useRef<File | null>(null)
+  const [, forceUpdate] = useState(0)
+
+  const { data: serversData }   = useQuery({ queryKey: ['servers'],   queryFn: () => api<ListResponse<Server>>('/servers') })
   const { data: templatesData } = useQuery({ queryKey: ['templates'], queryFn: () => api<{ data: TemplateManifest[] }>('/templates'), staleTime: Infinity })
 
   const allTemplates = templatesData?.data ?? []
@@ -979,8 +1442,8 @@ function CreateSitePage() {
   const selectedTemplate = pickedTemplateId ? allTemplates.find((t) => t.id === pickedTemplateId) : undefined
 
   const activePlugins = useMemo(
-    () => WIZARD_PLUGINS.filter((p) => p.matches(sourceKind, selectedTemplate)),
-    [sourceKind, selectedTemplate],
+    () => WIZARD_PLUGINS.filter((p) => p.matches(sourceKind, runtimeKind, selectedTemplate)),
+    [sourceKind, runtimeKind, selectedTemplate],
   )
 
   const STEPS = useMemo(() => {
@@ -994,6 +1457,10 @@ function CreateSitePage() {
     return base
   }, [activePlugins])
 
+  useEffect(() => {
+    setStep((s) => Math.min(s, STEPS.length - 1))
+  }, [STEPS.length])
+
   const stepSchemas = useMemo(
     () => [SCHEMA_SOURCE, SCHEMA_APP, SCHEMA_DOMAIN, ...activePlugins.map((p) => p.schema), SCHEMA_REVIEW],
     [activePlugins],
@@ -1001,11 +1468,13 @@ function CreateSitePage() {
 
   const reviewStepIndex = STEPS.length - 1
 
+  const initRuntimeKind = selectedTemplate ? selectedTemplate.runtime.kind : initSourceKind === 'wordpress' ? 'php' : 'static'
+
   const initialValues: FormValues = {
-    sourceKind: templateId ? 'template' : 'blank',
+    sourceKind: initSourceKind,
     repoUrl: '', branch: 'main',
-    kind: selectedTemplate ? selectedTemplate.runtime.kind : 'static',
-    runtimeVersion: selectedTemplate?.runtime.version ?? '',
+    kind: initRuntimeKind,
+    runtimeVersion: selectedTemplate?.runtime.version ?? (initSourceKind === 'wordpress' ? '8.3' : ''),
     buildCommand: selectedTemplate?.build_command ?? '',
     startCommand: selectedTemplate?.start_command ?? '',
     listenPort: selectedTemplate?.listen_port != null ? String(selectedTemplate.listen_port) : '',
@@ -1013,6 +1482,9 @@ function CreateSitePage() {
     domain: '', serverId: '', name: '', enableSsl: true,
     wpSiteTitle: '', wpAdminUser: 'admin', wpAdminEmail: '', wpAdminPassword: '',
     wpVersion: 'latest', wpShowPassword: false,
+    phpExtensions: PHP_EXT_DEFAULTS, phpMemoryLimit: '256M', phpMaxExec: '30', phpOpcache: true,
+    packageManager: 'npm', nodeEnv: 'production',
+    wsgiServer: 'gunicorn', pythonRequirementsFile: 'requirements.txt',
     envVars: [], gitAutoDeploy: true,
   }
 
@@ -1040,9 +1512,7 @@ function CreateSitePage() {
               className="rounded-xl bg-tundra-lichen px-6 py-2.5 text-sm font-semibold text-white hover:bg-tundra-lichen-600 transition-colors shadow-sm shadow-tundra-lichen/20">
               View site →
             </button>
-            <Link to="/sites" className="rounded-xl border border-tundra-ink-200 px-6 py-2.5 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
-              All sites
-            </Link>
+            <Link to="/sites" className="rounded-xl border border-tundra-ink-200 px-6 py-2.5 text-sm font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">All sites</Link>
           </div>
         </div>
       </div>
@@ -1052,7 +1522,7 @@ function CreateSitePage() {
   // ── Main wizard ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-5xl">
+    <div className="w-full">
       {/* Header */}
       <div className="mb-8 flex items-start justify-between">
         <div>
@@ -1102,7 +1572,7 @@ function CreateSitePage() {
                   start_command: values.startCommand || null,
                   listen_port: values.listenPort ? parseInt(values.listenPort, 10) : null,
                   health_check_path: values.healthCheckPath || '/',
-                  source_kind: values.sourceKind,
+                  source_kind: values.sourceKind === 'wordpress' ? 'template' : values.sourceKind,
                   source_config: {
                     branch: values.branch || undefined,
                     repo_url: values.repoUrl || undefined,
@@ -1113,6 +1583,14 @@ function CreateSitePage() {
                 },
               },
             })
+
+            // Upload ZIP if needed
+            if (values.sourceKind === 'zip' && zipFileRef.current) {
+              const fd = new FormData()
+              fd.append('path', '/')
+              fd.append('file', zipFileRef.current)
+              await fetch(`/api/v1/sites/${res.data.id}/files/upload`, { method: 'POST', body: fd })
+            }
 
             let redirect: string | undefined
             for (const plugin of activePlugins) {
@@ -1127,7 +1605,7 @@ function CreateSitePage() {
             }
 
             if (redirect) {
-              toast.success(activePlugins.some(p => p.id === 'wordpress') ? 'Site created — WordPress installing…' : 'Site created — provisioning started')
+              toast.success(activePlugins.some((p) => p.id === 'wordpress') ? 'Site created — WordPress installing…' : 'Site created — provisioning started')
               void router.navigate({ to: redirect as never })
             } else {
               setResult(res)
@@ -1143,7 +1621,6 @@ function CreateSitePage() {
         {({ isSubmitting, values, setFieldValue, setValues }) => (
           <Form>
             <div className="flex gap-6">
-
               {/* Main content */}
               <div className="min-w-0 flex-1">
                 <div className="rounded-2xl border border-tundra-ink-200 bg-white p-6 shadow-sm">
@@ -1159,10 +1636,19 @@ function CreateSitePage() {
                       pickedTemplateId={pickedTemplateId}
                       setPickedTemplateId={setPickedTemplateId}
                       setValues={(fn) => { void setValues(fn(values)) }}
-                      onSourceKindChange={setSourceKind}
+                      onSourceKindChange={(kind) => {
+                        setSourceKind(kind)
+                        if (kind === 'wordpress') setRuntimeKind('php')
+                      }}
+                      zipFileRef={zipFileRef}
                     />
                   )}
-                  {step === 1 && <AppStep values={values} setFieldValue={setFieldValue} />}
+                  {step === 1 && (
+                    <AppStep
+                      values={values} setFieldValue={setFieldValue}
+                      onRuntimeKindChange={setRuntimeKind}
+                    />
+                  )}
                   {step === 2 && <DomainStep values={values} setFieldValue={setFieldValue} servers={servers} />}
 
                   {activePlugins.map((plugin, i) => {
@@ -1172,7 +1658,10 @@ function CreateSitePage() {
                   })}
 
                   {step === reviewStepIndex && (
-                    <ReviewStep values={values} servers={servers} selectedTemplate={selectedTemplate} activePlugins={activePlugins} />
+                    <ReviewStep
+                      values={values} servers={servers} selectedTemplate={selectedTemplate}
+                      activePlugins={activePlugins} zipFile={zipFileRef.current}
+                    />
                   )}
                 </div>
 
@@ -1187,7 +1676,6 @@ function CreateSitePage() {
                   </button>
 
                   <div className="flex items-center gap-4">
-                    {/* Mobile dots */}
                     <div className="flex gap-1.5 lg:hidden">
                       {STEPS.map((s) => (
                         <div key={s.id} className={`rounded-full transition-all ${s.id === step ? 'h-2 w-5 bg-tundra-lichen' : s.id < step ? 'h-2 w-2 bg-tundra-lichen/60' : 'h-2 w-2 bg-tundra-ink-200'}`} />
@@ -1195,12 +1683,13 @@ function CreateSitePage() {
                     </div>
                     <button
                       type="submit"
-                      disabled={isSubmitting || (step === 0 && values.sourceKind === 'template' && !pickedTemplateId)}
+                      disabled={isSubmitting || (step === 0 && values.sourceKind === 'template' && !pickedTemplateId) || (step === 0 && values.sourceKind === 'zip' && !zipFileRef.current)}
                       className="flex items-center gap-1.5 rounded-xl bg-tundra-lichen px-6 py-2.5 text-sm font-semibold text-white hover:bg-tundra-lichen-600 disabled:opacity-50 transition-colors shadow-sm shadow-tundra-lichen/20"
+                      onClick={() => forceUpdate((n) => n + 1)}
                     >
                       {isSubmitting ? 'Creating…' :
                        step < STEPS.length - 1 ? <>Next <ArrowRightIcon className="h-3.5 w-3.5" /></> :
-                       activePlugins.some(p => p.id === 'wordpress') ? 'Create & Install WordPress' :
+                       activePlugins.some((p) => p.id === 'wordpress') ? 'Create & Install WordPress' :
                        'Create site'}
                     </button>
                   </div>
@@ -1210,7 +1699,8 @@ function CreateSitePage() {
               {/* Sidebar */}
               <SidebarSummary
                 values={values} step={step} servers={servers}
-                selectedTemplate={selectedTemplate} steps={STEPS} activePlugins={activePlugins}
+                selectedTemplate={selectedTemplate} steps={STEPS}
+                activePlugins={activePlugins} zipFile={zipFileRef.current}
               />
             </div>
           </Form>
