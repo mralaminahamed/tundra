@@ -10,7 +10,6 @@ import { fmtBytes, fmtDate, fmtRelative } from '@/lib/utils'
 import {
   FolderIcon as FolderIconBase,
   FolderOpenIcon,
-  FileIcon as FileIconBase,
   ChevronRightIcon,
   CloseIcon,
   UploadIcon,
@@ -27,6 +26,17 @@ import {
   CopyIcon,
   LockIcon,
   ExternalLinkIcon,
+} from '@/components/icons'
+import {
+  PhpFileIcon, JsFileIcon, TsFileIcon, HtmlFileIcon, CssFileIcon, SassFileIcon, LessFileIcon,
+  JsonFileIcon, YamlFileIcon, MarkdownFileIcon, XmlFileIcon, TomlFileIcon, SqliteFileIcon,
+  BashFileIcon, PythonFileIcon, RubyFileIcon, GoFileIcon, RustFileIcon, VueFileIcon,
+  ReactFileIcon, SvgFileIcon, DotnetFileIcon, KotlinFileIcon, SwiftFileIcon, CFileIcon,
+  CppFileIcon, GitFileIcon, DockerFileIcon, EnvFileIcon, WasmFileIcon, NpmFileIcon,
+  YarnFileIcon, NginxFileIcon, ApacheFileIcon, TailwindFileIcon, ViteFileIcon, WebpackFileIcon,
+  MysqlFileIcon, PostgresFileIcon, CoffeeFileIcon,
+  FileImageIcon, FileVideoIcon, FileAudioIcon, FileZipIcon, FilePdfIcon, FileFontIcon,
+  FileCodeIcon2, FileBinaryIcon, FileTextIcon2, FileLockIcon,
 } from '@/components/icons'
 
 export const Route = createFileRoute('/_auth/files/$siteId')({
@@ -121,167 +131,153 @@ function filePath(dirPath: string, name: string) {
 
 // ── File type icons ───────────────────────────────────────────────────────────
 
-// SVG marks — all drawn in a 24×24 viewBox, colored with the 700-shade of their bg family
-const MARKS = {
-  php: <text x="2" y="15" fontSize="8" fontWeight="800" fontFamily="monospace" fill="#7e22ce">{'<?php'}</text>,
-  js:  <text x="3" y="17" fontSize="14" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#854d0e">JS</text>,
-  ts:  <text x="3" y="17" fontSize="14" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#1d4ed8">TS</text>,
-  tsx: <text x="1" y="17" fontSize="12" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#0e7490">TSX</text>,
-  jsx: <text x="1" y="17" fontSize="12" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#0e7490">JSX</text>,
-  css: <><path d="M4 7h16M4 12h13M4 17h10" stroke="#0369a1" strokeWidth="2.5" strokeLinecap="round"/></>,
-  scss:<text x="0" y="16" fontSize="9" fontWeight="800" fontFamily="system-ui,sans-serif" fill="#9d174d">SCSS</text>,
-  sass:<text x="0" y="16" fontSize="9" fontWeight="800" fontFamily="system-ui,sans-serif" fill="#9d174d">SASS</text>,
-  less:<text x="0" y="16" fontSize="10" fontWeight="800" fontFamily="system-ui,sans-serif" fill="#9d174d">LESS</text>,
-  html:<text x="2" y="15" fontSize="8.5" fontWeight="800" fontFamily="monospace" fill="#c2410c">{'</>'}</text>,
-  htm: <text x="2" y="15" fontSize="8.5" fontWeight="800" fontFamily="monospace" fill="#c2410c">{'</>'}</text>,
-  json:<>
-         <path d="M8 5C5 5 5 8 5 10v4c0 2 0 5-3 5M16 5c3 0 3 3 3 5v4c0 2 0 5 3 5" stroke="#15803d" strokeWidth="2" fill="none" strokeLinecap="round"/>
-       </>,
-  yaml:<>
-         <path d="M5 8l4 4-4 4" stroke="#0f766e" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-         <path d="M13 12h6" stroke="#0f766e" strokeWidth="2.5" strokeLinecap="round"/>
-       </>,
-  yml: <><path d="M5 8l4 4-4 4" stroke="#0f766e" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M13 12h6" stroke="#0f766e" strokeWidth="2.5" strokeLinecap="round"/></>,
-  toml:<text x="0" y="16" fontSize="9" fontWeight="800" fontFamily="system-ui,sans-serif" fill="#0f766e">TOML</text>,
-  xml: <text x="2" y="14" fontSize="8.5" fontWeight="800" fontFamily="monospace" fill="#be123c">{'<x/>'}</text>,
-  svg: <text x="1" y="16" fontSize="10" fontWeight="800" fontFamily="system-ui,sans-serif" fill="#be123c">SVG</text>,
-  md:  <><path d="M4 7h1m0-3v12M11 7h1m0-3v12M4 12h9" stroke="#475569" strokeWidth="2.5" fill="none" strokeLinecap="round"/></>,
-  mdx: <><path d="M4 7h1m0-3v12M11 7h1m0-3v12M4 12h9" stroke="#475569" strokeWidth="2.5" fill="none" strokeLinecap="round"/></>,
-  txt: <><path d="M5 8h14M5 12h11M5 16h8" stroke="#64748b" strokeWidth="2" strokeLinecap="round"/></>,
-  sql: <>
-         <ellipse cx="12" cy="7" rx="7" ry="3" stroke="#b45309" strokeWidth="1.8" fill="none"/>
-         <path d="M5 7v10M19 7v10" stroke="#b45309" strokeWidth="1.8"/>
-         <ellipse cx="12" cy="17" rx="7" ry="3" stroke="#b45309" strokeWidth="1.8" fill="none"/>
-       </>,
-  sh:  <><path d="M4 12l5-4-5 4 5 4" stroke="#3f6212" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 17h6" stroke="#3f6212" strokeWidth="2.5" strokeLinecap="round"/></>,
-  bash:<><path d="M4 12l5-4-5 4 5 4" stroke="#3f6212" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 17h6" stroke="#3f6212" strokeWidth="2.5" strokeLinecap="round"/></>,
-  zsh: <><path d="M4 12l5-4-5 4 5 4" stroke="#3f6212" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 17h6" stroke="#3f6212" strokeWidth="2.5" strokeLinecap="round"/></>,
-  py:  <text x="3" y="17" fontSize="14" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#1d4ed8">Py</text>,
-  rb:  <text x="3" y="17" fontSize="14" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#b91c1c">Rb</text>,
-  go:  <text x="2" y="17" fontSize="14" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#0e7490">Go</text>,
-  rs:  <text x="3" y="17" fontSize="14" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#c2410c">Rs</text>,
-  java:<text x="2" y="17" fontSize="12" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#b45309">Java</text>,
-  cs:  <text x="3" y="17" fontSize="13" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#15803d">C#</text>,
-  cpp: <text x="1" y="17" fontSize="12" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#1d4ed8">C++</text>,
-  c:   <text x="5" y="17" fontSize="15" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#1d4ed8">C</text>,
-  h:   <text x="5" y="17" fontSize="15" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#1d4ed8">H</text>,
-  vue: <text x="3" y="17" fontSize="13" fontWeight="900" fontFamily="system-ui,sans-serif" fill="#15803d">Vue</text>,
-  // Images
-  jpg: 'img', jpeg: 'img', png: 'img', gif: 'img', webp: 'img',
-  ico: 'img', bmp: 'img', tiff: 'img', tif: 'img', avif: 'img',
-  // Video
-  mp4: 'video', mov: 'video', avi: 'video', mkv: 'video', webm: 'video', flv: 'video',
-  // Audio
-  mp3: 'audio', wav: 'audio', flac: 'audio', aac: 'audio', ogg: 'audio', m4a: 'audio',
-  // Archive
-  zip: 'archive', tar: 'archive', gz: 'archive', bz2: 'archive', rar: 'archive', '7z': 'archive', xz: 'archive',
-  // PDF
-  pdf: 'pdf',
-  // Font
-  ttf: 'font', woff: 'font', woff2: 'font', otf: 'font', eot: 'font',
-  // Config/env
-  env: 'config', ini: 'config', conf: 'config', cfg: 'config',
-  // Lock
-  lock: 'lock',
+type FTCfg = { bg: string; cls: string; Icon: React.ComponentType<{ size?: number; className?: string }> }
+
+// Extension → official brand icon + background
+const EXT_MAP: Record<string, FTCfg> = {
+  php:   { bg: 'bg-purple-100', cls: 'text-purple-600', Icon: PhpFileIcon },
+  js:    { bg: 'bg-yellow-100', cls: 'text-yellow-600', Icon: JsFileIcon },
+  mjs:   { bg: 'bg-yellow-100', cls: 'text-yellow-600', Icon: JsFileIcon },
+  cjs:   { bg: 'bg-yellow-100', cls: 'text-yellow-600', Icon: JsFileIcon },
+  jsx:   { bg: 'bg-cyan-100',   cls: 'text-cyan-600',   Icon: ReactFileIcon },
+  ts:    { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: TsFileIcon },
+  tsx:   { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: TsFileIcon },
+  html:  { bg: 'bg-orange-100', cls: 'text-orange-600', Icon: HtmlFileIcon },
+  htm:   { bg: 'bg-orange-100', cls: 'text-orange-600', Icon: HtmlFileIcon },
+  css:   { bg: 'bg-sky-100',    cls: 'text-sky-600',    Icon: CssFileIcon },
+  scss:  { bg: 'bg-pink-100',   cls: 'text-pink-600',   Icon: SassFileIcon },
+  sass:  { bg: 'bg-pink-100',   cls: 'text-pink-600',   Icon: SassFileIcon },
+  less:  { bg: 'bg-indigo-100', cls: 'text-indigo-600', Icon: LessFileIcon },
+  json:  { bg: 'bg-green-100',  cls: 'text-green-700',  Icon: JsonFileIcon },
+  yaml:  { bg: 'bg-red-100',    cls: 'text-red-600',    Icon: YamlFileIcon },
+  yml:   { bg: 'bg-red-100',    cls: 'text-red-600',    Icon: YamlFileIcon },
+  toml:  { bg: 'bg-amber-100',  cls: 'text-amber-700',  Icon: TomlFileIcon },
+  xml:   { bg: 'bg-rose-100',   cls: 'text-rose-600',   Icon: XmlFileIcon },
+  svg:   { bg: 'bg-rose-100',   cls: 'text-rose-600',   Icon: SvgFileIcon },
+  md:    { bg: 'bg-slate-100',  cls: 'text-slate-600',  Icon: MarkdownFileIcon },
+  mdx:   { bg: 'bg-slate-100',  cls: 'text-slate-600',  Icon: MarkdownFileIcon },
+  txt:   { bg: 'bg-slate-100',  cls: 'text-slate-500',  Icon: FileTextIcon2 },
+  sql:   { bg: 'bg-amber-100',  cls: 'text-amber-700',  Icon: SqliteFileIcon },
+  sh:    { bg: 'bg-lime-100',   cls: 'text-lime-700',   Icon: BashFileIcon },
+  bash:  { bg: 'bg-lime-100',   cls: 'text-lime-700',   Icon: BashFileIcon },
+  zsh:   { bg: 'bg-lime-100',   cls: 'text-lime-700',   Icon: BashFileIcon },
+  fish:  { bg: 'bg-lime-100',   cls: 'text-lime-700',   Icon: BashFileIcon },
+  py:    { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: PythonFileIcon },
+  pyw:   { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: PythonFileIcon },
+  rb:    { bg: 'bg-red-100',    cls: 'text-red-600',    Icon: RubyFileIcon },
+  go:    { bg: 'bg-cyan-100',   cls: 'text-cyan-600',   Icon: GoFileIcon },
+  rs:    { bg: 'bg-orange-100', cls: 'text-orange-700', Icon: RustFileIcon },
+  cs:    { bg: 'bg-purple-100', cls: 'text-purple-700', Icon: DotnetFileIcon },
+  vb:    { bg: 'bg-purple-100', cls: 'text-purple-700', Icon: DotnetFileIcon },
+  vue:   { bg: 'bg-green-100',  cls: 'text-green-600',  Icon: VueFileIcon },
+  kt:    { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: KotlinFileIcon },
+  kts:   { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: KotlinFileIcon },
+  swift: { bg: 'bg-orange-100', cls: 'text-orange-600', Icon: SwiftFileIcon },
+  cpp:   { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: CppFileIcon },
+  cc:    { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: CppFileIcon },
+  cxx:   { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: CppFileIcon },
+  hpp:   { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: CppFileIcon },
+  c:     { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: CFileIcon },
+  h:     { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: CFileIcon },
+  wasm:  { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: WasmFileIcon },
+  coffee:{ bg: 'bg-amber-100',  cls: 'text-amber-700',  Icon: CoffeeFileIcon },
+  env:   { bg: 'bg-yellow-100', cls: 'text-yellow-700', Icon: EnvFileIcon },
+  ini:   { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileCodeIcon2 },
+  conf:  { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileCodeIcon2 },
+  cfg:   { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileCodeIcon2 },
+  jpg:   { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  jpeg:  { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  png:   { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  gif:   { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  webp:  { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  ico:   { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  bmp:   { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  tiff:  { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  tif:   { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  avif:  { bg: 'bg-violet-100', cls: 'text-violet-600', Icon: FileImageIcon },
+  mp4:   { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: FileVideoIcon },
+  mov:   { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: FileVideoIcon },
+  avi:   { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: FileVideoIcon },
+  mkv:   { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: FileVideoIcon },
+  webm:  { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: FileVideoIcon },
+  flv:   { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: FileVideoIcon },
+  mp3:   { bg: 'bg-pink-100',   cls: 'text-pink-600',   Icon: FileAudioIcon },
+  wav:   { bg: 'bg-pink-100',   cls: 'text-pink-600',   Icon: FileAudioIcon },
+  flac:  { bg: 'bg-pink-100',   cls: 'text-pink-600',   Icon: FileAudioIcon },
+  aac:   { bg: 'bg-pink-100',   cls: 'text-pink-600',   Icon: FileAudioIcon },
+  ogg:   { bg: 'bg-pink-100',   cls: 'text-pink-600',   Icon: FileAudioIcon },
+  m4a:   { bg: 'bg-pink-100',   cls: 'text-pink-600',   Icon: FileAudioIcon },
+  zip:   { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileZipIcon },
+  tar:   { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileZipIcon },
+  gz:    { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileZipIcon },
+  bz2:   { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileZipIcon },
+  rar:   { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileZipIcon },
+  '7z':  { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileZipIcon },
+  xz:    { bg: 'bg-stone-100',  cls: 'text-stone-600',  Icon: FileZipIcon },
+  pdf:   { bg: 'bg-red-100',    cls: 'text-red-600',    Icon: FilePdfIcon },
+  ttf:   { bg: 'bg-indigo-100', cls: 'text-indigo-600', Icon: FileFontIcon },
+  woff:  { bg: 'bg-indigo-100', cls: 'text-indigo-600', Icon: FileFontIcon },
+  woff2: { bg: 'bg-indigo-100', cls: 'text-indigo-600', Icon: FileFontIcon },
+  otf:   { bg: 'bg-indigo-100', cls: 'text-indigo-600', Icon: FileFontIcon },
+  eot:   { bg: 'bg-indigo-100', cls: 'text-indigo-600', Icon: FileFontIcon },
+  exe:   { bg: 'bg-gray-100',   cls: 'text-gray-600',   Icon: FileBinaryIcon },
+  dll:   { bg: 'bg-gray-100',   cls: 'text-gray-600',   Icon: FileBinaryIcon },
+  so:    { bg: 'bg-gray-100',   cls: 'text-gray-600',   Icon: FileBinaryIcon },
+  bin:   { bg: 'bg-gray-100',   cls: 'text-gray-600',   Icon: FileBinaryIcon },
+  lock:  { bg: 'bg-gray-100',   cls: 'text-gray-500',   Icon: FileLockIcon },
 }
 
-const SPECIAL_MARKS: Record<string, React.ReactNode> = {
-  img: <>
-    <path d="M3 18L9 9L14 15L17 11L21 18H3Z" fill="#7c3aed" opacity="0.85"/>
-    <circle cx="17" cy="6" r="2.5" fill="#7c3aed" opacity="0.85"/>
-  </>,
-  video: <polygon points="7,4 7,20 20,12" fill="#1d4ed8" opacity="0.85"/>,
-  audio: <>
-    <path d="M9 18V5l12-2v13" stroke="#be185d" strokeWidth="2" fill="none"/>
-    <circle cx="6" cy="18" r="3" fill="#be185d"/>
-    <circle cx="18" cy="16" r="3" fill="#be185d"/>
-  </>,
-  archive: <>
-    <rect x="4" y="14" width="16" height="5" rx="1.5" fill="#78716c" opacity="0.85"/>
-    <rect x="6" y="9" width="12" height="5" rx="1.5" fill="#78716c" opacity="0.65"/>
-    <rect x="9" y="5" width="6" height="4" rx="1" fill="#78716c" opacity="0.45"/>
-  </>,
-  pdf: <text x="1" y="16" fontSize="10" fontWeight="800" fontFamily="system-ui,sans-serif" fill="#dc2626">PDF</text>,
-  font: <text x="5" y="17" fontSize="16" fontWeight="900" fontFamily="serif" fill="#4f46e5">F</text>,
-  config: <>
-    <circle cx="12" cy="12" r="3" stroke="#6d28d9" strokeWidth="2" fill="none"/>
-    <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#6d28d9" strokeWidth="1.8" strokeLinecap="round"/>
-  </>,
-  lock: <>
-    <rect x="5" y="11" width="14" height="10" rx="2" stroke="#6b7280" strokeWidth="2" fill="none"/>
-    <path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="#6b7280" strokeWidth="2" fill="none"/>
-    <circle cx="12" cy="16" r="1.5" fill="#6b7280"/>
-  </>,
-}
-
-const EXT_BG: Record<string, string> = {
-  php: 'bg-purple-100', js: 'bg-yellow-100', ts: 'bg-blue-100',
-  tsx: 'bg-cyan-100', jsx: 'bg-cyan-100', css: 'bg-sky-100',
-  scss: 'bg-pink-100', sass: 'bg-pink-100', less: 'bg-pink-100',
-  html: 'bg-orange-100', htm: 'bg-orange-100', json: 'bg-green-100',
-  yaml: 'bg-teal-100', yml: 'bg-teal-100', toml: 'bg-teal-100',
-  xml: 'bg-rose-100', svg: 'bg-rose-100', md: 'bg-slate-100',
-  mdx: 'bg-slate-100', txt: 'bg-slate-100', sql: 'bg-amber-100',
-  sh: 'bg-lime-100', bash: 'bg-lime-100', zsh: 'bg-lime-100',
-  py: 'bg-blue-100', rb: 'bg-red-100', go: 'bg-cyan-100',
-  rs: 'bg-orange-100', java: 'bg-amber-100', cs: 'bg-green-100',
-  cpp: 'bg-blue-100', c: 'bg-blue-100', h: 'bg-blue-100',
-  vue: 'bg-green-100',
-  jpg: 'bg-violet-100', jpeg: 'bg-violet-100', png: 'bg-violet-100',
-  gif: 'bg-violet-100', webp: 'bg-violet-100', ico: 'bg-violet-100',
-  bmp: 'bg-violet-100', tiff: 'bg-violet-100', tif: 'bg-violet-100',
-  avif: 'bg-violet-100',
-  mp4: 'bg-blue-100', mov: 'bg-blue-100', avi: 'bg-blue-100',
-  mkv: 'bg-blue-100', webm: 'bg-blue-100', flv: 'bg-blue-100',
-  mp3: 'bg-pink-100', wav: 'bg-pink-100', flac: 'bg-pink-100',
-  aac: 'bg-pink-100', ogg: 'bg-pink-100', m4a: 'bg-pink-100',
-  zip: 'bg-stone-100', tar: 'bg-stone-100', gz: 'bg-stone-100',
-  bz2: 'bg-stone-100', rar: 'bg-stone-100', '7z': 'bg-stone-100',
-  xz: 'bg-stone-100', pdf: 'bg-red-100',
-  ttf: 'bg-indigo-100', woff: 'bg-indigo-100', woff2: 'bg-indigo-100',
-  otf: 'bg-indigo-100', eot: 'bg-indigo-100',
-  env: 'bg-violet-100', ini: 'bg-violet-100', conf: 'bg-violet-100',
-  cfg: 'bg-violet-100', lock: 'bg-gray-100',
+// Exact filename overrides (checked before extension)
+const NAME_MAP: Record<string, FTCfg> = {
+  'dockerfile':          { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: DockerFileIcon },
+  'docker-compose.yml':  { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: DockerFileIcon },
+  'docker-compose.yaml': { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: DockerFileIcon },
+  '.gitignore':          { bg: 'bg-orange-100', cls: 'text-orange-600', Icon: GitFileIcon },
+  '.gitattributes':      { bg: 'bg-orange-100', cls: 'text-orange-600', Icon: GitFileIcon },
+  '.gitmodules':         { bg: 'bg-orange-100', cls: 'text-orange-600', Icon: GitFileIcon },
+  'package.json':        { bg: 'bg-red-100',    cls: 'text-red-600',    Icon: NpmFileIcon },
+  'package-lock.json':   { bg: 'bg-red-100',    cls: 'text-red-600',    Icon: NpmFileIcon },
+  'yarn.lock':           { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: YarnFileIcon },
+  '.htaccess':           { bg: 'bg-red-100',    cls: 'text-red-600',    Icon: ApacheFileIcon },
+  'nginx.conf':          { bg: 'bg-green-100',  cls: 'text-green-700',  Icon: NginxFileIcon },
+  'vite.config.ts':      { bg: 'bg-purple-100', cls: 'text-purple-600', Icon: ViteFileIcon },
+  'vite.config.js':      { bg: 'bg-purple-100', cls: 'text-purple-600', Icon: ViteFileIcon },
+  'webpack.config.js':   { bg: 'bg-cyan-100',   cls: 'text-cyan-600',   Icon: WebpackFileIcon },
+  'webpack.config.ts':   { bg: 'bg-cyan-100',   cls: 'text-cyan-600',   Icon: WebpackFileIcon },
+  'tailwind.config.js':  { bg: 'bg-teal-100',   cls: 'text-teal-600',   Icon: TailwindFileIcon },
+  'tailwind.config.ts':  { bg: 'bg-teal-100',   cls: 'text-teal-600',   Icon: TailwindFileIcon },
+  'tsconfig.json':       { bg: 'bg-blue-100',   cls: 'text-blue-600',   Icon: TsFileIcon },
+  'my.cnf':              { bg: 'bg-orange-100', cls: 'text-orange-700', Icon: MysqlFileIcon },
+  'pg_hba.conf':         { bg: 'bg-blue-100',   cls: 'text-blue-700',   Icon: PostgresFileIcon },
 }
 
 function FileIcon({ type, name, large = false }: { type: string; name: string; large?: boolean }) {
-  const dim = large ? 40 : 32
-  const inner = large ? 22 : 18
+  const dim   = large ? 40 : 32
+  const iSize = large ? 20 : 16
 
   if (type === 'dir') return (
     <div style={{ width: dim, height: dim }} className="flex items-center justify-center rounded-lg bg-tundra-aurora/15">
-      <FolderIconBase style={{ width: inner, height: inner }} className="text-tundra-aurora" />
+      <FolderIconBase style={{ width: iSize + 2, height: iSize + 2 }} className="text-tundra-aurora" />
     </div>
   )
 
-  // Resolve extension; handle dotfiles like .env, .gitignore
-  const ext = (() => {
-    if (name.startsWith('.') && !name.slice(1).includes('.')) return name.slice(1).toLowerCase()
-    return name.split('.').pop()?.toLowerCase() ?? ''
-  })()
+  // Exact filename check first, then extension lookup
+  const nameLower = name.toLowerCase()
+  const ext = nameLower.startsWith('.') && !nameLower.slice(1).includes('.')
+    ? nameLower.slice(1)
+    : nameLower.split('.').pop() ?? ''
 
-  const mark = MARKS[ext as keyof typeof MARKS]
-  const bg   = EXT_BG[ext] ?? 'bg-tundra-ink-100'
+  const cfg: FTCfg | undefined = NAME_MAP[nameLower] ?? EXT_MAP[ext]
 
-  if (mark === undefined) {
-    // No mapping → generic file icon
-    return (
-      <div style={{ width: dim, height: dim }} className="flex items-center justify-center rounded-lg bg-tundra-ink-100">
-        <FileIconBase style={{ width: inner, height: inner }} className="text-tundra-ink-400" />
-      </div>
-    )
-  }
-
-  // Resolve special category marks
-  const symbol = typeof mark === 'string'
-    ? SPECIAL_MARKS[mark]
-    : mark
+  if (!cfg) return (
+    <div style={{ width: dim, height: dim }} className="flex items-center justify-center rounded-lg bg-tundra-ink-100">
+      <FileCodeIcon2 size={iSize} className="text-tundra-ink-400" />
+    </div>
+  )
 
   return (
-    <div style={{ width: dim, height: dim }} className={`flex items-center justify-center rounded-lg ${bg}`}>
-      <svg width={inner} height={inner} viewBox="0 0 24 24" fill="none" overflow="visible">
-        {symbol}
-      </svg>
+    <div style={{ width: dim, height: dim }} className={`flex items-center justify-center rounded-lg ${cfg.bg}`}>
+      <cfg.Icon size={iSize} className={cfg.cls} />
     </div>
   )
 }
