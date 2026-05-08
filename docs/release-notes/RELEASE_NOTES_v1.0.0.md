@@ -43,7 +43,7 @@ WordPress, WooCommerce, Laravel, Django, Next.js, Rails, Astro, SvelteKit, Ghost
 ## Installing
 
 ```bash
-curl -fsSL https://tundra.dev/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/mralaminahamed/tundra/main/installer/install.sh | sudo bash
 ```
 
 Supported: Ubuntu 24.04, Debian 12/13, RHEL 9/10.

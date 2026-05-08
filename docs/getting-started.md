@@ -9,7 +9,7 @@
 ## Install
 
 ```bash
-curl -fsSL https://tundra.dev/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/mralaminahamed/tundra/main/installer/install.sh | sudo bash
 ```
 
 The installer takes ~3 minutes and prints a setup URL when done.

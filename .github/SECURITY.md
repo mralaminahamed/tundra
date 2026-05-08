@@ -14,7 +14,7 @@
 Use one of:
 
 1. **GitHub private advisory** (preferred) — [Report a vulnerability](https://github.com/mralaminahamed/tundra/security/advisories/new)
-2. **Email** — `security@tundra.dev` with subject `[VULN] <brief description>`
+2. **Email** — `mrabir.ahamed@gmail.com` with subject `[VULN] <brief description>`
 
 Include:
 - Tundra version and deployment method (systemd / Docker)

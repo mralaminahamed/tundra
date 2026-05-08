@@ -17,7 +17,7 @@ import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components'
 ## One-line install
 
 ```bash
-curl -fsSL https://tundra.dev/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/mralaminahamed/tundra/main/installer/install.sh | sudo bash
 ```
 
 The installer will:

@@ -51,7 +51,7 @@ If SSH access isn't available, you can enroll manually:
 tundra server token create --server-id <id>
 
 # On the managed server — run the agent installer
-curl -fsSL https://tundra.dev/agent-install.sh | sudo bash -s -- \
+curl -fsSL https://raw.githubusercontent.com/mralaminahamed/tundra/main/installer/agent-install.sh | sudo bash -s -- \
   --control-plane https://your-panel.example.com:7447 \
   --token tnd_setup_<token>
 ```

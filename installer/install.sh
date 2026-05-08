@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Tundra one-line installer
-# Usage: curl -fsSL https://tundra.dev/install.sh | sudo bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/mralaminahamed/tundra/main/installer/install.sh | sudo bash
 #
 # Supported OS: Ubuntu 24.04, Debian 12/13, RHEL 9/10
 # Author: Al Amin Ahamed <mrabir.ahamed@gmail.com>
@@ -753,5 +753,5 @@ echo "    journalctl -u tundra-agent -f      # agent logs"
 echo "    systemctl status tundrad           # service status"
 echo "    tundra version                     # CLI version"
 echo ""
-echo "  Docs: https://docs.tundra.dev"
+echo "  Docs: https://mralaminahamed.github.io/tundra"
 echo ""

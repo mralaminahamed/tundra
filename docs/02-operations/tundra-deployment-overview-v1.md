@@ -58,7 +58,7 @@ If you already have any of these on the host, the installer detects and reuses t
 The fastest path. On a fresh Ubuntu 24.04 server, as a sudoer:
 
 ```bash
-curl -fsSL https://tundra.dev/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/mralaminahamed/tundra/main/installer/install.sh | sudo bash
 ```
 
 The installer:

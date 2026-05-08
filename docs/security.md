@@ -20,7 +20,7 @@ Tundra has six trust boundaries, each enforced at the protocol level:
 
 ## Reporting a vulnerability
 
-Email `security@tundra.dev` with subject `[VULN]`. We respond within 48 hours.
+Email `mrabir.ahamed@gmail.com` with subject `[VULN]`. We respond within 48 hours.
 Coordinated disclosure; CVE filing for confirmed issues.
 
 ## Hardening checklist

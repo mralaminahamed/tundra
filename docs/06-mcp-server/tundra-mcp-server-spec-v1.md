@@ -323,7 +323,7 @@ Each token has, beyond its scope:
       "prompts":   { "listChanged": false },
       "logging":   {}
     },
-    "instructions": "This is the Tundra MCP server. Tools are scoped by the API token's MCP scopes and the session mode. List tools with tools/list; resources with resources/list. The full catalog is documented at https://docs.tundra.dev/mcp/."
+    "instructions": "This is the Tundra MCP server. Tools are scoped by the API token's MCP scopes and the session mode. List tools with tools/list; resources with resources/list. The full catalog is documented at https://mralaminahamed.github.io/tundra/mcp/."
   }
 }
 ```

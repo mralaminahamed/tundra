@@ -1,5 +1,5 @@
 {
-  "name": "tundra-panel",
+  "name": "@tundra/tundra-panel",
   "version": "0.1.0",
   "type": "module",
   "private": true,

@@ -8,7 +8,7 @@ Single binary. No licensing fees. PostgreSQL + Valkey + Caddy.
 ## Quick Install
 
 ```bash
-curl -fsSL https://tundra.dev/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/mralaminahamed/tundra/main/installer/install.sh | sudo bash
 ```
 
 > **Security note:** Always verify the installer SHA256 before running in production.
