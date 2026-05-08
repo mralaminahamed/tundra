@@ -38,6 +38,15 @@ pub async fn provision(pool: PgPool, req: ProvisionRequest) {
             .bind(id)
             .execute(&pool)
             .await;
+            // Propagate active status to the parent site so the sites list reflects reality
+            let _ = sqlx::query(
+                "UPDATE sites s SET status = 'active', updated_at = now()
+                 FROM plugin_wordpress_installations i
+                 WHERE i.id = $1 AND s.id = i.site_id AND s.status = 'provisioning'",
+            )
+            .bind(id)
+            .execute(&pool)
+            .await;
             tracing::info!(installation_id = %id, version = %actual_version, "WordPress provisioned");
         }
         Err(e) => {
@@ -48,6 +57,15 @@ pub async fn provision(pool: PgPool, req: ProvisionRequest) {
                  WHERE id = $2",
             )
             .bind(e.to_string())
+            .bind(id)
+            .execute(&pool)
+            .await;
+            // Propagate error status to the parent site
+            let _ = sqlx::query(
+                "UPDATE sites s SET status = 'error', updated_at = now()
+                 FROM plugin_wordpress_installations i
+                 WHERE i.id = $1 AND s.id = i.site_id AND s.status = 'provisioning'",
+            )
             .bind(id)
             .execute(&pool)
             .await;
