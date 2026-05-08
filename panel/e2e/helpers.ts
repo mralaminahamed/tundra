@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test'
 
-export async function loginAs(page: Page, email = 'admin@example.com', password = 'Test1234!') {
+export async function loginAs(page: Page, email = 'owner@example.com', password = 'correct horse battery staple') {
   await page.goto('/login')
   await page.getByLabel(/email/i).fill(email)
   await page.getByLabel(/password/i).fill(password)
