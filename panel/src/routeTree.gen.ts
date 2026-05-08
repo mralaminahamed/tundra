@@ -69,12 +69,23 @@ import { Route as AuthEditorSiteIdRouteImport } from './routes/_auth.editor.$sit
 import { Route as AuthToolsPhpMyAdminRouteImport } from './routes/_auth.tools.phpmyadmin'
 import { Route as AuthSettingsSecurityRouteImport } from './routes/_auth.settings.security'
 import { Route as AuthSettingsMcpRouteImport } from './routes/_auth.settings.mcp'
+import { Route as AuthSettingsProfileRouteImport } from './routes/_auth.settings.profile'
+import { Route as AuthSettingsGeneralRouteImport } from './routes/_auth.settings.general'
+import { Route as AuthSettingsSmtpRouteImport } from './routes/_auth.settings.smtp'
+import { Route as AuthSettingsNotificationsRouteImport } from './routes/_auth.settings.notifications'
+import { Route as AuthSettingsAccessRouteImport } from './routes/_auth.settings.access'
+import { Route as AuthSettingsStorageRouteImport } from './routes/_auth.settings.storage'
+import { Route as AuthSettingsBrandingRouteImport } from './routes/_auth.settings.branding'
+import { Route as AuthSettingsDnsRouteImport } from './routes/_auth.settings.dns'
+import { Route as AuthSettingsDefaultsRouteImport } from './routes/_auth.settings.defaults'
+import { Route as AuthSettingsSecurityPolicyRouteImport } from './routes/_auth.settings.security-policy'
 import { Route as AuthServersNewRouteImport } from './routes/_auth.servers.new'
 import { Route as AuthServersServerIdRouteImport } from './routes/_auth.servers.$serverId'
 import { Route as AuthPluginsPluginIdRouteImport } from './routes/_auth.plugins.$pluginId'
 import { Route as AuthMailQueueRouteImport } from './routes/_auth.mail.queue'
 import { Route as AuthMailMailboxesRouteImport } from './routes/_auth.mail.mailboxes'
 import { Route as AuthMailDomainsRouteImport } from './routes/_auth.mail.domains'
+import { Route as AuthDomainsIndexRouteImport } from './routes/_auth.domains.index'
 import { Route as AuthDomainsNewRouteImport } from './routes/_auth.domains.new'
 import { Route as AuthDomainsDomainIdRouteImport } from './routes/_auth.domains.$domainId'
 import { Route as AuthDatabasesNewRouteImport } from './routes/_auth.databases.new'
@@ -380,6 +391,11 @@ const AuthFilesSiteIdRoute = AuthFilesSiteIdRouteImport.update({
   path: '/$siteId',
   getParentRoute: () => AuthFilesRoute,
 } as any)
+const AuthSettingsProfileRoute = AuthSettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
 const AuthSettingsSecurityRoute = AuthSettingsSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -388,6 +404,51 @@ const AuthSettingsSecurityRoute = AuthSettingsSecurityRouteImport.update({
 const AuthSettingsMcpRoute = AuthSettingsMcpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsGeneralRoute = AuthSettingsGeneralRouteImport.update({
+  id: '/general',
+  path: '/general',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsSmtpRoute = AuthSettingsSmtpRouteImport.update({
+  id: '/smtp',
+  path: '/smtp',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsNotificationsRoute = AuthSettingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsAccessRoute = AuthSettingsAccessRouteImport.update({
+  id: '/access',
+  path: '/access',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsStorageRoute = AuthSettingsStorageRouteImport.update({
+  id: '/storage',
+  path: '/storage',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsBrandingRoute = AuthSettingsBrandingRouteImport.update({
+  id: '/branding',
+  path: '/branding',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsDnsRoute = AuthSettingsDnsRouteImport.update({
+  id: '/dns',
+  path: '/dns',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsDefaultsRoute = AuthSettingsDefaultsRouteImport.update({
+  id: '/defaults',
+  path: '/defaults',
+  getParentRoute: () => AuthSettingsRoute,
+} as any)
+const AuthSettingsSecurityPolicyRoute = AuthSettingsSecurityPolicyRouteImport.update({
+  id: '/security-policy',
+  path: '/security-policy',
   getParentRoute: () => AuthSettingsRoute,
 } as any)
 const AuthServersNewRoute = AuthServersNewRouteImport.update({
@@ -419,6 +480,11 @@ const AuthMailDomainsRoute = AuthMailDomainsRouteImport.update({
   id: '/domains',
   path: '/domains',
   getParentRoute: () => AuthMailRoute,
+} as any)
+const AuthDomainsIndexRoute = AuthDomainsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthDomainsRoute,
 } as any)
 const AuthDomainsNewRoute = AuthDomainsNewRouteImport.update({
   id: '/new',
@@ -527,6 +593,7 @@ export interface FileRoutesByFullPath {
   '/database-servers/new': typeof AuthDatabaseServersNewRoute
   '/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
   '/databases/new': typeof AuthDatabasesNewRoute
+  '/domains/': typeof AuthDomainsIndexRoute
   '/domains/$domainId': typeof AuthDomainsDomainIdRoute
   '/domains/new': typeof AuthDomainsNewRoute
   '/mail/domains': typeof AuthMailDomainsRouteWithChildren
@@ -537,6 +604,16 @@ export interface FileRoutesByFullPath {
   '/servers/new': typeof AuthServersNewRoute
   '/settings/mcp': typeof AuthSettingsMcpRoute
   '/settings/security': typeof AuthSettingsSecurityRoute
+  '/settings/profile': typeof AuthSettingsProfileRoute
+  '/settings/general': typeof AuthSettingsGeneralRoute
+  '/settings/smtp': typeof AuthSettingsSmtpRoute
+  '/settings/notifications': typeof AuthSettingsNotificationsRoute
+  '/settings/access': typeof AuthSettingsAccessRoute
+  '/settings/storage': typeof AuthSettingsStorageRoute
+  '/settings/branding': typeof AuthSettingsBrandingRoute
+  '/settings/dns': typeof AuthSettingsDnsRoute
+  '/settings/defaults': typeof AuthSettingsDefaultsRoute
+  '/settings/security-policy': typeof AuthSettingsSecurityPolicyRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRouteWithChildren
   '/sites/new': typeof AuthSitesNewRoute
   '/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
@@ -605,6 +682,7 @@ export interface FileRoutesByTo {
   '/database-servers/new': typeof AuthDatabaseServersNewRoute
   '/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
   '/databases/new': typeof AuthDatabasesNewRoute
+  '/domains/': typeof AuthDomainsIndexRoute
   '/domains/$domainId': typeof AuthDomainsDomainIdRoute
   '/domains/new': typeof AuthDomainsNewRoute
   '/mail/domains': typeof AuthMailDomainsRouteWithChildren
@@ -615,6 +693,16 @@ export interface FileRoutesByTo {
   '/servers/new': typeof AuthServersNewRoute
   '/settings/mcp': typeof AuthSettingsMcpRoute
   '/settings/security': typeof AuthSettingsSecurityRoute
+  '/settings/profile': typeof AuthSettingsProfileRoute
+  '/settings/general': typeof AuthSettingsGeneralRoute
+  '/settings/smtp': typeof AuthSettingsSmtpRoute
+  '/settings/notifications': typeof AuthSettingsNotificationsRoute
+  '/settings/access': typeof AuthSettingsAccessRoute
+  '/settings/storage': typeof AuthSettingsStorageRoute
+  '/settings/branding': typeof AuthSettingsBrandingRoute
+  '/settings/dns': typeof AuthSettingsDnsRoute
+  '/settings/defaults': typeof AuthSettingsDefaultsRoute
+  '/settings/security-policy': typeof AuthSettingsSecurityPolicyRoute
   '/sites/$siteId': typeof AuthSitesSiteIdRouteWithChildren
   '/sites/new': typeof AuthSitesNewRoute
   '/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
@@ -688,6 +776,7 @@ export interface FileRoutesById {
   '/_auth/database-servers/new': typeof AuthDatabaseServersNewRoute
   '/_auth/databases/$databaseId': typeof AuthDatabasesDatabaseIdRoute
   '/_auth/databases/new': typeof AuthDatabasesNewRoute
+  '/_auth/domains/': typeof AuthDomainsIndexRoute
   '/_auth/domains/$domainId': typeof AuthDomainsDomainIdRoute
   '/_auth/domains/new': typeof AuthDomainsNewRoute
   '/_auth/mail/domains': typeof AuthMailDomainsRouteWithChildren
@@ -698,6 +787,16 @@ export interface FileRoutesById {
   '/_auth/servers/new': typeof AuthServersNewRoute
   '/_auth/settings/mcp': typeof AuthSettingsMcpRoute
   '/_auth/settings/security': typeof AuthSettingsSecurityRoute
+  '/_auth/settings/profile': typeof AuthSettingsProfileRoute
+  '/_auth/settings/general': typeof AuthSettingsGeneralRoute
+  '/_auth/settings/smtp': typeof AuthSettingsSmtpRoute
+  '/_auth/settings/notifications': typeof AuthSettingsNotificationsRoute
+  '/_auth/settings/access': typeof AuthSettingsAccessRoute
+  '/_auth/settings/storage': typeof AuthSettingsStorageRoute
+  '/_auth/settings/branding': typeof AuthSettingsBrandingRoute
+  '/_auth/settings/dns': typeof AuthSettingsDnsRoute
+  '/_auth/settings/defaults': typeof AuthSettingsDefaultsRoute
+  '/_auth/settings/security-policy': typeof AuthSettingsSecurityPolicyRoute
   '/_auth/sites/$siteId': typeof AuthSitesSiteIdRouteWithChildren
   '/_auth/sites/new': typeof AuthSitesNewRoute
   '/_auth/wordpress/$installId': typeof AuthWordpressInstallIdRouteWithChildren
@@ -782,6 +881,16 @@ export interface FileRouteTypes {
     | '/servers/new'
     | '/settings/mcp'
     | '/settings/security'
+    | '/settings/profile'
+    | '/settings/general'
+    | '/settings/smtp'
+    | '/settings/notifications'
+    | '/settings/access'
+    | '/settings/storage'
+    | '/settings/branding'
+    | '/settings/dns'
+    | '/settings/defaults'
+    | '/settings/security-policy'
     | '/sites/$siteId'
     | '/sites/new'
     | '/wordpress/$installId'
@@ -860,6 +969,16 @@ export interface FileRouteTypes {
     | '/servers/new'
     | '/settings/mcp'
     | '/settings/security'
+    | '/settings/profile'
+    | '/settings/general'
+    | '/settings/smtp'
+    | '/settings/notifications'
+    | '/settings/access'
+    | '/settings/storage'
+    | '/settings/branding'
+    | '/settings/dns'
+    | '/settings/defaults'
+    | '/settings/security-policy'
     | '/sites/$siteId'
     | '/sites/new'
     | '/wordpress/$installId'
@@ -942,6 +1061,16 @@ export interface FileRouteTypes {
     | '/_auth/servers/new'
     | '/_auth/settings/mcp'
     | '/_auth/settings/security'
+    | '/_auth/settings/profile'
+    | '/_auth/settings/general'
+    | '/_auth/settings/smtp'
+    | '/_auth/settings/notifications'
+    | '/_auth/settings/access'
+    | '/_auth/settings/storage'
+    | '/_auth/settings/branding'
+    | '/_auth/settings/dns'
+    | '/_auth/settings/defaults'
+    | '/_auth/settings/security-policy'
     | '/_auth/sites/$siteId'
     | '/_auth/sites/new'
     | '/_auth/wordpress/$installId'
@@ -1416,6 +1545,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSettingsMcpRouteImport
       parentRoute: typeof AuthSettingsRoute
     }
+    '/_auth/settings/profile': {
+      id: '/_auth/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AuthSettingsProfileRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/general': {
+      id: '/_auth/settings/general'
+      path: '/general'
+      fullPath: '/settings/general'
+      preLoaderRoute: typeof AuthSettingsGeneralRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/smtp': {
+      id: '/_auth/settings/smtp'
+      path: '/smtp'
+      fullPath: '/settings/smtp'
+      preLoaderRoute: typeof AuthSettingsSmtpRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/notifications': {
+      id: '/_auth/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AuthSettingsNotificationsRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/access': {
+      id: '/_auth/settings/access'
+      path: '/access'
+      fullPath: '/settings/access'
+      preLoaderRoute: typeof AuthSettingsAccessRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/storage': {
+      id: '/_auth/settings/storage'
+      path: '/storage'
+      fullPath: '/settings/storage'
+      preLoaderRoute: typeof AuthSettingsStorageRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/branding': {
+      id: '/_auth/settings/branding'
+      path: '/branding'
+      fullPath: '/settings/branding'
+      preLoaderRoute: typeof AuthSettingsBrandingRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/dns': {
+      id: '/_auth/settings/dns'
+      path: '/dns'
+      fullPath: '/settings/dns'
+      preLoaderRoute: typeof AuthSettingsDnsRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/defaults': {
+      id: '/_auth/settings/defaults'
+      path: '/defaults'
+      fullPath: '/settings/defaults'
+      preLoaderRoute: typeof AuthSettingsDefaultsRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
+    '/_auth/settings/security-policy': {
+      id: '/_auth/settings/security-policy'
+      path: '/security-policy'
+      fullPath: '/settings/security-policy'
+      preLoaderRoute: typeof AuthSettingsSecurityPolicyRouteImport
+      parentRoute: typeof AuthSettingsRoute
+    }
     '/_auth/servers/new': {
       id: '/_auth/servers/new'
       path: '/new'
@@ -1457,6 +1656,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/mail/domains'
       preLoaderRoute: typeof AuthMailDomainsRouteImport
       parentRoute: typeof AuthMailRoute
+    }
+    '/_auth/domains/': {
+      id: '/_auth/domains/'
+      path: '/'
+      fullPath: '/domains/'
+      preLoaderRoute: typeof AuthDomainsIndexRouteImport
+      parentRoute: typeof AuthDomainsRoute
     }
     '/_auth/domains/new': {
       id: '/_auth/domains/new'
@@ -1633,11 +1839,13 @@ const AuthDatabasesRouteWithChildren = AuthDatabasesRoute._addFileChildren(
 )
 
 interface AuthDomainsRouteChildren {
+  AuthDomainsIndexRoute: typeof AuthDomainsIndexRoute
   AuthDomainsDomainIdRoute: typeof AuthDomainsDomainIdRoute
   AuthDomainsNewRoute: typeof AuthDomainsNewRoute
 }
 
 const AuthDomainsRouteChildren: AuthDomainsRouteChildren = {
+  AuthDomainsIndexRoute: AuthDomainsIndexRoute,
   AuthDomainsDomainIdRoute: AuthDomainsDomainIdRoute,
   AuthDomainsNewRoute: AuthDomainsNewRoute,
 }
@@ -1736,11 +1944,31 @@ const AuthServersRouteWithChildren = AuthServersRoute._addFileChildren(
 interface AuthSettingsRouteChildren {
   AuthSettingsMcpRoute: typeof AuthSettingsMcpRoute
   AuthSettingsSecurityRoute: typeof AuthSettingsSecurityRoute
+  AuthSettingsProfileRoute: typeof AuthSettingsProfileRoute
+  AuthSettingsGeneralRoute: typeof AuthSettingsGeneralRoute
+  AuthSettingsSmtpRoute: typeof AuthSettingsSmtpRoute
+  AuthSettingsNotificationsRoute: typeof AuthSettingsNotificationsRoute
+  AuthSettingsAccessRoute: typeof AuthSettingsAccessRoute
+  AuthSettingsStorageRoute: typeof AuthSettingsStorageRoute
+  AuthSettingsBrandingRoute: typeof AuthSettingsBrandingRoute
+  AuthSettingsDnsRoute: typeof AuthSettingsDnsRoute
+  AuthSettingsDefaultsRoute: typeof AuthSettingsDefaultsRoute
+  AuthSettingsSecurityPolicyRoute: typeof AuthSettingsSecurityPolicyRoute
 }
 
 const AuthSettingsRouteChildren: AuthSettingsRouteChildren = {
   AuthSettingsMcpRoute: AuthSettingsMcpRoute,
   AuthSettingsSecurityRoute: AuthSettingsSecurityRoute,
+  AuthSettingsProfileRoute: AuthSettingsProfileRoute,
+  AuthSettingsGeneralRoute: AuthSettingsGeneralRoute,
+  AuthSettingsSmtpRoute: AuthSettingsSmtpRoute,
+  AuthSettingsNotificationsRoute: AuthSettingsNotificationsRoute,
+  AuthSettingsAccessRoute: AuthSettingsAccessRoute,
+  AuthSettingsStorageRoute: AuthSettingsStorageRoute,
+  AuthSettingsBrandingRoute: AuthSettingsBrandingRoute,
+  AuthSettingsDnsRoute: AuthSettingsDnsRoute,
+  AuthSettingsDefaultsRoute: AuthSettingsDefaultsRoute,
+  AuthSettingsSecurityPolicyRoute: AuthSettingsSecurityPolicyRoute,
 }
 
 const AuthSettingsRouteWithChildren = AuthSettingsRoute._addFileChildren(

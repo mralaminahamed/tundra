@@ -177,6 +177,8 @@ export interface RestorePreview {
 
 export interface Domain {
   id: string
+  site_id: string | null
+  site_name: string | null
   apex: string
   dns_managed_by: 'tundra' | 'external' | 'registrar'
   registration_expires_at: string | null

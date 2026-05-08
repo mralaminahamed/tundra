@@ -97,7 +97,7 @@ function SitePhpTab() {
 
   const patchMutation = useMutation({
     mutationFn: (patch: Partial<PhpSettings>) =>
-      api(`/sites/${siteId}/php`, { method: 'PATCH', body: JSON.stringify(patch) }),
+      api(`/sites/${siteId}/php`, { method: 'PATCH', body: patch }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['sites', siteId, 'php'] })
     },

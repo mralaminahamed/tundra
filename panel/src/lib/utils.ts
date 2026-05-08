@@ -7,24 +7,33 @@ export function cn(...inputs: ClassValue[]) {
 
 // ── Date/time ─────────────────────────────────────────────────────────────────
 
+// Rust time::OffsetDateTime::to_string() emits "2026-05-08 19:53:42.671394 +00:00:00"
+// (space separator; space before tz; microseconds; extra :00 in tz). Normalize to ISO 8601.
+function normalizeTs(ts: string): string {
+  return ts
+    .replace(' ', 'T')                       // first space → T
+    .replace(/(\.\d{3})\d*/, '$1')           // truncate sub-ms precision
+    .replace(/\s*(\+\d{2}:\d{2}):\d{2}$/, '$1') // strip space + extra :ss from tz offset
+}
+
 /** "May 6, 2026" */
 export function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '—'
-  const d = new Date(iso)
+  const d = new Date(normalizeTs(iso))
   return isNaN(d.getTime()) ? '—' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 /** "May 6, 2026, 2:34 PM" */
 export function fmtDateTime(iso: string | null | undefined): string {
   if (!iso) return '—'
-  const d = new Date(iso)
+  const d = new Date(normalizeTs(iso))
   return isNaN(d.getTime()) ? '—' : d.toLocaleString()
 }
 
 /** Relative for recent dates, absolute for older ones: "3m ago", "2h ago", "3d ago", "May 6, 2026" */
 export function fmtRelative(iso: string | null | undefined): string {
   if (!iso) return '—'
-  const d = new Date(iso)
+  const d = new Date(normalizeTs(iso))
   if (isNaN(d.getTime())) return '—'
   const diff = (Date.now() - d.getTime()) / 1000
   if (diff < 60)    return 'just now'

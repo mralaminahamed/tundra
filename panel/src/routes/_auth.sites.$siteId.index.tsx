@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import type { Deployment, ListResponse, Server, Site } from '@/lib/api-types'
+import type { Deployment, Domain, ListResponse, Server, Site } from '@/lib/api-types'
 import { resolveBadge } from '@/lib/source-badge'
 import { CopyButton, DeployStatusBadge, InfoRow, SectionCard } from '@/components/site-shared'
 import { fmtDate, fmtDateTime } from '@/lib/utils'
@@ -39,6 +39,13 @@ function SiteOverviewTab() {
     queryFn: () => api<ListResponse<Deployment>>(`/sites/${siteId}/deployments`),
   })
 
+  const { data: domainRecord } = useQuery({
+    queryKey: ['domains', 'by-apex', site?.primary_domain],
+    queryFn: () => api<Domain>(`/domains/by-apex/${site!.primary_domain}`),
+    enabled: !!site?.primary_domain,
+    retry: false,
+  })
+
   const enabledPluginIds = pluginsNav.filter((p) => p.state === 'enabled').map((p) => p.plugin_id)
   const serverMap = new Map<string, Server>((serversData?.data ?? []).map((s) => [s.id, s]))
 
@@ -67,7 +74,16 @@ function SiteOverviewTab() {
           <span className="flex items-center font-mono text-xs">{site.id.slice(0, 14)}…<CopyButton value={site.id} label="ID" /></span>
         </InfoRow>
         <InfoRow label="Primary domain">
-          <span className="flex items-center font-mono text-sm">{site.primary_domain}<CopyButton value={site.primary_domain} label="Domain" /></span>
+          <span className="flex items-center gap-2 font-mono text-sm">
+            {site.primary_domain}
+            <CopyButton value={site.primary_domain} label="Domain" />
+            {domainRecord && (
+              <Link to="/domains/$domainId" params={{ domainId: domainRecord.id }}
+                className="rounded border border-tundra-ink-200 px-2 py-0.5 font-sans text-xs font-medium text-tundra-ink-500 hover:bg-tundra-ink-50 transition-colors">
+                DNS
+              </Link>
+            )}
+          </span>
         </InfoRow>
         <InfoRow label="Display name">{site.name}</InfoRow>
         <InfoRow label="Server">

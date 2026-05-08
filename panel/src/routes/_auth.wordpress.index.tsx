@@ -797,6 +797,14 @@ function WordPressPage() {
         .then((r: { data: WpInstallation[] }) => r.data),
   })
 
+  // domain map: apex → domain id (for linking DNS records)
+  const { data: allDomainsRaw } = useQuery<{ data: { id: string; apex: string; site_id: string | null }[] }>({
+    queryKey: ['domains-map'],
+    queryFn: () => fetch('/api/v1/domains').then((r) => r.json()),
+    staleTime: 60_000,
+  })
+  const domainByApex = new Map((allDomainsRaw?.data ?? []).map((d) => [d.apex, d.id]))
+
   const { data: sites = [] } = useQuery<Site[]>({
     queryKey: ['sites-list'],
     queryFn: () =>
@@ -1183,10 +1191,13 @@ function WordPressPage() {
                               {inst.site_title ?? inst.site_id.slice(0, 16)}
                             </Link>
                             {inst.site_url && (
-                              <a href={inst.site_url} target="_blank" rel="noopener noreferrer"
-                                className="truncate text-xs text-tundra-aurora hover:underline">
-                                {inst.site_url} ↗
-                              </a>
+                              <div className="flex items-center gap-1.5">
+                                <a href={inst.site_url} target="_blank" rel="noopener noreferrer"
+                                  className="truncate text-xs text-tundra-aurora hover:underline">
+                                  {inst.site_url.replace(/^https?:\/\//, '')} ↗
+                                </a>
+                                {(() => { try { const apex = new URL(inst.site_url).hostname; const dId = domainByApex.get(apex); return dId ? <Link to="/domains/$domainId" params={{ domainId: dId }} className="shrink-0 rounded border border-tundra-ink-200 px-1.5 py-0.5 text-[10px] font-medium text-tundra-ink-500 hover:bg-tundra-ink-50">DNS</Link> : null } catch { return null } })()}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -1293,10 +1304,13 @@ function WordPressPage() {
                           {inst.site_title ?? inst.site_id.slice(0, 14)}
                         </Link>
                         {inst.site_url && (
-                          <a href={inst.site_url} target="_blank" rel="noopener noreferrer"
-                            className="block truncate text-xs text-tundra-aurora hover:underline">
-                            {inst.site_url.replace(/^https?:\/\//, '')} ↗
-                          </a>
+                          <div className="flex items-center gap-1.5">
+                            <a href={inst.site_url} target="_blank" rel="noopener noreferrer"
+                              className="truncate text-xs text-tundra-aurora hover:underline">
+                              {inst.site_url.replace(/^https?:\/\//, '')} ↗
+                            </a>
+                            {(() => { try { const apex = new URL(inst.site_url).hostname; const dId = domainByApex.get(apex); return dId ? <Link to="/domains/$domainId" params={{ domainId: dId }} className="shrink-0 rounded border border-tundra-ink-200 px-1.5 py-0.5 text-[10px] font-medium text-tundra-ink-500 hover:bg-tundra-ink-50">DNS</Link> : null } catch { return null } })()}
+                          </div>
                         )}
                       </div>
                     </div>

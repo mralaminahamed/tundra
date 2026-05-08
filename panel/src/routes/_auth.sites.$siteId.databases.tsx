@@ -46,7 +46,7 @@ function SiteDatabasesTab() {
   const dbs = data?.data ?? []
 
   const createMut = useMutation({
-    mutationFn: () => api<Database>('/databases', {
+    mutationFn: () => api<Database>(`/sites/${siteId}/databases`, {
       method: 'POST',
       body: { database_server_id: dbServerId, name: dbName },
     }),
