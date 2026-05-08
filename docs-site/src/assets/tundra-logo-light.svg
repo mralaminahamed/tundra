@@ -1,5 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 28" fill="none">
-  <path d="M4 6h8v16H8V10H4V6zm8 0h4v4h-4V6z" fill="#7a8a5c"/>
-  <path d="M18 6h12v4h-4v12h-4V10h-4V6z" fill="#f2f3f1"/>
-  <text x="36" y="20" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="700" fill="#f2f3f1" letter-spacing="-0.3">tundra</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tundra — Primary Horizontal Lockup (default logo)
+  Mark + wordmark, side by side. Mark height optically matches wordmark cap-height × 1.15.
+  Gap between mark and wordmark = wordmark x-height (~one-quarter em at this size).
+  Author: Al Amin Ahamed (@mralaminahamed)
+  Canvas: 560×120. Mark area: 0–120. Gap: 20px. Wordmark: 140–560.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 120" width="560" height="120" role="img" aria-label="Tundra">
+  <title>Tundra</title>
+
+  <!-- Mark, scaled to 80×80, vertically centred at y=20 -->
+  <g transform="translate(20, 20) scale(0.333)">
+    <path
+      d="M120 12 L137 103 L172 120 L137 137 L120 228 L103 137 L68 120 L103 103 Z"
+      fill="#7a8a5c"
+    />
+  </g>
+
+  <!-- Wordmark, baseline at y=94, x=134 -->
+  <text
+    x="134"
+    y="94"
+    font-family="'Inter Display', 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-weight="900"
+    font-size="84"
+    letter-spacing="-2.52"
+    fill="#F2F3F1"
+  >tundra</text>
 </svg>

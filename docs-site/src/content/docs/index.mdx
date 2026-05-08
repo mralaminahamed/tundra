@@ -1,69 +1,88 @@
 ---
-title: Tundra Documentation
-description: Self-hosted server management — a modern alternative to Plesk and cPanel.
+title: Tundra
+description: Self-hosted server management — a modern alternative to Plesk and cPanel. Single binary, no licensing fees, full control.
 template: splash
 hero:
-  tagline: One binary. No licensing fees. Full control over your servers, sites, databases, and deployments.
+  title: Server management,<br />done right.
+  tagline: Open-source alternative to Plesk and cPanel. One binary, no licensing fees, full control over your servers, sites, databases, and deployments.
+  image:
+    dark: ../../assets/tundra-logo-light.svg
+    light: ../../assets/tundra-logo-dark.svg
   actions:
     - text: Get started
       link: /tundra/getting-started/introduction/
       icon: right-arrow
       variant: primary
-    - text: View on GitHub
+    - text: GitHub
       link: https://github.com/mralaminahamed/tundra
-      icon: external
-      variant: secondary
+      icon: github
+      variant: minimal
 ---
 
-import { Card, CardGrid, LinkButton } from '@astrojs/starlight/components'
+import { Card, CardGrid, LinkButton, Badge } from '@astrojs/starlight/components'
 
-<div class="version-badge">✦ v1.0.0 · General Availability</div>
+<div class="hero-meta">
+  <span class="v-badge">v1.0.0 · General Availability</span>
+  <span class="meta-sep">·</span>
+  <span class="meta-item">Apache-2.0</span>
+  <span class="meta-sep">·</span>
+  <span class="meta-item">SLSA Level 3</span>
+</div>
 
-<CardGrid stagger>
-  <Card title="Multi-runtime sites" icon="rocket">
-    Deploy PHP, Node.js, Python, Go, Rust, Ruby, and .NET apps with blue/green deploys and atomic rollback.
-  </Card>
-  <Card title="WordPress management" icon="puzzle">
-    WP-CLI provisioning, per-install DB isolation, plugin/theme management, staging environments, and cloning.
-  </Card>
-  <Card title="Multi-server fleet" icon="laptop">
-    SSH-based agent install, mTLS mesh, cross-server site move, maintenance windows, and fleet health monitoring.
-  </Card>
-  <Card title="DNS & Mail" icon="email">
-    PowerDNS zone management, 30 DNS templates, Postfix + Dovecot + Rspamd, DKIM, DMARC, SPF — all managed.
-  </Card>
-  <Card title="Plugin system" icon="open-book">
-    Wasmtime sandbox for third-party plugins. First-party SDK with WIT contracts, capability gate, kv store, and events.
-  </Card>
-  <Card title="MCP AI integration" icon="star">
-    Connect Claude Code, Claude Desktop, Cursor, and Zed via Model Context Protocol. Manage infrastructure from your AI editor.
-  </Card>
-  <Card title="Backups" icon="document">
-    Restic-backed, GPG-encrypted backups to S3, Backblaze B2, Wasabi, Cloudflare R2, SFTP, or local. Preview-then-confirm restore.
-  </Card>
-  <Card title="Security-first" icon="shield">
-    SLSA Level 3, AES-256-GCM at rest, Argon2id passwords, mTLS agent mesh, step-up auth, audit log with chain hashing.
-  </Card>
-</CardGrid>
-
-## Why Tundra?
-
-| | Tundra | Plesk | cPanel |
-|---|---|---|---|
-| License | Apache-2.0, free forever | $12–22/mo per server | $20–45/mo per server |
-| Single binary | ✅ | ❌ | ❌ |
-| Multi-server | ✅ | ✅ (addon) | ✅ (addon) |
-| Plugin system | ✅ Wasmtime + MCP | ✅ | ✅ |
-| Open source | ✅ | ❌ | ❌ |
-| Blue/green deploys | ✅ | ❌ | ❌ |
-| AI integration (MCP) | ✅ | ❌ | ❌ |
-
-## Quick install
+## Install in one line
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mralaminahamed/tundra/main/installer/install.sh | sudo bash
 ```
 
-Runs on Ubuntu 24.04, Debian 12/13, RHEL 9/10. After install, visit the printed setup URL to create your owner account.
+Ubuntu 24.04 · Debian 12/13 · RHEL 9/10
 
-<LinkButton href="/tundra/getting-started/quick-install/" variant="primary">Full install guide →</LinkButton>
+<div class="cta-row">
+  <LinkButton href="/tundra/getting-started/quick-install/" variant="primary">Full install guide →</LinkButton>
+  <LinkButton href="/tundra/self-hosting/docker-compose/" variant="secondary">Docker Compose</LinkButton>
+</div>
+
+---
+
+## What Tundra manages
+
+<CardGrid>
+  <Card title="Multi-runtime sites" icon="rocket">
+    PHP, Node.js, Python, Go, Rust, Ruby, .NET — blue/green deployments, atomic rollback, 13 starter templates.
+  </Card>
+  <Card title="WordPress" icon="puzzle">
+    WP-CLI provisioning, per-install DB isolation, plugin/theme management, staging and cloning.
+  </Card>
+  <Card title="Multi-server fleet" icon="laptop">
+    SSH-based agent install, mTLS gRPC mesh, cross-server site move, maintenance windows.
+  </Card>
+  <Card title="Databases" icon="setting">
+    PostgreSQL, MySQL, MariaDB, Valkey — CRUD, access control, connection strings.
+  </Card>
+  <Card title="DNS & Mail" icon="email">
+    PowerDNS zones, 30 provider-ready DNS templates, Postfix + Dovecot + Rspamd + DKIM.
+  </Card>
+  <Card title="Backups" icon="document">
+    restic + GPG to S3, B2, R2, Wasabi, SFTP, or local. Preview-then-confirm restore.
+  </Card>
+  <Card title="Plugin system" icon="open-book">
+    Wasmtime sandbox, WIT SDK, capability gate. Official plugins: WordPress, GitHub, Namecheap, MCP.
+  </Card>
+  <Card title="MCP AI integration" icon="star">
+    Connect Claude Code, Claude Desktop, Cursor, Zed. Manage infrastructure from your AI editor.
+  </Card>
+</CardGrid>
+
+---
+
+## Why Tundra?
+
+|  | **Tundra** | Plesk | cPanel |
+|--|--|--|--|
+| License | Apache-2.0, free | $12–22/mo per server | $20–45/mo per server |
+| Single binary | ✅ | ❌ | ❌ |
+| Open source | ✅ | ❌ | ❌ |
+| Blue/green deploys | ✅ | ❌ | ❌ |
+| MCP AI integration | ✅ | ❌ | ❌ |
+| SLSA Level 3 | ✅ | ❌ | ❌ |
+| Multi-server | ✅ | ✅ addon | ✅ addon |
