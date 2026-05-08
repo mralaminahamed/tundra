@@ -90,7 +90,7 @@ function SiteDeploymentsTab() {
                         onClick={() => {
                           void api(`/sites/${siteId}/deployments`, { method: 'POST', body: { trigger: 'redeploy', source_ref: d.source_ref ?? undefined } })
                             .then(() => { void qc.invalidateQueries({ queryKey: ['sites', siteId, 'deployments'] }); toast.success('Redeployed') })
-                            .catch(() => { toast.info('Redeploy coming soon') })
+                            .catch((e: Error) => toast.error(e.message))
                         }}
                         className="rounded border border-tundra-ink-200 px-2.5 py-1 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
                         Redeploy

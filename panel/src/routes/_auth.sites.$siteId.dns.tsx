@@ -148,10 +148,6 @@ function SiteDnsTab() {
         </div>
         <span className="text-xs text-tundra-ink-400">{filtered.length} records</span>
         <div className="ml-auto flex gap-2">
-          <button type="button" onClick={() => toast.info('Zone import coming soon')}
-            className="rounded-lg border border-tundra-ink-200 px-3 py-1.5 text-xs font-medium text-tundra-ink-600 hover:bg-tundra-ink-50 transition-colors">
-            Import zone
-          </button>
           <button type="button" onClick={() => { setShowAdd(!showAdd) }}
             className="rounded-lg bg-tundra-lichen px-3 py-1.5 text-xs font-medium text-white hover:bg-tundra-lichen-600 transition-colors">
             + Add record

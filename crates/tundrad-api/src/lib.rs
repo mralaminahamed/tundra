@@ -105,7 +105,9 @@ pub fn router(pool: PgPool) -> Router {
         )
         .route(
             "/api/v1/sites/{id}",
-            get(routes::sites::get).delete(routes::sites::delete),
+            get(routes::sites::get)
+                .patch(routes::sites::update)
+                .delete(routes::sites::delete),
         )
         .route(
             "/api/v1/sites/{id}/deployments",

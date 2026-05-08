@@ -68,6 +68,13 @@ pub struct CreateSiteResponse {
     pub deployment: DeploymentDto,
 }
 
+#[derive(Deserialize)]
+pub struct UpdateSiteRequest {
+    pub name: Option<String>,
+    pub primary_domain: Option<String>,
+    pub status: Option<String>,
+}
+
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
 pub async fn list(
@@ -149,6 +156,47 @@ pub async fn get(
         .unwrap_or((None, None));
 
     Ok(Json(to_site_dto(site, source_kind, source_config)))
+}
+
+pub async fn update(
+    State(pool): State<PgPool>,
+    AuthSession(session): AuthSession,
+    Path(id): Path<Uuid>,
+    Json(body): Json<UpdateSiteRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let op = tundrad_repo::OperatorRepo::new(&pool)
+        .find_by_id(session.operator_id)
+        .await
+        .map_err(ApiError::from)?;
+
+    AuthzService
+        .require(&op.role, Action::Update, Resource::Site)
+        .map_err(ApiError::from)?;
+
+    let site = tundrad_repo::SiteRepo::new(&pool)
+        .update(
+            id,
+            body.name.as_deref(),
+            body.primary_domain.as_deref(),
+            body.status.as_deref(),
+        )
+        .await
+        .map_err(ApiError::from)?;
+
+    tundrad_repo::AuditLogRepo::new(&pool)
+        .append(tundrad_domain::NewAuditEntry {
+            actor: tundrad_domain::AuditActor::Operator(session.operator_id),
+            action: "site.update".to_owned(),
+            resource_type: Some("site".to_owned()),
+            resource_id: Some(id),
+            ip: None,
+            user_agent: None,
+            details: serde_json::json!({ "name": body.name, "primary_domain": body.primary_domain }),
+        })
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok(Json(to_site_dto(site, None, None)))
 }
 
 pub async fn create(

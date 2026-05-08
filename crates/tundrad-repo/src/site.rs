@@ -264,6 +264,31 @@ impl<'a> SiteRepo<'a> {
         Ok((site, app, deploy))
     }
 
+    pub async fn update(
+        &self,
+        id: Uuid,
+        name: Option<&str>,
+        primary_domain: Option<&str>,
+        status: Option<&str>,
+    ) -> Result<Site, RepoError> {
+        let row = sqlx::query_as::<_, SiteRow>(
+            "UPDATE sites
+             SET name           = COALESCE($2, name),
+                 primary_domain = COALESCE($3, primary_domain),
+                 status         = COALESCE($4::site_status, status)
+             WHERE id = $1 AND deleted_at IS NULL
+             RETURNING *",
+        )
+        .bind(id)
+        .bind(name)
+        .bind(primary_domain)
+        .bind(status)
+        .fetch_optional(self.pool)
+        .await?
+        .ok_or(RepoError::NotFound)?;
+        row.try_into()
+    }
+
     pub async fn soft_delete(&self, id: Uuid) -> Result<(), RepoError> {
         let n =
             sqlx::query("UPDATE sites SET deleted_at = now() WHERE id = $1 AND deleted_at IS NULL")

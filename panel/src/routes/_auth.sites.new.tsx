@@ -1292,7 +1292,8 @@ function DomainStep({ values, setFieldValue, servers }: { values: FormValues; se
           <div>
             <label className={LABEL}>Primary domain</label>
             <input type="text" value={values.domain}
-              onChange={(e) => { const v = e.target.value.toLowerCase().trim(); setFieldValue('domain', v); if (!values.name) setFieldValue('name', v) }}
+              onChange={(e) => { const v = e.target.value.toLowerCase().trim(); setFieldValue('domain', v) }}
+              onBlur={(e) => { const v = e.target.value.toLowerCase().trim(); if (!values.name) setFieldValue('name', v) }}
               placeholder="example.com" className={INPUT} autoComplete="off" spellCheck={false} />
             <ErrorMessage name="domain" component="p" className="mt-1 text-xs text-red-500" />
             <p className={HINT}>Must be a domain you control and can point DNS to this server.</p>
