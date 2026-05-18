@@ -20,7 +20,7 @@ thiserror.workspace = true
 time.workspace = true
 tracing.workspace = true
 uuid.workspace = true
-rcgen = { version = "0.14.7", features = ["pem", "x509-parser"] }
+rcgen = { version = "0.14.8", features = ["pem", "x509-parser"] }
 hex = "0.4"
 
 [dev-dependencies]
