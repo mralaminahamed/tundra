@@ -17,7 +17,7 @@ jobs:
     outputs:
       binary-digest: ${{ steps.digest.outputs.digest }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -70,7 +70,7 @@ jobs:
     name: Build linux/arm64
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - name: Build
         run: cargo build --release --bin tundrad --bin tundra --bin tundra-agent
@@ -91,7 +91,7 @@ jobs:
     name: Build macOS Universal (CLI only)
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-darwin,aarch64-apple-darwin
@@ -117,7 +117,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: build-linux-x86_64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Log in to ghcr.io
         uses: docker/login-action@v3
@@ -170,7 +170,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download all artefacts
         uses: actions/download-artifact@v4
