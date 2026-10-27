@@ -154,7 +154,7 @@ fn compute_checksums(dir: &Path) -> Result<String> {
     for entry in walkdir(dir)? {
         if entry.is_file() {
             let content = std::fs::read(&entry)?;
-            let hash = format!("{:x}", Sha256::digest(&content));
+            let hash = hex::encode(Sha256::digest(&content));
             let rel = entry.strip_prefix(dir)?.display().to_string();
             lines.push(format!("{hash}  {rel}"));
         }

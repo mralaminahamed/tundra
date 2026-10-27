@@ -180,7 +180,7 @@ fn compute_stub_checksums(dir: &Path) -> Result<String> {
         let path = dir.join(f);
         if path.exists() {
             let content = std::fs::read(&path)?;
-            let hash = format!("{:x}", Sha256::digest(&content));
+            let hash = hex::encode(Sha256::digest(&content));
             lines.push(format!("{hash}  {f}"));
         }
     }
@@ -203,7 +203,7 @@ fn verify_checksums(dir: &Path) -> Result<()> {
         if !file_path.exists() {
             bail!("checksum entry references missing file: {rel_path}");
         }
-        let actual = format!("{:x}", Sha256::digest(std::fs::read(&file_path)?));
+        let actual = hex::encode(Sha256::digest(std::fs::read(&file_path)?));
         if actual != expected_hash {
             bail!("checksum mismatch for {rel_path}: expected {expected_hash}, got {actual}");
         }
@@ -266,11 +266,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn sha256_hex_known_answer() {
+        assert_eq!(
+            hex::encode(Sha256::digest(b"abc")),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
+    #[test]
     fn checksum_round_trip() {
         let dir = tempfile::tempdir().unwrap();
         let file = dir.path().join("test.txt");
         std::fs::write(&file, b"hello tundra").unwrap();
-        let hash = format!("{:x}", Sha256::digest(b"hello tundra"));
+        let hash = hex::encode(Sha256::digest(b"hello tundra"));
         let checksums = format!("{hash}  test.txt");
         std::fs::write(dir.path().join("checksums.txt"), &checksums).unwrap();
         verify_checksums(dir.path()).unwrap();
