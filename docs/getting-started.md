@@ -21,7 +21,7 @@ In the panel: **Servers → Add Server**. The wizard:
 1. Asks for a hostname
 2. Shows the SSH fingerprint for you to confirm
 3. Installs the agent over SSH
-4. Connects the agent back to Tundra via mTLS
+4. Connects the agent back to Tundra over HTTPS (mTLS is planned)
 
 Or via CLI:
 ```bash
