@@ -24,7 +24,7 @@ The installer will:
 
 1. Install PostgreSQL 18, Valkey 8, Caddy, and system dependencies
 2. Create the `tundra` system user
-3. Download and verify binaries (SHA-256 + SLSA provenance)
+3. Download and verify binaries (SHA-256 and minisign signature; SLSA provenance is planned)
 4. Generate a master encryption key
 5. Run database migrations
 6. Configure and start systemd services

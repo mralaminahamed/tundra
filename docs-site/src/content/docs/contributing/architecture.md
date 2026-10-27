@@ -22,7 +22,7 @@ sidebar:
 │  └─────────────┘  └──────────┘  └────────────────────┘  │
 │  PostgreSQL 18              Valkey 8                      │
 └────────────────────┬─────────────────────────────────────┘
-                     │ mTLS gRPC :7447
+                     │ HTTPS (agent polls; mTLS gRPC :7447 planned)
           ┌──────────┴──────────┐
           ▼                     ▼
   ┌───────────────┐    ┌───────────────┐
@@ -46,13 +46,13 @@ sidebar:
 Any column holding a secret uses `EncryptedField<T>` — a SQLx custom type that AES-256-GCM-encrypts on write and decrypts on read. Keys are HKDF-derived per column family from the master key and never stored in the DB.
 
 ### Audit chain
-`audit_log` has a sha3-256 chain hash trigger: each row hashes itself + the previous row's hash. Tamper detection runs on export.
+`audit_log` has a sha3-256 chain hash trigger: each row hashes itself + the previous row's hash. The chain is computed in SQL. No Rust code verifies it.
 
 ### Up-only migrations
 SQLx migrations are strictly forward-only. Reverting a bad migration means: rollback the binary, then write a new forward migration to fix the schema.
 
 ### Plugin isolation
-Plugins run in Wasmtime with fuel + memory limits + epoch interrupts. All host calls go through a capability gate — plugins cannot access resources not listed in their manifest.
+The plugin host library (`tundrad-plugin-host`) runs plugins in Wasmtime with fuel + memory limits + epoch interrupts. Host calls go through a capability gate. The host is not yet linked into `tundrad`.
 
 ## Database schema modules
 

@@ -17,7 +17,7 @@ The **Servers** list shows all enrolled servers grouped by region:
 
 ## Moving a site between servers
 
-Cross-server site move uses a 7-stage atomic pipeline:
+Cross-server site move is a stub in the current code. `MOVE_STAGES` in `crates/tundrad-domain/src/site_move.rs` defines eight stages (`acquire_lock`, `sync_artifacts`, `database_migrate`, `update_server_id`, `issue_tls_cert`, `update_dns`, `health_check`, `retire_source`); the handler only records them and does not move files, databases or DNS. The list below is the intended design:
 
 ```
 1. snapshot      Create a point-in-time snapshot on the source server
@@ -53,7 +53,7 @@ The agent connection has built-in reliability mechanisms:
 
 ## Agent certificates
 
-Each agent has a short-lived mTLS client certificate issued by Tundra's internal CA:
+Planned design: each agent has a short-lived mTLS client certificate issued by Tundra's internal CA. Agents do not use client certificates yet.
 
 - 1-year validity, auto-renewed 30 days before expiry
 - SAN URI: `tundra-agent://server-{id}`

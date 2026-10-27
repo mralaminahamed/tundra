@@ -57,6 +57,6 @@ The file manager shows SVG icons for 51 file types, including:
 
 ## Security
 
-- Files are accessed via the `tundra-agent` over mTLS — no direct SSH/SFTP exposure
+- Files are accessed via the `tundra-agent` over the agent channel (HTTPS today, mTLS planned) — no direct SSH/SFTP exposure
 - The agent enforces that paths are within the site's document root
 - All file write operations are recorded in the audit log

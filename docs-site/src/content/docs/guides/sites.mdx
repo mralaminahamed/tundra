@@ -44,12 +44,11 @@ Every deployment follows a 6-stage pipeline:
 6. prune       Remove releases older than the last 5
 ```
 
-The symlink swap is atomic — no downtime between old and new version.
+The symlink swap is atomic. The code implements the swap and keeps the 5 newest releases. Starting the new slot, the health check and stopping the old slot are stubs (`crates/tundra-agent-providers/src/deploy.rs`), and the stage names in the agent differ from the list above.
 
 ## Rollback
 
-Go to **Deployments**, find any previous release, click **Roll back**.  
-The current symlink points back to the old release directory.
+No rollback operation is implemented yet. `RollbackSite` is declared in `proto/tundra/v1/agent.proto` and the panel has no rollback control. The last 5 release directories stay on disk, so the `current` symlink can be pointed back at one by hand.
 
 ## Daemons
 
