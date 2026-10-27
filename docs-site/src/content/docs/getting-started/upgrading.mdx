@@ -49,7 +49,7 @@ Tundra uses **up-only migrations**. There are no down migrations. To revert a de
 
 ## Verifying a release
 
-All releases include SLSA Level 3 provenance. Verify before installing in production:
+The release workflow is designed to produce SLSA Level 3 provenance, but no release has run it yet (see `docs/slsa.md`). Once a release publishes provenance, verify it like this:
 
 ```bash
 # Install slsa-verifier

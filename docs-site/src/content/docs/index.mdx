@@ -13,13 +13,13 @@ import { Card, CardGrid } from '@astrojs/starlight/components'
 
 <CardGrid>
   <Card title="Multi-runtime sites" icon="rocket">
-    PHP, Node.js, Python, Go, Rust, Ruby, .NET — blue/green deploys, atomic rollback, 13 starter templates.
+    PHP, Node.js, Python, Go, Rust, Ruby, .NET. Atomic symlink release swap with the 5 newest releases kept (slot start and health checks are stubs; no rollback operation yet), 13 starter templates.
   </Card>
   <Card title="WordPress" icon="puzzle">
     WP-CLI lifecycle, per-install DB isolation, plugin/theme management, staging and cloning.
   </Card>
   <Card title="Multi-server fleet" icon="laptop">
-    SSH agent install, mTLS gRPC mesh, cross-server site move, maintenance windows.
+    SSH agent install over HTTPS-polling agents (mTLS gRPC is planned), cross-server site move (pipeline is a stub), maintenance windows.
   </Card>
   <Card title="Databases" icon="setting">
     PostgreSQL, MySQL, MariaDB, Valkey — CRUD, access control, connection strings.
@@ -31,7 +31,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components'
     restic + GPG encryption. S3, B2, R2, Wasabi, SFTP, or local. Preview-then-confirm restore.
   </Card>
   <Card title="Plugin system" icon="open-book">
-    Wasmtime sandbox, WIT SDK, capability gate. Official plugins: WordPress, GitHub, Namecheap, MCP.
+    Wasmtime plugin host library with WIT SDK, capability gate and resource limits (not yet wired into `tundrad`). Bundled plugin crates: WordPress, GitHub, Namecheap, MCP.
   </Card>
   <Card title="MCP AI integration" icon="star">
     Connect Claude Code, Claude Desktop, Cursor, Zed. Manage infrastructure from your AI editor.
@@ -49,9 +49,9 @@ export const Add = () => <span class="cmp addon">addon</span>
 |  | **Tundra** | Plesk | cPanel |
 |--|--|--|--|
 | License | Apache-2.0, free | $12–22/mo per server | $20–45/mo per server |
-| Single binary | <Yes/> | <No/> | <No/> |
+| Rust binaries (`tundrad`, `tundra`, `tundra-agent`) | <Yes/> | <No/> | <No/> |
 | Open source | <Yes/> | <No/> | <No/> |
-| Blue/green deploys | <Yes/> | <No/> | <No/> |
+| Blue/green deploys (partial) | <Yes/> | <No/> | <No/> |
 | MCP AI integration | <Yes/> | <No/> | <No/> |
-| SLSA Level 3 | <Yes/> | <No/> | <No/> |
+| SLSA Level 3 provenance (workflow only, no release yet) | <No/> | <No/> | <No/> |
 | Multi-server | <Yes/> | <Add/> | <Add/> |

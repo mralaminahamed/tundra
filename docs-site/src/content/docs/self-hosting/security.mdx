@@ -28,11 +28,11 @@ This runs automated security acceptance tests. For manual verification:
 
 | Boundary | Protection |
 |----------|-----------|
-| Browser ↔ panel | TLS 1.3, session cookies, CSRF double-submit, CSP, HSTS |
+| Browser ↔ panel | TLS 1.3, session cookies, CSP, HSTS. A CSRF double-submit middleware exists but is not applied to the router |
 | External ↔ API | Bearer API tokens (SHA-256 stored), MCP scope tokens, HMAC webhooks |
-| Control plane ↔ agent | mTLS 1.3, per-agent client cert, nonce replay protection |
+| Control plane ↔ agent | Planned: mTLS 1.3 with per-agent client certificates. Current: HTTPS with an `X-Tundra-Server-Id` header; the agent client does not verify the server certificate |
 | Agent ↔ workloads | Per-site Unix UID isolation, `open_basedir` for PHP, systemd hardening |
-| Plugin sandbox ↔ host | Wasmtime fuel/memory/epoch limits, capability-checked host calls |
+| Plugin sandbox ↔ host | Wasmtime fuel/memory/epoch limits, capability-checked host calls (host library not yet wired into `tundrad`) |
 | Tundra ↔ third-party APIs | TLS verification, credentials encrypted at rest |
 
 ## Encryption at rest
