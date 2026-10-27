@@ -1,0 +1,38 @@
+name: sqlx-prepare
+
+on:
+  push:
+    branches: [fix/compile]
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: tundra
+          POSTGRES_PASSWORD: tundra
+          POSTGRES_DB: tundra
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://tundra:tundra@localhost:5432/tundra
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.95"
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install sqlx-cli --locked --no-default-features --features rustls,postgres
+      - run: sqlx migrate run --source migrations
+      - run: cargo sqlx prepare --workspace -- --all-targets
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sqlx-cache
+          path: .sqlx
