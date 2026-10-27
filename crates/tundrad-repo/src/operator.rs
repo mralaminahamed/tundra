@@ -211,6 +211,7 @@ impl<'a> OperatorRepo<'a> {
             .collect()
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn update_profile(
         &self,
         id: Uuid,
