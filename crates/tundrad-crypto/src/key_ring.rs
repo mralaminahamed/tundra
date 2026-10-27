@@ -78,9 +78,9 @@ mod tests {
         // Smoke test: both succeed; we can't easily compare AES keys directly so just verify
         // they are callable without error and produce different outputs for the same input.
         use aes_gcm::{Nonce, aead::Aead};
-        use rand::RngCore;
+        use rand::TryRng;
         let mut nonce_bytes = [0u8; 12];
-        rand::thread_rng().fill_bytes(&mut nonce_bytes);
+        rand::rng().try_fill_bytes(&mut nonce_bytes).expect("rng");
         let nonce = Nonce::from_slice(&nonce_bytes);
         let pt = b"hello";
         let ct1 = c1.encrypt(nonce, pt.as_ref()).unwrap();
