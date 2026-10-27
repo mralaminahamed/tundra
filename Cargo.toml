@@ -96,7 +96,7 @@ hex = "0.4"
 
 # UUID / time
 uuid = { version = "1", features = ["v4", "v7", "serde"] }
-time = { version = "0.3", features = ["serde"] }
+time = { version = "0.3", features = ["serde", "serde-well-known"] }
 
 # Observability
 tracing = "0.1"
