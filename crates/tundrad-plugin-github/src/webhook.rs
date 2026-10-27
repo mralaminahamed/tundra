@@ -1,4 +1,4 @@
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
 
 type HmacSha256 = Hmac<Sha256>;
@@ -37,6 +37,16 @@ mod tests {
         let sig_bytes = mac.finalize().into_bytes();
         let sig_hex = format!("sha256={}", hex::encode(sig_bytes));
         assert!(validate_signature(payload, secret, &sig_hex));
+    }
+
+    #[test]
+    fn github_documented_vector_accepted() {
+        let sig = "sha256=757107ea0eb2509fc211221cce984b8a37570b6d7586c22c46f4379c8b043e17";
+        assert!(validate_signature(
+            b"Hello, World!",
+            b"It's a Secret to Everybody",
+            sig
+        ));
     }
 
     #[test]
