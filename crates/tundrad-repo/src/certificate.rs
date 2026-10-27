@@ -202,9 +202,8 @@ impl<'a> CertificateRepo<'a> {
 
         Ok(row.and_then(|(combined,)| {
             combined
-                .splitn(2, ':')
-                .nth(1)
-                .map(str::to_owned)
+                .split_once(':')
+                .map(|(_, rest)| rest.to_owned())
         }))
     }
 }
