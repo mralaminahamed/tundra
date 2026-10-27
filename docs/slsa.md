@@ -1,12 +1,22 @@
-# Tundra Release Provenance (SLSA Level 3)
+# Tundra Release Provenance (SLSA Level 3 target)
 
-Every Tundra release from v1.0.0 onward includes SLSA Level 3 provenance.
+## Status
 
-## What this means
+The release workflow (`.github/workflows/release.yml`, job `slsa-provenance`) calls the SLSA Level 3 generic generator `slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0`. No release has run it: the repository has tags (up to `v1.0.0`) but no GitHub release, no `release.yml` run, and no published provenance file. No SLSA level is demonstrated by this repository today.
 
-- Builds run in isolated GitHub Actions ephemeral environments
-- Build provenance is signed by Sigstore/Cosign (no long-lived signing key required)
-- The SLSA verifier can confirm: which source commit produced which binary
+The workflow would attest only the linux x86_64 tarball. The linux arm64 and macOS artefacts are not subjects of the provenance.
+
+## Known issue
+
+The job passes `base64-subjects` the bare hex digest from the `Compute digest` step (`sha256sum ... | awk '{print $1}'`). The generator documents that this input must decode to `sha256sum` output, a hash followed by a space and the artefact name, base64 encoded (`internal/builders/generic/README.md` at v2.1.0). The current value does not match that format, so the provenance step is expected to fail until the workflow is corrected.
+
+## Intended design
+
+- Builds run in ephemeral GitHub Actions environments.
+- Build provenance is signed through Sigstore, with no long-lived signing key.
+- The SLSA verifier can confirm which source commit produced which binary.
+
+The sections below describe how verification is intended to work once a release produces provenance. The URLs refer to artefacts that do not exist yet.
 
 ## Verifying a release
 
